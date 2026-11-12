@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, type Gate, type Predict, type Scene } from "./api";
+import { fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, type City, type Gate, type Predict, type Scene } from "./api";
 import { MapView } from "./map/MapView";
 import type { MapRun } from "./map/playback";
 import { TrainSheet } from "./sheet/TrainSheet";
@@ -15,6 +15,7 @@ export function App() {
   const [gatesNote, setGatesNote] = useState<string | null>(null);
   const [loadingGates, setLoadingGates] = useState(false);
   const [predict, setPredict] = useState<Predict | null>(null);
+  const [checkedAt, setCheckedAt] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,7 @@ export function App() {
   const [spotName, setSpotName] = useState<string | null>(null);
   const [naming, setNaming] = useState(false);
   const [theme, setTheme] = useState<Theme>(readTheme);
+  const [cityLabel, setCityLabel] = useState<string | null>(null);
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -42,6 +44,7 @@ export function App() {
   }, []);
 
   const askPlace = useCallback((lat: number, lon: number, point: { x: number; y: number }) => {
+    setCityLabel(null);
     setSpotName(null);
     setNaming(true);
     setPending({ lat, lon, x: point.x, y: point.y });
@@ -53,6 +56,7 @@ export function App() {
       setPending(null);
       setPlace({ lat, lon });
       setPredict(null);
+      setCheckedAt(null);
       setError(null);
       setSelected(null);
       setScene(null);
@@ -66,9 +70,18 @@ export function App() {
     if (!pending || confirmLock.current) return;
     confirmLock.current = true;
     const next = pending;
+    setCityLabel(null);
     setPending(null);
     choosePlace(next.lat, next.lon);
   }, [pending, choosePlace]);
+
+  const pickCity = useCallback(
+    (city: City) => {
+      setCityLabel(`${city.name}, ${city.state}`);
+      choosePlace(city.lat, city.lon);
+    },
+    [choosePlace],
+  );
 
   useEffect(() => {
     if (!place) {
@@ -147,6 +160,7 @@ export function App() {
       setError("This browser cannot share a location. Tap the map instead.");
       return;
     }
+    setCityLabel(null);
     setLocating(true);
     setError(null);
     navigator.geolocation.getCurrentPosition(
@@ -168,6 +182,7 @@ export function App() {
     setError(null);
     try {
       setPredict(await fetchPredict(place.lat, place.lon));
+      setCheckedAt(Date.now());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not check trains.");
     } finally {
@@ -252,11 +267,14 @@ export function App() {
         error={error}
         note={gatesNote}
         predict={predict}
+        checkedAt={checkedAt}
         theme={theme}
+        cityLabel={cityLabel}
         onCheck={check}
         onLocate={locate}
         onTheme={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
         onSelect={openGate}
+        onCity={pickCity}
       />
       {pending ? (
         <div className="modal" role="dialog" aria-modal="true" aria-labelledby="place-title">

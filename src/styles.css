@@ -203,11 +203,67 @@ h2 {
   margin: 10px 0 0;
 }
 
+.city-search {
+  margin-top: 14px;
+}
+
+.city-search input {
+  width: 100%;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 11px 16px;
+}
+
+.city-search ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.city-search li + li {
+  margin-top: 2px;
+}
+
+.city-search li button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.city-search li button span:last-child {
+  color: var(--muted);
+}
+
+.city-search li button[aria-selected="true"] {
+  background: var(--line);
+}
+
+.city-search .quiet,
+.city-search .warn {
+  margin: 8px 0 0;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 14px;
+}
+
+.checked {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 button.solid,

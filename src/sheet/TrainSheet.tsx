@@ -1,6 +1,10 @@
-import type { Approach, Gate, Predict } from "../api";
+import { useEffect, useState } from "react";
+
+import type { Approach, City, Gate, Predict } from "../api";
 import { friendlyError } from "../api";
 import type { Theme } from "../theme";
+import { CitySearch } from "./CitySearch";
+import { checkedAgo } from "./checked";
 
 type Props = {
   place: { lat: number; lon: number } | null;
@@ -13,11 +17,14 @@ type Props = {
   error: string | null;
   note: string | null;
   predict: Predict | null;
+  checkedAt: number | null;
   theme: Theme;
+  cityLabel: string | null;
   onCheck: () => void;
   onLocate: () => void;
   onTheme: () => void;
   onSelect: (gate: Gate) => void;
+  onCity: (city: City) => void;
 };
 
 export function TrainSheet({
@@ -31,11 +38,14 @@ export function TrainSheet({
   error,
   note,
   predict,
+  checkedAt,
   theme,
+  cityLabel,
   onCheck,
   onLocate,
   onTheme,
   onSelect,
+  onCity,
 }: Props) {
   const ranked = [...gates].sort((a, b) => {
     const aHot = a.eta == null ? 1 : 0;
@@ -58,17 +68,8 @@ export function TrainSheet({
             {theme === "light" ? "Dark" : "Light"}
           </button>
         </div>
-        {!place ? (
-          <p className="lede">Highlighted lines are the railway. Tap the map where you are, or share your location.</p>
-        ) : loading ? (
-          <p className="lede">Looking up crossings…</p>
-        ) : note ? (
-          <p className="lede">Crossings for this place did not load.</p>
-        ) : (
-          <p className="lede">
-            {gateCount === 0 ? "No railway crossings on the map here." : `${gateCount} crossings on this map.`}
-          </p>
-        )}
+        <p className="lede">{lede(place, loading, note, gateCount, cityLabel)}</p>
+        <CitySearch onPick={onCity} />
         <div className="actions">
           <button type="button" className="ghost" onClick={onLocate}>
             {locating ? "Finding…" : "Use my location"}
@@ -77,6 +78,7 @@ export function TrainSheet({
             {busy ? "Checking…" : "Check trains"}
           </button>
         </div>
+        {checkedAt != null ? <CheckedAgo at={checkedAt} /> : null}
         {error ? <p className="warn">{friendlyError(error)}</p> : null}
         {note ? <p className="warn">{note}</p> : null}
       </div>
@@ -107,6 +109,32 @@ export function TrainSheet({
       </div>
     </aside>
   );
+}
+
+function CheckedAgo({ at }: { at: number }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 15000);
+    return () => window.clearInterval(id);
+  }, []);
+  return <p className="checked">{checkedAgo(at, now)}</p>;
+}
+
+function lede(
+  place: { lat: number; lon: number } | null,
+  loading: boolean,
+  note: string | null,
+  gateCount: number,
+  cityLabel: string | null,
+) {
+  if (!place) {
+    return "Highlighted lines are the railway. Search an Indian city, tap the map, or share your location.";
+  }
+  if (loading) return cityLabel ? `Looking up crossings in ${cityLabel}…` : "Looking up crossings…";
+  if (note) return "Crossings for this place did not load.";
+  const where = cityLabel ? `${cityLabel}. ` : "";
+  if (gateCount === 0) return `${where}No railway crossings on the map here.`;
+  return `${where}${gateCount} crossings on this map.`;
 }
 
 function PredictBody({ predict }: { predict: Predict }) {

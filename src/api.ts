@@ -94,6 +94,19 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export type City = {
+  name: string;
+  state: string;
+  lat: number;
+  lon: number;
+};
+
+export function fetchCities(query: string, signal?: AbortSignal): Promise<City[]> {
+  return getJson<{ cities?: City[] }>(`/api/cities?q=${encodeURIComponent(query)}`, signal).then(
+    (body) => body.cities ?? [],
+  );
+}
+
 export function fetchPlaceName(
   lat: number,
   lon: number,
