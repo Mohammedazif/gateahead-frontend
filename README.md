@@ -17,4 +17,4 @@ npm run build
 
 `dist/` is the static site. The Vite proxy exists only for `npm run dev`.
 
-Vercel forwards `/api` to the API and strips that prefix. In the Vercel project, set `API_ORIGIN` to the API origin with no trailing slash, for example `https://your-api.onrender.com`. The browser still calls `/api` on the site.
+Vercel forwards `/api` to `https://gateahead-api.onrender.com` and strips that prefix. The browser still calls `/api` on the site.
