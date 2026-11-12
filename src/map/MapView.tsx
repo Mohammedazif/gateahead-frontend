@@ -3,9 +3,16 @@ import type { Feature, FeatureCollection, Point } from "geojson";
 import maplibregl from "maplibre-gl";
 
 import type { Gate } from "../api";
+import indiaOutline from "../../../mobile/assets/india_outline.geojson";
+import railNetwork from "../../../mobile/assets/india_rail.geojson";
 import { frameAt, metresBetween, PLAY_SECONDS, type LngLat, type MapRun, type RunFrame } from "./playback";
 import { trainImage } from "./trainSprite";
 import { MAP_STYLE, type Theme } from "../theme";
+
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [68.17, 6.75],
+  [97.34, 35.5],
+];
 
 type Spot = { lat: number; lon: number };
 
@@ -51,8 +58,9 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     const map = new maplibregl.Map({
       container: node,
       style: styleRef.current,
-      center: [78.96, 20.59],
-      zoom: 4.2,
+      center: [79.6, 22.5],
+      zoom: 4.3,
+      minZoom: 3.2,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("styleimagemissing", (event) => {
@@ -61,6 +69,7 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     });
     let booted = false;
     const installOverlays = () => {
+      installNetwork(map);
       if (!map.getSource("gates")) {
         map.addSource("gates", { type: "geojson", data: emptyCollection() });
         map.addLayer({
@@ -190,7 +199,10 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
       applyYou(map, placeRef.current);
       applyThemePaint(map, themeRef.current);
       if (railRef.current && frameRef.current) paintPlay(map, railRef.current, frameRef.current);
-      else if (!booted) showPlace(map, placeRef.current, gatesRef.current);
+      else if (!booted) {
+        showPlace(map, placeRef.current, gatesRef.current);
+        if (!placeRef.current) frameIndia(map);
+      }
       booted = true;
     };
     map.on("load", installOverlays);
@@ -352,12 +364,80 @@ function applyThemePaint(map: maplibregl.Map, theme: Theme) {
   const light = theme === "light";
   const ink = light ? "#241910" : "#f7f1e6";
   const paper = light ? "#fffaf3" : "#f4efe6";
+  const rail = light ? "#b86a12" : "#e7a23a";
   if (map.getLayer("gates")) map.setPaintProperty("gates", "circle-stroke-color", ink);
   if (map.getLayer("you")) map.setPaintProperty("you", "circle-color", ink);
   if (map.getLayer("play-road")) map.setPaintProperty("play-road", "line-color", light ? "#8a6240" : "#8d7962");
-  if (map.getLayer("play-rail")) map.setPaintProperty("play-rail", "line-color", light ? "#b86a12" : "#e7a23a");
+  if (map.getLayer("play-rail")) map.setPaintProperty("play-rail", "line-color", rail);
   if (map.getLayer("play-bars-casing")) map.setPaintProperty("play-bars-casing", "line-color", paper);
   if (map.getLayer("play-posts")) map.setPaintProperty("play-posts", "circle-color", paper);
+  if (map.getLayer("india-outline")) {
+    map.setPaintProperty("india-outline", "line-color", light ? "#8a4e0d" : "#e7c89a");
+    map.setPaintProperty("india-outline", "line-opacity", light ? 0.55 : 0.72);
+  }
+  if (map.getLayer("india-rail-glow")) {
+    map.setPaintProperty("india-rail-glow", "line-color", rail);
+    map.setPaintProperty("india-rail-glow", "line-opacity", light ? 0.22 : 0.42);
+  }
+  if (map.getLayer("india-rail")) map.setPaintProperty("india-rail", "line-color", rail);
+  for (const layer of map.getStyle()?.layers ?? []) {
+    if (!layer.id.startsWith("railway") || layer.type !== "line") continue;
+    if (layer.id.includes("dash")) {
+      map.setLayoutProperty(layer.id, "visibility", "none");
+      continue;
+    }
+    map.setLayerZoomRange(layer.id, 7, 24);
+    map.setPaintProperty(layer.id, "line-color", rail);
+    map.setPaintProperty(layer.id, "line-width", ["interpolate", ["linear"], ["zoom"], 7, 1.6, 12, 3, 16, 5]);
+    map.setLayoutProperty(layer.id, "line-cap", "round");
+    map.setLayoutProperty(layer.id, "line-join", "round");
+  }
+}
+
+function frameIndia(map: maplibregl.Map) {
+  const camera = map.cameraForBounds(INDIA_BOUNDS, {
+    padding: { top: 36, right: 64, bottom: 28, left: 28 },
+  });
+  if (!camera || camera.zoom == null) return;
+  map.jumpTo({ center: camera.center, zoom: Math.max(camera.zoom, 4.15) });
+}
+
+function installNetwork(map: maplibregl.Map) {
+  if (map.getSource("india-rail")) return;
+  map.addSource("india-outline", { type: "geojson", data: indiaOutline });
+  map.addSource("india-rail", { type: "geojson", data: railNetwork });
+  map.addLayer({
+    id: "india-outline",
+    type: "line",
+    source: "india-outline",
+    maxzoom: 9,
+    paint: { "line-color": "#e7c89a", "line-width": 1.25, "line-opacity": 0.72 },
+  });
+  map.addLayer({
+    id: "india-rail-glow",
+    type: "line",
+    source: "india-rail",
+    maxzoom: 10,
+    paint: {
+      "line-color": "#e7a23a",
+      "line-width": ["interpolate", ["linear"], ["zoom"], 3, 5, 6, 8, 9, 12],
+      "line-opacity": 0.42,
+      "line-blur": 1.2,
+    },
+    layout: { "line-cap": "round", "line-join": "round" },
+  });
+  map.addLayer({
+    id: "india-rail",
+    type: "line",
+    source: "india-rail",
+    maxzoom: 10,
+    paint: {
+      "line-color": "#e7a23a",
+      "line-width": ["interpolate", ["linear"], ["zoom"], 3, 1.6, 5, 2.4, 8, 3.4],
+      "line-opacity": 0.95,
+    },
+    layout: { "line-cap": "round", "line-join": "round" },
+  });
 }
 
 function fallbackSprite(id: string): { width: number; height: number; data: Uint8Array } {

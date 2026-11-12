@@ -2,7 +2,16 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "geojson",
+      transform(code, id) {
+        if (!id.split("?")[0].endsWith(".geojson")) return;
+        return { code: `export default ${code}`, map: null };
+      },
+    },
+  ],
   server: {
     port: 5173,
     proxy: {

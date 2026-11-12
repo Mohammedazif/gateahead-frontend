@@ -1,6 +1,7 @@
 export type Theme = "dark" | "light";
 
-const KEY = "smartrail-theme";
+const KEY = "gateahead-theme";
+const LEGACY_KEY = "smartrail-theme";
 
 export const MAP_STYLE: Record<Theme, string> = {
   dark: "https://tiles.openfreemap.org/styles/dark",
@@ -10,7 +11,8 @@ export const MAP_STYLE: Record<Theme, string> = {
 export function readTheme(): Theme {
   let theme: Theme = "dark";
   try {
-    if (localStorage.getItem(KEY) === "light") theme = "light";
+    const saved = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY);
+    if (saved === "light") theme = "light";
   } catch {
     theme = "dark";
   }
@@ -22,6 +24,7 @@ export function applyTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
   try {
     localStorage.setItem(KEY, theme);
+    localStorage.removeItem(LEGACY_KEY);
   } catch {
     // Storage can be blocked. The toggle still applies for this visit.
   }

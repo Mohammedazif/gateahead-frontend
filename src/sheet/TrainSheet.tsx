@@ -52,14 +52,14 @@ export function TrainSheet({
         <div className="sheet-title">
           <div>
             <p className="eyebrow">Crossings</p>
-            <h1>SmartRail</h1>
+            <h1>GateAhead</h1>
           </div>
           <button type="button" className="ghost theme-toggle" onClick={onTheme}>
             {theme === "light" ? "Dark" : "Light"}
           </button>
         </div>
         {!place ? (
-          <p className="lede">Share where you are, or tap the map. The crossings around that point come up next.</p>
+          <p className="lede">Highlighted lines are the railway. Tap the map where you are, or share your location.</p>
         ) : loading ? (
           <p className="lede">Looking up crossings…</p>
         ) : note ? (
