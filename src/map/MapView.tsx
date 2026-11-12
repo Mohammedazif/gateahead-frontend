@@ -3,8 +3,8 @@ import type { Feature, FeatureCollection, Point } from "geojson";
 import maplibregl from "maplibre-gl";
 
 import type { Gate } from "../api";
-import indiaOutline from "../../../mobile/assets/india_outline.geojson";
-import railNetwork from "../../../mobile/assets/india_rail.geojson";
+import indiaOutline from "./india_outline.geojson";
+import railNetwork from "./india_rail.geojson";
 import { frameAt, metresBetween, PLAY_SECONDS, type LngLat, type MapRun, type RunFrame } from "./playback";
 import { trainImage } from "./trainSprite";
 import { MAP_STYLE, type Theme } from "../theme";
