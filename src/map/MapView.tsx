@@ -61,7 +61,10 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
       center: [79.6, 22.5],
       zoom: 4.3,
       minZoom: 3.2,
+      attributionControl: false,
     });
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(node);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("styleimagemissing", (event) => {
       if (map.hasImage(event.id)) return;
@@ -229,6 +232,7 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     });
     mapRef.current = map;
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
     };

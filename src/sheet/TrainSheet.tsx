@@ -47,6 +47,7 @@ export function TrainSheet({
   onSelect,
   onCity,
 }: Props) {
+  const [expanded, setExpanded] = useState(false);
   const ranked = [...gates].sort((a, b) => {
     const aHot = a.eta == null ? 1 : 0;
     const bHot = b.eta == null ? 1 : 0;
@@ -57,7 +58,17 @@ export function TrainSheet({
   const hot = ranked.filter((gate) => gate.eta != null);
   const shown = [...hot, ...ranked.filter((gate) => gate.eta == null).slice(0, 12)];
   return (
-    <aside className="sheet">
+    <aside className={`sheet${expanded ? " sheet-expanded" : ""}`} aria-label="Trains and crossings">
+      <button
+        type="button"
+        className="sheet-resize"
+        aria-label={expanded ? "Show more map" : "Expand trains and gates"}
+        aria-expanded={expanded}
+        aria-controls="train-sheet-content"
+        onClick={() => setExpanded((current) => !current)}
+      >
+        <span className="sheet-grip" aria-hidden="true" />
+      </button>
       <div className="sheet-head">
         <div className="sheet-title">
           <div>
@@ -68,6 +79,8 @@ export function TrainSheet({
             {theme === "light" ? "Dark" : "Light"}
           </button>
         </div>
+      </div>
+      <div className="sheet-body" id="train-sheet-content">
         <p className="lede">{lede(place, loading, note, gateCount, cityLabel)}</p>
         <CitySearch onPick={onCity} />
         <div className="actions">
@@ -81,31 +94,32 @@ export function TrainSheet({
         {checkedAt != null ? <CheckedAgo at={checkedAt} /> : null}
         {error ? <p className="warn">{friendlyError(error)}</p> : null}
         {note ? <p className="warn">{note}</p> : null}
-      </div>
-      <div className="sheet-body">
-      {predict ? <PredictBody predict={predict} /> : null}
-      {shown.length > 0 ? (
-        <div className="gates">
-          <p className="eyebrow">On the map</p>
-          <ul>
-            {shown.map((gate) => (
-              <li key={gate.id}>
-                <button
-                  type="button"
-                  className={gate.eta != null ? "hot" : undefined}
-                  aria-pressed={gate.id === selectedId}
-                  onClick={() => onSelect(gate)}
-                >
-                  <span>{gate.name || "Level crossing"}</span>
-                  <span>{gate.eta != null ? etaLabel(gate.eta) : `${gate.km.toFixed(1)} km`}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          {gates.length > shown.length ? <p className="quiet">The rest are marked on the map.</p> : null}
-        </div>
-      ) : null}
-      <p className="hint">Tap a crossing to watch the train on the map. Nothing is sent unless you ask.</p>
+        {predict ? <PredictBody predict={predict} /> : null}
+        {shown.length > 0 ? (
+          <div className="gates">
+            <p className="eyebrow">On the map</p>
+            <ul>
+              {shown.map((gate) => (
+                <li key={gate.id}>
+                  <button
+                    type="button"
+                    className={gate.eta != null ? "hot" : undefined}
+                    aria-pressed={gate.id === selectedId}
+                    onClick={() => {
+                      setExpanded(false);
+                      onSelect(gate);
+                    }}
+                  >
+                    <span>{gate.name || "Level crossing"}</span>
+                    <span>{gate.eta != null ? etaLabel(gate.eta) : `${gate.km.toFixed(1)} km`}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {gates.length > shown.length ? <p className="quiet">The rest are marked on the map.</p> : null}
+          </div>
+        ) : null}
+        <p className="hint">Tap a crossing to watch the train on the map. Nothing is sent unless you ask.</p>
       </div>
     </aside>
   );
