@@ -6,7 +6,7 @@ import type { MapRun } from "./map/playback";
 import { TrainSheet } from "./sheet/TrainSheet";
 import { applyTheme, readTheme, type Theme } from "./theme";
 
-type Place = { lat: number; lon: number };
+type Place = { lat: number; lon: number; label?: string };
 type Press = Place & { x: number; y: number };
 
 export function App() {
@@ -27,7 +27,7 @@ export function App() {
   const [spotName, setSpotName] = useState<string | null>(null);
   const [naming, setNaming] = useState(false);
   const [theme, setTheme] = useState<Theme>(readTheme);
-  const [cityLabel, setCityLabel] = useState<string | null>(null);
+  const [placeLabel, setPlaceLabel] = useState<string | null>(null);
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -44,17 +44,18 @@ export function App() {
   }, []);
 
   const askPlace = useCallback((lat: number, lon: number, point: { x: number; y: number }) => {
-    setCityLabel(null);
     setSpotName(null);
     setNaming(true);
     setPending({ lat, lon, x: point.x, y: point.y });
   }, []);
 
   const choosePlace = useCallback(
-    (lat: number, lon: number) => {
+    (lat: number, lon: number, label?: string | null) => {
       sceneTicket.current += 1;
+      const knownLabel = label?.trim() || undefined;
       setPending(null);
-      setPlace({ lat, lon });
+      setPlace({ lat, lon, label: knownLabel });
+      setPlaceLabel(knownLabel ?? formatSpot(lat, lon));
       setPredict(null);
       setCheckedAt(null);
       setError(null);
@@ -70,18 +71,29 @@ export function App() {
     if (!pending || confirmLock.current) return;
     confirmLock.current = true;
     const next = pending;
-    setCityLabel(null);
-    setPending(null);
-    choosePlace(next.lat, next.lon);
-  }, [pending, choosePlace]);
+    choosePlace(next.lat, next.lon, spotName);
+  }, [pending, spotName, choosePlace]);
 
   const pickCity = useCallback(
     (city: City) => {
-      setCityLabel(`${city.name}, ${city.state}`);
-      choosePlace(city.lat, city.lon);
+      choosePlace(city.lat, city.lon, `${city.name}, ${city.state}`);
     },
     [choosePlace],
   );
+
+  useEffect(() => {
+    if (!place || place.label) return;
+    const ctrl = new AbortController();
+    fetchPlaceName(place.lat, place.lon, ctrl.signal)
+      .then((body) => {
+        const name = body.name?.trim();
+        if (!ctrl.signal.aborted && name) setPlaceLabel(name);
+      })
+      .catch(() => {
+        // Keep the coordinates when the place name is unavailable.
+      });
+    return () => ctrl.abort();
+  }, [place]);
 
   useEffect(() => {
     if (!place) {
@@ -160,7 +172,6 @@ export function App() {
       setError("This browser cannot share a location. Tap the map instead.");
       return;
     }
-    setCityLabel(null);
     setLocating(true);
     setError(null);
     navigator.geolocation.getCurrentPosition(
@@ -269,7 +280,7 @@ export function App() {
         predict={predict}
         checkedAt={checkedAt}
         theme={theme}
-        cityLabel={cityLabel}
+        placeLabel={placeLabel}
         onCheck={check}
         onLocate={locate}
         onTheme={() => setTheme((current) => (current === "light" ? "dark" : "light"))}

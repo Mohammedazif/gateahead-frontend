@@ -1,0 +1,75 @@
+{
+  "name": "GateAhead Crossing Pin",
+  "version": "1.0",
+  "selected_concept": 3,
+  "colors": {
+    "amber": "#E7A23A",
+    "charcoal": "#14181B",
+    "ivory": "#F4EFE6"
+  },
+  "sizes": [
+    16,
+    20,
+    24,
+    29,
+    32,
+    36,
+    40,
+    48,
+    57,
+    58,
+    60,
+    64,
+    72,
+    76,
+    80,
+    87,
+    96,
+    114,
+    120,
+    128,
+    144,
+    152,
+    167,
+    180,
+    192,
+    256,
+    384,
+    512,
+    1024,
+    2048,
+    4096
+  ],
+  "variants": [
+    {
+      "name": "gateahead-mark-on-light",
+      "background": "#F4EFE6",
+      "purpose": "Charcoal and amber mark for light backgrounds"
+    },
+    {
+      "name": "gateahead-mark-on-dark",
+      "background": "#14181B",
+      "purpose": "Amber and ivory mark for dark backgrounds"
+    },
+    {
+      "name": "gateahead-mark-black",
+      "background": "#FFFFFF",
+      "purpose": "Single-color black mark"
+    },
+    {
+      "name": "gateahead-mark-white",
+      "background": "#14181B",
+      "purpose": "Single-color white mark"
+    },
+    {
+      "name": "gateahead-icon-rounded",
+      "background": "#14181B",
+      "purpose": "Rounded icon with transparent corners"
+    },
+    {
+      "name": "gateahead-icon-square",
+      "background": "#14181B",
+      "purpose": "Opaque square icon for stores and operating-system masks"
+    }
+  ]
+}

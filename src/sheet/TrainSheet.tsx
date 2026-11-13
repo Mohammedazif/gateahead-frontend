@@ -19,7 +19,7 @@ type Props = {
   predict: Predict | null;
   checkedAt: number | null;
   theme: Theme;
-  cityLabel: string | null;
+  placeLabel: string | null;
   onCheck: () => void;
   onLocate: () => void;
   onTheme: () => void;
@@ -40,7 +40,7 @@ export function TrainSheet({
   predict,
   checkedAt,
   theme,
-  cityLabel,
+  placeLabel,
   onCheck,
   onLocate,
   onTheme,
@@ -71,9 +71,18 @@ export function TrainSheet({
       </button>
       <div className="sheet-head">
         <div className="sheet-title">
-          <div>
-            <p className="eyebrow">Crossings</p>
-            <h1>GateAhead</h1>
+          <div className="brand">
+            <img
+              className="brand-mark"
+              src={`/branding/gateahead-mark-${theme}.svg`}
+              width="40"
+              height="48"
+              alt=""
+            />
+            <div className="brand-copy">
+              <p className="eyebrow">Crossings</p>
+              <h1>GateAhead</h1>
+            </div>
           </div>
           <button type="button" className="ghost theme-toggle" onClick={onTheme}>
             {theme === "light" ? "Dark" : "Light"}
@@ -81,7 +90,7 @@ export function TrainSheet({
         </div>
       </div>
       <div className="sheet-body" id="train-sheet-content">
-        <p className="lede">{lede(place, loading, note, gateCount, cityLabel)}</p>
+        <p className="lede">{lede(place, loading, note, gateCount, placeLabel)}</p>
         <CitySearch onPick={onCity} />
         <div className="actions">
           <button type="button" className="ghost" onClick={onLocate}>
@@ -139,16 +148,16 @@ function lede(
   loading: boolean,
   note: string | null,
   gateCount: number,
-  cityLabel: string | null,
+  placeLabel: string | null,
 ) {
   if (!place) {
     return "Highlighted lines are the railway. Search an Indian city, tap the map, or share your location.";
   }
-  if (loading) return cityLabel ? `Looking up crossings in ${cityLabel}…` : "Looking up crossings…";
-  if (note) return "Crossings for this place did not load.";
-  const where = cityLabel ? `${cityLabel}. ` : "";
+  if (loading) return placeLabel ? `Looking up crossings in ${placeLabel}…` : "Looking up crossings…";
+  const where = placeLabel ? `${placeLabel} · ` : "";
+  if (note) return `${where}Crossings for this place did not load.`;
   if (gateCount === 0) return `${where}No railway crossings on the map here.`;
-  return `${where}${gateCount} crossings on this map.`;
+  return `${where}${gateCount} ${gateCount === 1 ? "crossing" : "crossings"} on this map.`;
 }
 
 function PredictBody({ predict }: { predict: Predict }) {

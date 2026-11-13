@@ -198,6 +198,29 @@ button {
   min-width: 0;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  flex: none;
+  object-fit: contain;
+}
+
+.brand-copy {
+  min-width: 0;
+}
+
+.brand h1 {
+  font-family: Outfit, sans-serif;
+  font-size: clamp(1.65rem, 7.5vw, 2rem);
+  font-weight: 640;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
 .theme-toggle {
   flex: none;
   margin-top: 6px;

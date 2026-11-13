@@ -1,0 +1,4913 @@
+{
+  "name": "GateAhead Crossing Pin",
+  "version": "1.0",
+  "selected_concept": 3,
+  "colors": {
+    "amber": "#E7A23A",
+    "charcoal": "#14181B",
+    "ivory": "#F4EFE6"
+  },
+  "size_measure": "longest edge in pixels; aspect ratio preserved",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4802,
+      "sha256": "5bec5f12b08e6ffeecd30881a8ac1cca40cfbcc264c50ac74affdf1db9f4d09a"
+    },
+    {
+      "path": "eps/gateahead-icon-rounded.eps",
+      "bytes": 22985,
+      "sha256": "9bbe3d95315767a27d67c39caa8252ca033ef0a990db1a3bf61865bacc3f38ca"
+    },
+    {
+      "path": "eps/gateahead-icon-square.eps",
+      "bytes": 19168,
+      "sha256": "2b6b0f012efe0d70b05d531d7406df9f47b3061f9e7631838bf1d318202e6343"
+    },
+    {
+      "path": "eps/gateahead-mark-black.eps",
+      "bytes": 20927,
+      "sha256": "b26a0153e9fbc4e88914b7bfa37a1111cf9ef1d580f71e54686ecbe82f049401"
+    },
+    {
+      "path": "eps/gateahead-mark-on-dark.eps",
+      "bytes": 21075,
+      "sha256": "09ecae12c2530b8b48a515ad292514d79004c9f6d77c8fd6a4177f89af0bbd83"
+    },
+    {
+      "path": "eps/gateahead-mark-on-light.eps",
+      "bytes": 21073,
+      "sha256": "d279f79f157a16482f741a52ce74ba2172d0a8260e7db3b9d684e7e019dddbe8"
+    },
+    {
+      "path": "eps/gateahead-mark-white.eps",
+      "bytes": 20987,
+      "sha256": "30c4140158acbe6dd4e513a238c5444919a294038d3d73a322d9d0c209e3195e"
+    },
+    {
+      "path": "export-config.json",
+      "bytes": 1324,
+      "sha256": "e7fa268888d7aba6568be04d4b948602caebb91d09246a6c6b84b3419a40aaca"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-1024x1024.jpg",
+      "bytes": 83830,
+      "sha256": "2c5486a73900a2ff7cec44e75f8f530bd477676c2096841328514441af925238",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-114x114.jpg",
+      "bytes": 6747,
+      "sha256": "265ea2e1a635fc0461936a8119dd37ef2b0880f2e934d5e63edf0a921674d16e",
+      "width": 114,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-120x120.jpg",
+      "bytes": 7172,
+      "sha256": "4ec39a1cf39cf4f38e5941de031d3c0f9a360823c5d9d17908788d35f741b2e5",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-128x128.jpg",
+      "bytes": 7138,
+      "sha256": "6a19ed56ce5e92fd01acab17a7cd7a8c245285f5f5c1eb41a037e457e4cccf72",
+      "width": 128,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-144x144.jpg",
+      "bytes": 8165,
+      "sha256": "883d9fdc63e6267db69602c686743bff1ec85e22720340a7ad1f76175f16414e",
+      "width": 144,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-152x152.jpg",
+      "bytes": 9024,
+      "sha256": "90fd56d5ecfaa63e48c7b4ebbe5a4ac8878ef75dda2ede0df895a0d2b3e9e6ac",
+      "width": 152,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-167x167.jpg",
+      "bytes": 9762,
+      "sha256": "b88fe0f0d4167da293e01e1b4de4787ef1bbd2af0e25f7d460362120a737317a",
+      "width": 167,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-16x16.jpg",
+      "bytes": 1071,
+      "sha256": "d99726d16dc1e3b292f6360e5d4b87b42d13f34c86dbf0b2b5c3f580ba24a757",
+      "width": 16,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-180x180.jpg",
+      "bytes": 10919,
+      "sha256": "f47ea08c1a1938800e995b508d979abd0e6b67ea60970952e6348b3db377b4bb",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-192x192.jpg",
+      "bytes": 11435,
+      "sha256": "6ed0c380d33fb21ffac065dbb2fd8db2d7c8e3b5626eee8b3835f697c8abf2b9",
+      "width": 192,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-2048x2048.jpg",
+      "bytes": 221895,
+      "sha256": "5ec41efd8af12c9b3883b71f8617f9eef2cb5bc55d664e552b348f9173e0348e",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-20x20.jpg",
+      "bytes": 1206,
+      "sha256": "6d2750ccfefa0e918cf8a24b3e7d6953c0198e9548f310a278dc5fcd852cc686",
+      "width": 20,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-24x24.jpg",
+      "bytes": 1404,
+      "sha256": "9b42fe6a29a65fac29ed70aacd6c283c63574bf48bc55f0b3dcc372202305c01",
+      "width": 24,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-256x256.jpg",
+      "bytes": 15552,
+      "sha256": "efe3f78268a479535ad75e5538f3b1c1d467c3d5fe568ab66ae9861c98e04569",
+      "width": 256,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-29x29.jpg",
+      "bytes": 1597,
+      "sha256": "2b49c6c5da3026e572e246965ecf4fdcc820cf95c98fe52096c15a54692269eb",
+      "width": 29,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-32x32.jpg",
+      "bytes": 1799,
+      "sha256": "a9e5affe414287beb0172477638067de8d48413238ef138832f8f14e21d6c0d2",
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-36x36.jpg",
+      "bytes": 1984,
+      "sha256": "80ac5444967d4b31cc9b5191a0db24b231ae31964204b9aaae5b649dbaa26349",
+      "width": 36,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-384x384.jpg",
+      "bytes": 24162,
+      "sha256": "7a0ae5609013c2930d48e02cec57c12995de5ef27c77456e872557cd3526ba57",
+      "width": 384,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-4096x4096.jpg",
+      "bytes": 671368,
+      "sha256": "3475f64f72575c9dce791d360fc6eb8ec08da4807180525fc01f266df2fd95c2",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-40x40.jpg",
+      "bytes": 2065,
+      "sha256": "b09d66a0f36c5e6bdec6616f51373dc984f2c8b4315952eb9e02dbf0706e0b9c",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-48x48.jpg",
+      "bytes": 2458,
+      "sha256": "aa96f6edeef681304555bf67b62eac5663a0df6e89982497554018b3d78f1f2c",
+      "width": 48,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-512x512.jpg",
+      "bytes": 34977,
+      "sha256": "72964b428e902677011e2b07e494257a7892ebedc58793149bcf37a9d53e4a3f",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-57x57.jpg",
+      "bytes": 3019,
+      "sha256": "cc4329a35c5f2877a6eca585cd0527a966467ec4d3fe5d39f455501200882f11",
+      "width": 57,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-58x58.jpg",
+      "bytes": 2937,
+      "sha256": "4a6339267ea6ceb0322541e4a5c9982cc74b6241226f69d76fdbe8f69dfbbf4d",
+      "width": 58,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-60x60.jpg",
+      "bytes": 3193,
+      "sha256": "a9defe943d8f840d6dffc07187489cb2d725ed20165ffb548e87cd79c5ca045a",
+      "width": 60,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-64x64.jpg",
+      "bytes": 3152,
+      "sha256": "eaa73656c5c60e0d9dae75175becb7c357db48eb8dfa46abb983d6fbf037b266",
+      "width": 64,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-72x72.jpg",
+      "bytes": 3872,
+      "sha256": "389ee07d15d19fdde82c9e22984dd1b2dc9e43d6642e14a052077a2fbe6c1815",
+      "width": 72,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-76x76.jpg",
+      "bytes": 4121,
+      "sha256": "2c269a9c0ef80dfa916a42ad3601777b66b609275ccc4fc8394bc82798c4abda",
+      "width": 76,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-80x80.jpg",
+      "bytes": 4329,
+      "sha256": "144e071609c08d669edea2ff4e91616ead45727bdb99627bb640ff20529290cb",
+      "width": 80,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-87x87.jpg",
+      "bytes": 4759,
+      "sha256": "53677371c722ce116aef05e5af3019f0d4daab1c86864a9a605073c182226c98",
+      "width": 87,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-rounded/gateahead-icon-rounded-96x96.jpg",
+      "bytes": 5398,
+      "sha256": "c030526e08da8b0425ae7edc229ba0b7889bc321baea209eaf4a0194e19ba14a",
+      "width": 96,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-1024x1024.jpg",
+      "bytes": 83689,
+      "sha256": "559712eb97ac3a0842b42bbc42e86628b721c993954873a4a0d7c26fd9ac2ff9",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-114x114.jpg",
+      "bytes": 6712,
+      "sha256": "c17007c73e3355be50d180cbf0c54c15f9c2340b102bffe87a8e155c411b2fdd",
+      "width": 114,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-120x120.jpg",
+      "bytes": 7166,
+      "sha256": "c6e8af23d0b2e27257250f7bc116058d7b92beeff0acd1a4e267ad4be3146cad",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-128x128.jpg",
+      "bytes": 7141,
+      "sha256": "a6183cc52fb0362c5d0d29640c5a351a2dad97e48b4aa467f629cc9af7dedf70",
+      "width": 128,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-144x144.jpg",
+      "bytes": 8152,
+      "sha256": "d766a89b9aa90a39b2d907a30120e373751b9a5fddcbbb65fd97034f2998d2af",
+      "width": 144,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-152x152.jpg",
+      "bytes": 8992,
+      "sha256": "2e52b43b4eb9298212c72d336fd6fdb4ccc004817df08d01e20922bd83ccae21",
+      "width": 152,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-167x167.jpg",
+      "bytes": 9726,
+      "sha256": "e7cfc94d75c055fd6365d1f207a5e1afb53e09e94130fcb2b5078afe96111b94",
+      "width": 167,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-16x16.jpg",
+      "bytes": 1071,
+      "sha256": "55e67df31de0fca170494d8620f1ed46d939e008cb2d0be16090cb3495676f95",
+      "width": 16,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-180x180.jpg",
+      "bytes": 10875,
+      "sha256": "b45a5a17a952e4852bca04020ef9576ce63ca1754c0b0ee550467e26f97601bd",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-192x192.jpg",
+      "bytes": 11412,
+      "sha256": "387e0852d66750c54e6b8ba78c97732c1deb10178cbc8b7b5859f6b8bee63ea4",
+      "width": 192,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-2048x2048.jpg",
+      "bytes": 221653,
+      "sha256": "c85df0757201e42a116f6621037abf42594d3d3458d9c2c55afa1ca5bd334bb4",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-20x20.jpg",
+      "bytes": 1201,
+      "sha256": "1340b0998173a7aac35dc41cd62697ce7548e785a1048ce8c7a5457d6c8c223a",
+      "width": 20,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-24x24.jpg",
+      "bytes": 1406,
+      "sha256": "a26ef2e34dc5c9008220a46589841ae8fd969fc062f7288daab94ae3b3a01933",
+      "width": 24,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-256x256.jpg",
+      "bytes": 15522,
+      "sha256": "691c4cc3bf368c79c9c0701216434005860a535319a2c289887e99a4096b03d2",
+      "width": 256,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-29x29.jpg",
+      "bytes": 1594,
+      "sha256": "3c1f4e5e23831483c1ea293e4493826073a04b11261a5125d42eb2b338ee62cb",
+      "width": 29,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-32x32.jpg",
+      "bytes": 1797,
+      "sha256": "91290b4d4afc06dcd8005d186c52f56f45a0dc63e953b2f910dd66b9d81fa77f",
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-36x36.jpg",
+      "bytes": 1966,
+      "sha256": "fa262780e9189785a6eceacd5d2c30ea994dfcd6c5ea3a72172c00cb85bbc957",
+      "width": 36,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-384x384.jpg",
+      "bytes": 24149,
+      "sha256": "b30eecbaa841730963768873e0f9b56cb119b797cefb949784685aa2cdaf908e",
+      "width": 384,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-4096x4096.jpg",
+      "bytes": 670964,
+      "sha256": "029d0aafc20d0d8c99decbf5b0c50a138a321aaf03ea45b3b435a200a3e6b60e",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-40x40.jpg",
+      "bytes": 2052,
+      "sha256": "3299efdcefd3331dab888261ca3826821e3076f7e73a62416db40e65312ff036",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-48x48.jpg",
+      "bytes": 2449,
+      "sha256": "8d341009590e7f14a35812dc815c41dec3a3dca8cffa8d5f74066c7448f9ece5",
+      "width": 48,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-512x512.jpg",
+      "bytes": 34938,
+      "sha256": "da7dc4cf489be40ae2a4b71728e92e7be2cc26169f22f65daa32ae0d7158ef42",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-57x57.jpg",
+      "bytes": 2999,
+      "sha256": "120348a5145afe1901922b770b507f8ba7387873bbde3d69f86190c04c5b72d6",
+      "width": 57,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-58x58.jpg",
+      "bytes": 2914,
+      "sha256": "1358509ec1e904d8027413fb7baea285b909f2a2236d24565fbf519e983d8925",
+      "width": 58,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-60x60.jpg",
+      "bytes": 3180,
+      "sha256": "552104ea4127c1543a23e67a5b16179a0e0eba6ece56ad3144dfb959232c9ede",
+      "width": 60,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-64x64.jpg",
+      "bytes": 3146,
+      "sha256": "f2c138124c3d34c7b09ca754c9410b4376f2051704ddb733e32a4d4b2befbd53",
+      "width": 64,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-72x72.jpg",
+      "bytes": 3853,
+      "sha256": "9cb40c33e5d710812360467d2d1584b9a997c50e7720f3c1e183773de643fc91",
+      "width": 72,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-76x76.jpg",
+      "bytes": 4109,
+      "sha256": "9f1dcc19673435c1d9f62159cbe19ea839704d2ff7f0b56531cbea0ae4a2f31c",
+      "width": 76,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-80x80.jpg",
+      "bytes": 4322,
+      "sha256": "02d55e66285684994c91e16fcbf0a451dd7badaac3b0cfae3feff01a6770a2d7",
+      "width": 80,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-87x87.jpg",
+      "bytes": 4742,
+      "sha256": "38fe1c2c8a8715a36c79f9d2f0c93ff5f8bbd529199860cb7c834a2504e6860a",
+      "width": 87,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-icon-square/gateahead-icon-square-96x96.jpg",
+      "bytes": 5385,
+      "sha256": "ff6cd214f1d90813753727b85868472939edab3341b7b6bb33054726bbcf0ea5",
+      "width": 96,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-106x128.jpg",
+      "bytes": 6429,
+      "sha256": "d3f24a343103c20a6b1c5010a8c89a6f0e159a85e7a7572b4790ffc0b91fa56d",
+      "width": 106,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-119x144.jpg",
+      "bytes": 7181,
+      "sha256": "7a4c0eb2569d2415a1fb9e69f827743bf3b4ac1dbd54cd4cb8637897dc3e6567",
+      "width": 119,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-126x152.jpg",
+      "bytes": 7487,
+      "sha256": "159fc413579faa309060f02eb59869956a3dc69364fd73709f44cef02edff431",
+      "width": 126,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-138x167.jpg",
+      "bytes": 8475,
+      "sha256": "9edcc47feee5bca627a459c5d0743dc5bc7fe9717a943ac7062a9f925290204a",
+      "width": 138,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-13x16.jpg",
+      "bytes": 897,
+      "sha256": "274747450871f1cae71b5a42fefaa6f8aaeb5b44e428a4f642f4d1593a6f53ba",
+      "width": 13,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-149x180.jpg",
+      "bytes": 9071,
+      "sha256": "841aed914ae370ead718ca97b16e9161719be480578cf83cdbebaf1e48f1a2d5",
+      "width": 149,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-159x192.jpg",
+      "bytes": 9611,
+      "sha256": "6b0aa4cb926de9cf42c3597a883203d7962e0cce612f4e84ebdffed9d172885b",
+      "width": 159,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-1695x2048.jpg",
+      "bytes": 180379,
+      "sha256": "cbac1a11a6ac057fb45ff58735def6d36e93a99157d207106abc5e8903ba8924",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-17x20.jpg",
+      "bytes": 1053,
+      "sha256": "1d9869c1d9cb625dcb15a4fd8a559911088c6028e65f3e46cf3844f328191379",
+      "width": 17,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-20x24.jpg",
+      "bytes": 1188,
+      "sha256": "2c9e339aeece74f8604c0406d5d9a91235b1b3e83ede98db65aa336daacc3a10",
+      "width": 20,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-212x256.jpg",
+      "bytes": 13109,
+      "sha256": "4fd9b1e3e3d74622b271539a511f980aae4537d51a83af98c0e47cde6661b362",
+      "width": 212,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-24x29.jpg",
+      "bytes": 1311,
+      "sha256": "a3fab35eaeac30663eee390a1cba7a382b7598439bac1537ba033aa74202c6f3",
+      "width": 24,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-26x32.jpg",
+      "bytes": 1460,
+      "sha256": "540ccb8ac53ae53727bfa1e08f2c4b7f1ddbae6aa3af1e04ae37c1734bf485c0",
+      "width": 26,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-30x36.jpg",
+      "bytes": 1692,
+      "sha256": "4a115d491bc3f2c26f78bbee0580a54fe37cb3120e22f7b1100bb70ea0ad94fe",
+      "width": 30,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-318x384.jpg",
+      "bytes": 20338,
+      "sha256": "20e92efc5bd30386d8dd6ef575b113bc32f34460b951ad7d829d5117ec75fcfc",
+      "width": 318,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-3390x4096.jpg",
+      "bytes": 550755,
+      "sha256": "19959bb095e45fede44e073e50f01217851e126881e6357da4bb66dd3cc1c4a1",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-33x40.jpg",
+      "bytes": 1735,
+      "sha256": "715f74d83f846a8071ce24cadb35b6f09b96a2b0e42d1251d1022ae621455edf",
+      "width": 33,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-40x48.jpg",
+      "bytes": 2094,
+      "sha256": "30de110af5bbb690be7922cbb460d08bd8abc1e6edb95b3fe68299595a0a0e6b",
+      "width": 40,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-424x512.jpg",
+      "bytes": 28130,
+      "sha256": "c4793ac4b7cc89cdf777f88bf2c268ed4f0e58077d782a62231127609b7388e3",
+      "width": 424,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-47x57.jpg",
+      "bytes": 2564,
+      "sha256": "5aa781f2aca9178ce0998eb590d3c55ea61aa50a0944d770d162ef8f5e436b31",
+      "width": 47,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-48x58.jpg",
+      "bytes": 2747,
+      "sha256": "f7c6070b55e0bbf65a047666028a67dc851a79ba2e5ba78f8a2fd40f090725c8",
+      "width": 48,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-50x60.jpg",
+      "bytes": 2923,
+      "sha256": "50a079670bdb43df76e410fd9028c48dad96a7ef21ea5cdcb8725b49d5adf007",
+      "width": 50,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-53x64.jpg",
+      "bytes": 3068,
+      "sha256": "6d34ba7a571873432ff15edf16d243a788945ce6bea83e4898a40836a27d675b",
+      "width": 53,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-60x72.jpg",
+      "bytes": 3451,
+      "sha256": "2e4166e7c2f86324c1748eabc4b6f9026a088eef0ea27ea7bc2b115a457b9abf",
+      "width": 60,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-63x76.jpg",
+      "bytes": 3724,
+      "sha256": "a9bb9c24c5bbe2350847318d2a1c48c6162851a4f3de04708d23ce87a6909bcf",
+      "width": 63,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-66x80.jpg",
+      "bytes": 3844,
+      "sha256": "435a6f25f33273acb4c83cbf13ddfca7de13306ed8f4d3e0dbf267c20090edfc",
+      "width": 66,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-72x87.jpg",
+      "bytes": 4224,
+      "sha256": "5383bbda45d297edd24c47c3f6274736dba7cc4e1c0e91346bd7be62a02f5eaf",
+      "width": 72,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-79x96.jpg",
+      "bytes": 4709,
+      "sha256": "a858bd5ecc2f31ed388776d3e7706b30c09748e18079d100a6a6eed75baba996",
+      "width": 79,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-847x1024.jpg",
+      "bytes": 67546,
+      "sha256": "01dcc437b62e908d943e96d84b74203b9bf2979b81e85325dd7bf66c11a62e3f",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-94x114.jpg",
+      "bytes": 5400,
+      "sha256": "e559ec1fc27c5948987b22cf210d4af54c64d7c1318749e79bb6502034979335",
+      "width": 94,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-black/gateahead-mark-black-99x120.jpg",
+      "bytes": 5843,
+      "sha256": "5d116ab9e7d6b1dde831165c2a760c69c84de37fde595eda844ecdbe48c76088",
+      "width": 99,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-106x128.jpg",
+      "bytes": 9546,
+      "sha256": "51a79edc3c7c153c97ae792c496bd9a8d506de4b66817309f08d081019f0d0c9",
+      "width": 106,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-119x144.jpg",
+      "bytes": 10698,
+      "sha256": "17e7f5dc2e4cf504d6ca6930d0c0cbd9dc919cc988106314da083f0a3f5c63ad",
+      "width": 119,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-126x152.jpg",
+      "bytes": 11073,
+      "sha256": "891a520881eb02a60a5d30d77fcda4335626cb6edc2e99c3461db508419d1b47",
+      "width": 126,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-138x167.jpg",
+      "bytes": 12535,
+      "sha256": "d1159d757c3e3a3f83d2ef99fb5971e41efcd65c14f81a0d3ad8cf659fc8f3ca",
+      "width": 138,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-13x16.jpg",
+      "bytes": 1080,
+      "sha256": "ae31b691d3475577611bcbaee2728a26863ba500e068c532aace78ad01aa5e05",
+      "width": 13,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-149x180.jpg",
+      "bytes": 13311,
+      "sha256": "e23bb24bbacd94e341e50aa820a4b4ef5d6d65750858d9dcb18d1a00d192f317",
+      "width": 149,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-159x192.jpg",
+      "bytes": 14314,
+      "sha256": "e9dbbaa6f01459adbf4fce6beba968992b223f489ccdd4e8cdba4c8ae76e01ef",
+      "width": 159,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-1695x2048.jpg",
+      "bytes": 230699,
+      "sha256": "9fc19a99fcb89400dcc3eb785ce2de7c9a2c91a5328b24ddab7418e49dbf90b2",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-17x20.jpg",
+      "bytes": 1356,
+      "sha256": "fe162823401cb5c6f66788d336fa7d45e8d62e3f5000928d4e752d6517590d42",
+      "width": 17,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-20x24.jpg",
+      "bytes": 1556,
+      "sha256": "a4558d8d82fc72ac377ae6a439e25dd49d10bbaf7dff6dea91fac3edeaff619a",
+      "width": 20,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-212x256.jpg",
+      "bytes": 19410,
+      "sha256": "f4380b4976140db92bbb21b96c94a3e5ef3978535ea02b07c9cc4a112ca91043",
+      "width": 212,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-24x29.jpg",
+      "bytes": 1722,
+      "sha256": "7bd1bb1d14525a1ed68cf554347b4875bac552d20a9b0e616f096e81aef6e4b5",
+      "width": 24,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-26x32.jpg",
+      "bytes": 1957,
+      "sha256": "13e0492cbab7ece37e22d2d9beff5a5e13a2b01e9a9ca31535d492891594177d",
+      "width": 26,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-30x36.jpg",
+      "bytes": 2333,
+      "sha256": "d41642a960268c9f0dfbfbab8f6ad2471913a3e81ac0ecd91b2a0bf7d2291e38",
+      "width": 30,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-318x384.jpg",
+      "bytes": 29802,
+      "sha256": "a604315828b9ad99f19f384409c4da68ef9b32e095662428d3af053007eb0962",
+      "width": 318,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-3390x4096.jpg",
+      "bytes": 651668,
+      "sha256": "907a4e91af0c7557125fb1a944cb8dd0d56cb922aab73ddf32b708b7af7bf0b9",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-33x40.jpg",
+      "bytes": 2398,
+      "sha256": "c1d1382b5f3be9bdf24743fd1f94b436d5e6a067bc9ffeeb1d40372659040f17",
+      "width": 33,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-40x48.jpg",
+      "bytes": 2980,
+      "sha256": "5b3c7941dbac934d54f07157717652c9cfa9f4c7d3b51bec6594fd0f1e015015",
+      "width": 40,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-424x512.jpg",
+      "bytes": 40837,
+      "sha256": "c65445bfb5159b5484f5227b91bef972403504f47b6c07684b3bc418e30f75ec",
+      "width": 424,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-47x57.jpg",
+      "bytes": 3649,
+      "sha256": "424091f1eacbaf662caa5d0814cb6d05b3ab88362210ae47bcdbf048b6fa8565",
+      "width": 47,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-48x58.jpg",
+      "bytes": 3907,
+      "sha256": "d91257611a55ea5abc3b2af0c2f904ef125c66128f7e3a78e7a04008af311906",
+      "width": 48,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-50x60.jpg",
+      "bytes": 4208,
+      "sha256": "7df4c5707f55b988b73fe0282eb71aee3090a87043b2c0ee6fa0a1d70fca3c2f",
+      "width": 50,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-53x64.jpg",
+      "bytes": 4447,
+      "sha256": "49b61aab65398497d8634868f40bb77cdf391f9cc4198d0254283d7d9e4cd926",
+      "width": 53,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-60x72.jpg",
+      "bytes": 4975,
+      "sha256": "3bad90289ac127ae6ed43e3b7d0895a05ddf3366a6a396a550de9073da6bafd2",
+      "width": 60,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-63x76.jpg",
+      "bytes": 5413,
+      "sha256": "1437135ac6c0ca997dbe63424ff7d830cca24cdc4076098f47b23b9bc24fccee",
+      "width": 63,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-66x80.jpg",
+      "bytes": 5566,
+      "sha256": "cf88ab00f416c9c67e143e2b4ebc520e3638f8aa4193e92735c571f925d47ba4",
+      "width": 66,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-72x87.jpg",
+      "bytes": 6228,
+      "sha256": "d03e86de765d5b083d3965b500bbc52b0860352434804dd2978e05746b104c18",
+      "width": 72,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-79x96.jpg",
+      "bytes": 6907,
+      "sha256": "4e7ecea52b734f823d991808f29830d94722add6ae92df10412d79243c99df0f",
+      "width": 79,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-847x1024.jpg",
+      "bytes": 92967,
+      "sha256": "1762a14961044368ccb1a471b6003d366fd005274b08adf9790c7f2c5611939d",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-94x114.jpg",
+      "bytes": 7952,
+      "sha256": "c62f5726d58ff7d73834a928b7c616a4fdbe83786c8854ac9c7388ecbb20b72c",
+      "width": 94,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-dark/gateahead-mark-on-dark-99x120.jpg",
+      "bytes": 8575,
+      "sha256": "41a8aea6e0c6cf0da0d8639f418b69808c54410cdf8758459d75a15c6792e8b7",
+      "width": 99,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-106x128.jpg",
+      "bytes": 7374,
+      "sha256": "0537f049df7ffd02c894ef775c60798462af1ecd306ad9b7b9aa426445097725",
+      "width": 106,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-119x144.jpg",
+      "bytes": 8284,
+      "sha256": "d6be4d96f3cb9f5d33dd3ec6787e6f42080ff7bbdf4c045602d96b7fd47b541b",
+      "width": 119,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-126x152.jpg",
+      "bytes": 8606,
+      "sha256": "f1575d9d951e3408429e77dd395155992b4feb14ad0160d5436cd4e4da0be54d",
+      "width": 126,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-138x167.jpg",
+      "bytes": 9848,
+      "sha256": "04d1c8fcf68bfc83a9fe5f23691fdab752af2bdd4ba44f6852382976ef848ba6",
+      "width": 138,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-13x16.jpg",
+      "bytes": 972,
+      "sha256": "8e02a8201f99ec2a803fd85fb0a16a7eedf4f922b26bf8dd56b644c0c6bf3937",
+      "width": 13,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-149x180.jpg",
+      "bytes": 10452,
+      "sha256": "24e119f05c4256e0d9f1e2539996f1b640c1bdaee2b2351711223df1dbf257b0",
+      "width": 149,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-159x192.jpg",
+      "bytes": 11062,
+      "sha256": "6e65f3cdf8df1c0c8c00b139c885a9cee727a9471605714fd8d87b3ff18abc79",
+      "width": 159,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-1695x2048.jpg",
+      "bytes": 196880,
+      "sha256": "99fe1229687644e28baf7ae082d38fc35d0410e0fcdb0a8d5db5054370fdbcec",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-17x20.jpg",
+      "bytes": 1181,
+      "sha256": "b659bd70cf1b3fb5b0b723e32c7a8b928151514e8fa3242c40828d0a8073f0f1",
+      "width": 17,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-20x24.jpg",
+      "bytes": 1324,
+      "sha256": "bfa6d594e4c87819e1fb0347b344b8b06cfa106baa4bb67026ef22041d234c70",
+      "width": 20,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-212x256.jpg",
+      "bytes": 15158,
+      "sha256": "4a1fb1c1ccdcd2c5cc1c5fc26cb5088bcc93bca09bcc2ccc10a66a6deacad97a",
+      "width": 212,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-24x29.jpg",
+      "bytes": 1444,
+      "sha256": "8bd8add249dd2183be4f55668c2ba9295c6bacbc63e32958f4b4358a88ee5ffa",
+      "width": 24,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-26x32.jpg",
+      "bytes": 1628,
+      "sha256": "ad5e176ca73d20c6813d5939289710600a36edd151df641c9ae0524a94b9cc92",
+      "width": 26,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-30x36.jpg",
+      "bytes": 1900,
+      "sha256": "0c1751a60c6b748c2d2b5e195dd1ae86a67c55295104da0ba5c6aa8475197c8d",
+      "width": 30,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-318x384.jpg",
+      "bytes": 23411,
+      "sha256": "224cd1fa1bd9eee43c57937bd98573eeade3e67676c43909e0a80965f1221a5b",
+      "width": 318,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-3390x4096.jpg",
+      "bytes": 583960,
+      "sha256": "7ff6d1e662b0aae0abb4ca9d510f3bdfdf80247f0c0c7c881557bbea457c0d61",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-33x40.jpg",
+      "bytes": 1989,
+      "sha256": "00af6f562c311b772cf5a198871a7343e3e0e5779b14c546a5a721afde551547",
+      "width": 33,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-40x48.jpg",
+      "bytes": 2368,
+      "sha256": "64e57d16dea60d7dd41acb905abf0bd40ff18a44e6b37edfb0faa84c2adae70c",
+      "width": 40,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-424x512.jpg",
+      "bytes": 32175,
+      "sha256": "adb2cda78c265acfd669ac36d0bd18d728150395c09f4f09ab143fef4678d653",
+      "width": 424,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-47x57.jpg",
+      "bytes": 2900,
+      "sha256": "2f16b4e4dab8f52bba99139efacffaaf9f525780e191f7c3af6aee9a9afe1af7",
+      "width": 47,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-48x58.jpg",
+      "bytes": 3089,
+      "sha256": "305ea588b9010fb6bbcc0444fa8c749fef6369d4a76c626a35db8e600f560964",
+      "width": 48,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-50x60.jpg",
+      "bytes": 3309,
+      "sha256": "c022d4e0840cd42e0b310664ac337d438ad0473c0adf1144f0dbabfb63897f66",
+      "width": 50,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-53x64.jpg",
+      "bytes": 3483,
+      "sha256": "52f3c5b166b66f71bb222fba165070380b1597f5bfaf8a919c05f228dd39eaf4",
+      "width": 53,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-60x72.jpg",
+      "bytes": 3970,
+      "sha256": "081c04bc0389fad8fded331401d495734caa36484bb0f74d01cb857f453ab5de",
+      "width": 60,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-63x76.jpg",
+      "bytes": 4263,
+      "sha256": "ab13d090e3ddbe85a20ae74c0228ed503a32cf1cd747aa21adbd9c6e2781a296",
+      "width": 63,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-66x80.jpg",
+      "bytes": 4366,
+      "sha256": "a82d5498e230943b27b625c03c8166b60bfc7815eb302ada7daa1fae17a16561",
+      "width": 66,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-72x87.jpg",
+      "bytes": 4782,
+      "sha256": "a76c6c79c922bd775f7ffec36ba56f495f92653ee94777269a32a1c72ead5fda",
+      "width": 72,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-79x96.jpg",
+      "bytes": 5366,
+      "sha256": "cb2bc531af938fff2777707943ac65225b688770dddef657a18e97fdcb6c2e26",
+      "width": 79,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-847x1024.jpg",
+      "bytes": 75751,
+      "sha256": "ade32557a4760f8b7f660faea59cbf6905553213393ccebaa288230574ded0a0",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-94x114.jpg",
+      "bytes": 6218,
+      "sha256": "79611ef48202e3b6c4e5efba33cb2f3afd33c899085c9b5bac6aadeb02af337f",
+      "width": 94,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-on-light/gateahead-mark-on-light-99x120.jpg",
+      "bytes": 6732,
+      "sha256": "c911d5cf4f9f623200a37caf6ac1b392cf694fe3dd494e5997f3526de00b656c",
+      "width": 99,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-106x128.jpg",
+      "bytes": 6668,
+      "sha256": "c696ad57055cd812a492e19d0c18bde4409930a23389dc8e599738e2df94b807",
+      "width": 106,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-119x144.jpg",
+      "bytes": 7485,
+      "sha256": "51e58b7c5d09b26100b9aee697aeee32d281c5c929cbcc1d8e133c123dd4daae",
+      "width": 119,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-126x152.jpg",
+      "bytes": 7781,
+      "sha256": "6c7b0999feb857f5e29c1f11854e89c4be38b151fbd2a57d718b4ab779b3c28a",
+      "width": 126,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-138x167.jpg",
+      "bytes": 8805,
+      "sha256": "2d52fefa1ea0b46d5bbe3c6e002ad05c4d9afaeea8860992eef2da17b6f0aed1",
+      "width": 138,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-13x16.jpg",
+      "bytes": 902,
+      "sha256": "e4e8932d287104d7624c75b973f32b86b03f45c49b1a4c01528aac4e3558a0e5",
+      "width": 13,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-149x180.jpg",
+      "bytes": 9436,
+      "sha256": "c2c1a76c5fe94463239ad57fba3b2e64e42a47ab210bbd3dc42770fb354c72ab",
+      "width": 149,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-159x192.jpg",
+      "bytes": 9986,
+      "sha256": "dc8b660737b042bc270554c668a8c9345bc10ce13bd81b0198878bd9eaa5f931",
+      "width": 159,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-1695x2048.jpg",
+      "bytes": 184887,
+      "sha256": "5d5cdf906ca485f51bc4c02a5bed4b96cb27cc4ebbd04ef63e5f7434549cbf76",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-17x20.jpg",
+      "bytes": 1067,
+      "sha256": "bc4f520cae7a7d833f7d0dfc034ec89379c7b893c353025949cb0aeb85d59b3d",
+      "width": 17,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-20x24.jpg",
+      "bytes": 1218,
+      "sha256": "0148dec01ce1bd41e489c28302ca69298ffdc4c853e33ce4ca2eb0fe8c6b0cac",
+      "width": 20,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-212x256.jpg",
+      "bytes": 13662,
+      "sha256": "acc66fe805b7db042956ea1c583560aa74bf8b2cd0a2fd8bfc1ca854c889e810",
+      "width": 212,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-24x29.jpg",
+      "bytes": 1343,
+      "sha256": "55229731235ce1177068dc9cb3c82bfc0d82ed67c08764f900bfaf8f0c4bc742",
+      "width": 24,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-26x32.jpg",
+      "bytes": 1502,
+      "sha256": "737ff69f17b4a895653e10d73480fd3ac6691900d99a10eff433de4aae9077c9",
+      "width": 26,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-30x36.jpg",
+      "bytes": 1735,
+      "sha256": "9c9840ec8c5f6226a600acfa0115e6514d3019dae6bc81d767ecd53404baadc4",
+      "width": 30,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-318x384.jpg",
+      "bytes": 21138,
+      "sha256": "2b3bbf139e873c04edaad624b4f09b25cd695311a46b23ecb392af9e36f35775",
+      "width": 318,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-3390x4096.jpg",
+      "bytes": 559583,
+      "sha256": "85fdc27846dec1162852457b802f2d585ccbf01888923451c53eb1e2a4cbb28b",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-33x40.jpg",
+      "bytes": 1783,
+      "sha256": "ec2b4549898efdfb5d92fefd76f9585e952e5ae0ca728b6c112783cc4f084a18",
+      "width": 33,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-40x48.jpg",
+      "bytes": 2171,
+      "sha256": "718ef3638ce9ef603b295512eb6e8a8394c943d2b7029c1d3f312848bebf8bd8",
+      "width": 40,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-424x512.jpg",
+      "bytes": 29220,
+      "sha256": "68f2ac351d285d6152b5dc08fa66e823b856e7d21fc015c34025b722b2e80cb8",
+      "width": 424,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-47x57.jpg",
+      "bytes": 2644,
+      "sha256": "194f2bded756a7c46671ed3c18c5f56b9f0f53c9cfada949897e19eae93cbe17",
+      "width": 47,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-48x58.jpg",
+      "bytes": 2842,
+      "sha256": "0406803faf55361accb3c9c0572e4415907461aadc6de465a7b971ffd06dd6df",
+      "width": 48,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-50x60.jpg",
+      "bytes": 3021,
+      "sha256": "b1707417f064748f294b4eebb34d3d1ddb7615eea19cc6e9b81be5020d62b2e6",
+      "width": 50,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-53x64.jpg",
+      "bytes": 3172,
+      "sha256": "2ef52be665cc1d84e456cb1b3dccdf2b120406d29e707727c874cd84f0a81082",
+      "width": 53,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-60x72.jpg",
+      "bytes": 3610,
+      "sha256": "d75300705606f43853898fcfa04649c120c76dc40b427234c93b2423672e7ad4",
+      "width": 60,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-63x76.jpg",
+      "bytes": 3864,
+      "sha256": "1eed0f8a2b3cec45a6366e19ebdacf3f1bd38f5443591f708a90440565cfca36",
+      "width": 63,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-66x80.jpg",
+      "bytes": 3983,
+      "sha256": "61a7b09933708c46bcce9694fab53eda1837492a38bf4f3dbd663acb78331eb0",
+      "width": 66,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-72x87.jpg",
+      "bytes": 4373,
+      "sha256": "02864974fd33afa163f81de108b63f83fb984787871db7ad3475e9815623638b",
+      "width": 72,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-79x96.jpg",
+      "bytes": 4898,
+      "sha256": "83baa8e54593f76df4c1b87e86fd4541ed8d8da41443527971cd421386c41501",
+      "width": 79,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-847x1024.jpg",
+      "bytes": 69777,
+      "sha256": "b120fbd2f7e42f66ca9dee72c8ece4ba56a93b181a66170b4483fc32390a3aa4",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-94x114.jpg",
+      "bytes": 5623,
+      "sha256": "29e6280f5e9d4a50241ff748e4d61ecbf54f2610db303fe42be12920f5f3d5d3",
+      "width": 94,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "jpg/gateahead-mark-white/gateahead-mark-white-99x120.jpg",
+      "bytes": 6094,
+      "sha256": "e5f0c51b1ba1a8ed1301e544af56fd728e24954224a9406f7adc4a410276588a",
+      "width": 99,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "pdf/gateahead-icon-rounded.pdf",
+      "bytes": 3991,
+      "sha256": "26566bc709073fe82c64fa928c9b1a3ead654e0966b4377b7b66cc455890dd28"
+    },
+    {
+      "path": "pdf/gateahead-icon-square.pdf",
+      "bytes": 2791,
+      "sha256": "a85694d67327e5dbadd449df5f1c06d6d7e06e841666b27bca7a7d3f4fb7f3fc"
+    },
+    {
+      "path": "pdf/gateahead-mark-black.pdf",
+      "bytes": 3476,
+      "sha256": "92d2b3677ca11ecbe53f1448d4d59652b23883b5a1d69ec64ffaecf50b7f8391"
+    },
+    {
+      "path": "pdf/gateahead-mark-on-dark.pdf",
+      "bytes": 3501,
+      "sha256": "ac32d392a37ba3ad2c7e139347bfc66f91d8e8339efcded47c60ad3315c27cc9"
+    },
+    {
+      "path": "pdf/gateahead-mark-on-light.pdf",
+      "bytes": 3502,
+      "sha256": "5871fc8056d7ac84922e68014a3b299a85b72eb6ce3556c32bb34872a26d22fa"
+    },
+    {
+      "path": "pdf/gateahead-mark-white.pdf",
+      "bytes": 3486,
+      "sha256": "96589884786e8eb4af23589ed9235500c513ca221238d6aa5c43381623ef78a4"
+    },
+    {
+      "path": "platforms/android/play-store-512.png",
+      "bytes": 17459,
+      "sha256": "4d13ec638ab56e418ca1b4138671f8a73298746f7414736e2eca7b82faeadec6",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/android/res/drawable/gateahead_icon_foreground.xml",
+      "bytes": 1206,
+      "sha256": "ed3ba34fafd28ea947d9eb7aa95aae36f38693649e1730b6ce0c0458ad1dba35"
+    },
+    {
+      "path": "platforms/android/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 276,
+      "sha256": "078f09cd80a38e303d7ce6ee928df5cabc0ef151610eb0f874d15c41da5c0813"
+    },
+    {
+      "path": "platforms/android/res/mipmap-hdpi/ic_launcher.png",
+      "bytes": 3450,
+      "sha256": "d9c460cd77cfbe5cb307cfeeba7764b81d1cff58c6d9c6e130ee6e9cff39268d",
+      "width": 72,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/mipmap-ldpi/ic_launcher.png",
+      "bytes": 1713,
+      "sha256": "730e9bca7c7867f3ce659186ffc98c1487f64e73a69b9bfeb1ae855562b6da41",
+      "width": 36,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/mipmap-mdpi/ic_launcher.png",
+      "bytes": 2267,
+      "sha256": "a657afb017b63e756c5a7706857676b38b8615c78637d036b41db6a3afa30dfb",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/mipmap-xhdpi/ic_launcher.png",
+      "bytes": 4755,
+      "sha256": "a2e9e7cb1e06c01d620eb2a0a2af8bff6022cffa77a31352274c0e754c09b6a5",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/mipmap-xxhdpi/ic_launcher.png",
+      "bytes": 7328,
+      "sha256": "369636649664c7ae173086ed50e8130ec8ddabd14a0c81d241bdbf279ccd4136",
+      "width": 144,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/mipmap-xxxhdpi/ic_launcher.png",
+      "bytes": 10010,
+      "sha256": "6235563262103c6889c8d379d171c328f5e0502df6156eaaed0ecd02031da47e",
+      "width": 192,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/android/res/values/gateahead_colors.xml",
+      "bytes": 126,
+      "sha256": "f029af8c93e02e8a8fa0f02aa6799a1a768a644af0e105fcd6a8dc240679fb5e"
+    },
+    {
+      "path": "platforms/desktop/gateahead-512.png",
+      "bytes": 30944,
+      "sha256": "1996de370750e94fef22843bf54a289f08a869978267d7d6e5c069f2457036fc",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/desktop/gateahead.icns",
+      "bytes": 131734,
+      "sha256": "664fdd6342be60d058c25311ff05269757ec8b372cca0b2e4d8170ee33938e9a",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/desktop/gateahead.ico",
+      "bytes": 28539,
+      "sha256": "0d00aa027d4ec635d28c2d9eeb6b82ce46f2eb7b9068fac7a96f8e1b36ddd244",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Contents.json",
+      "bytes": 2519,
+      "sha256": "3b1e214f466ffedff74baa5598ad5c4421130eea6bc8d57b8fe23435e8280ae4"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-1024x1024@1x.png",
+      "bytes": 37459,
+      "sha256": "4b98730e39f2acc6cc6cf291c24a6cda4d9d2b4543ef4b8c4b20dde4801ab2e6",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-20x20@1x.png",
+      "bytes": 625,
+      "sha256": "87bfe3f42a9fde795245d869a9c7894ea530fc9d41ac7dcf93c9dd78e5a77738",
+      "width": 20,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-20x20@2x.png",
+      "bytes": 1276,
+      "sha256": "29b22a90a5427b8e66e28edc2e5cb261c08c08b933810fe03b9b694c82525158",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-20x20@3x.png",
+      "bytes": 1906,
+      "sha256": "c5433293c142d1309a05d17316066608928c90f3d6093e73df71ee759e2cd3a2",
+      "width": 60,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-29x29@1x.png",
+      "bytes": 915,
+      "sha256": "947b88daae806ba50d12e4eca17a06b99c13667534f15eddd4d70b2a9595eaf3",
+      "width": 29,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-29x29@2x.png",
+      "bytes": 1826,
+      "sha256": "059b932964eb6ccbe4b26606fb4743880004f4452b405f463ffa61e105a67742",
+      "width": 58,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-29x29@3x.png",
+      "bytes": 2839,
+      "sha256": "9312b1013ba9f4e035a568a86be52e15e7d97b85c3b9d1bf6f829ce39e0567d2",
+      "width": 87,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-40x40@1x.png",
+      "bytes": 1276,
+      "sha256": "29b22a90a5427b8e66e28edc2e5cb261c08c08b933810fe03b9b694c82525158",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-40x40@2x.png",
+      "bytes": 2538,
+      "sha256": "e8afbb1c9dbdf0e10ea448da7c0b5a6befb5d3c09bbeada0cf23eaacae60b82e",
+      "width": 80,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-40x40@3x.png",
+      "bytes": 3823,
+      "sha256": "1c76a23b5d8afc82cec25465e3e96e9eade12610ace621117cfe21d38bf46d10",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-60x60@2x.png",
+      "bytes": 3823,
+      "sha256": "1c76a23b5d8afc82cec25465e3e96e9eade12610ace621117cfe21d38bf46d10",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-60x60@3x.png",
+      "bytes": 5916,
+      "sha256": "a6cf83f3c82c00f266f01f207cf58e0501f8e2896c3139d4853420cc966ae2cc",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-76x76@1x.png",
+      "bytes": 2390,
+      "sha256": "b38654f752ddf38634a0b4890ea8c2de2bb83ad774bc112a4f49770f110022ae",
+      "width": 76,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-76x76@2x.png",
+      "bytes": 4866,
+      "sha256": "514b5867e49521150e54cdd0f5de77db631d08a31f28d57d9577e044a3b54c7c",
+      "width": 152,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/ios/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png",
+      "bytes": 5444,
+      "sha256": "ebfa56945fd3a349c7a64f05ccb680a4f7af49d081291aee47e95510a8af232f",
+      "width": 167,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/web/apple-touch-icon.png",
+      "bytes": 5916,
+      "sha256": "a6cf83f3c82c00f266f01f207cf58e0501f8e2896c3139d4853420cc966ae2cc",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/web/favicon.ico",
+      "bytes": 28539,
+      "sha256": "0d00aa027d4ec635d28c2d9eeb6b82ce46f2eb7b9068fac7a96f8e1b36ddd244",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "platforms/web/favicon.svg",
+      "bytes": 773,
+      "sha256": "f8b0163100b47f7dbeb8e33bada1a2afd2ffa63eae458c4c4d697023e5df4782"
+    },
+    {
+      "path": "platforms/web/icon-192.png",
+      "bytes": 6301,
+      "sha256": "1af51f0ae367dbad02f082b1fa23f175d90a77868381ce7d4caab8a2aa5a3ba1",
+      "width": 192,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "platforms/web/icon-512.png",
+      "bytes": 17459,
+      "sha256": "4d13ec638ab56e418ca1b4138671f8a73298746f7414736e2eca7b82faeadec6",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-1024x1024.png",
+      "bytes": 75655,
+      "sha256": "b8ffe4c8e68925949e2bc55179b39d5dc12273572394973ec61770d5b1dedaef",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-114x114.png",
+      "bytes": 5695,
+      "sha256": "cd1a51b9c66548f5967b057734c4caa7ae02120d4f858a6d883b276fe3c8df14",
+      "width": 114,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-120x120.png",
+      "bytes": 5953,
+      "sha256": "73980fd1c43d3b7f0c36f996a49ce7ad08c250e321d8343f7ba4922023f990bd",
+      "width": 120,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-128x128.png",
+      "bytes": 6325,
+      "sha256": "6996661ee407432d6264da9ae27eac184995f96ef1870bda82da7252913d67b6",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-144x144.png",
+      "bytes": 7328,
+      "sha256": "369636649664c7ae173086ed50e8130ec8ddabd14a0c81d241bdbf279ccd4136",
+      "width": 144,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-152x152.png",
+      "bytes": 7683,
+      "sha256": "23e65f8490f9ae1817da82a389da1b5adc7655f5f597683edcd182e21906a432",
+      "width": 152,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-167x167.png",
+      "bytes": 8547,
+      "sha256": "97358db4b2f26845594a11c14f496b06dd4d93b44ec4deeaeb8c4e884df5cd4c",
+      "width": 167,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-16x16.png",
+      "bytes": 668,
+      "sha256": "1dd08563bb2bcbd244827f7f8ce850cb793b261b0dc20889c709c69f25f9dd60",
+      "width": 16,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-180x180.png",
+      "bytes": 9410,
+      "sha256": "5d19cbeff62449cf0b24ea57c5b7c698afb28b104ff053ff792ff6d0426c3310",
+      "width": 180,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-192x192.png",
+      "bytes": 10010,
+      "sha256": "6235563262103c6889c8d379d171c328f5e0502df6156eaaed0ecd02031da47e",
+      "width": 192,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-2048x2048.png",
+      "bytes": 195595,
+      "sha256": "517690e28b65d413fb0b2c68a83930e72518f2b7f34f35ef9e658d26765737b7",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-20x20.png",
+      "bytes": 887,
+      "sha256": "8d20616307f0487be2e075a524ba0b1f7a905ac42ac2814f9db45121001b617e",
+      "width": 20,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-24x24.png",
+      "bytes": 1083,
+      "sha256": "124179102c50c262ba3ebefad7f19994077252646d1c52647f36c3ebb2f65279",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-256x256.png",
+      "bytes": 13551,
+      "sha256": "30794498ec55537551dba7992837198cf24a58e558bc8d7ca7663049dd613727",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-29x29.png",
+      "bytes": 1351,
+      "sha256": "40507b383e43a73f811031952ad81f6174b4ca4b2087d6c10d9d285db1a2b755",
+      "width": 29,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-32x32.png",
+      "bytes": 1482,
+      "sha256": "6291c6c7542e6a7d1ee173c7e419649b65936ba17b9784d2e752dbd68bd68b25",
+      "width": 32,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-36x36.png",
+      "bytes": 1713,
+      "sha256": "730e9bca7c7867f3ce659186ffc98c1487f64e73a69b9bfeb1ae855562b6da41",
+      "width": 36,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-384x384.png",
+      "bytes": 21952,
+      "sha256": "49ff16145f9fa0d54335dd19b2b7b500fc33d09e280c817dcaa4c51eac8288aa",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-4096x4096.png",
+      "bytes": 557829,
+      "sha256": "d998de87fcff4f8f3aea677976cc4e3c7fa78db550cd74390b6e04acb151ecc8",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-40x40.png",
+      "bytes": 1899,
+      "sha256": "665e571019ba0b0ba742873461025fd0c2a591ebbcdf12908db49fc80e4f3319",
+      "width": 40,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-48x48.png",
+      "bytes": 2267,
+      "sha256": "a657afb017b63e756c5a7706857676b38b8615c78637d036b41db6a3afa30dfb",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-512x512.png",
+      "bytes": 30944,
+      "sha256": "1996de370750e94fef22843bf54a289f08a869978267d7d6e5c069f2457036fc",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-57x57.png",
+      "bytes": 2756,
+      "sha256": "dbad7aa6eaa1f7b5cb27ca25db249500c97769855ba34283f612026d73e9211c",
+      "width": 57,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-58x58.png",
+      "bytes": 2736,
+      "sha256": "5879f0a19cbcf2f84729f95ce734508716231f115649a3080cc5bbce30451e98",
+      "width": 58,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-60x60.png",
+      "bytes": 2846,
+      "sha256": "92388f437baf49414b98a9e40f21b1b645eae4801d82adf9fa26f1ea52f75632",
+      "width": 60,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-64x64.png",
+      "bytes": 3045,
+      "sha256": "3974633662c52d5f2cd462c2967e284ef698eba65af27df0a8a4b14a74193298",
+      "width": 64,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-72x72.png",
+      "bytes": 3450,
+      "sha256": "d9c460cd77cfbe5cb307cfeeba7764b81d1cff58c6d9c6e130ee6e9cff39268d",
+      "width": 72,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-76x76.png",
+      "bytes": 3589,
+      "sha256": "3cd8b3b01b0c36bb650836d9c126ec3be434e5301ff1488e2340400a134c5b82",
+      "width": 76,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-80x80.png",
+      "bytes": 3899,
+      "sha256": "a21e70639056b2569f15c1303c5b03e6df8664d1def08c68c39a5c0f268862b4",
+      "width": 80,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-87x87.png",
+      "bytes": 4315,
+      "sha256": "1ce6177af1135e167cca1e2841714a1a293117dd4e833edb961650eecdca5b29",
+      "width": 87,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-rounded/gateahead-icon-rounded-96x96.png",
+      "bytes": 4755,
+      "sha256": "a2e9e7cb1e06c01d620eb2a0a2af8bff6022cffa77a31352274c0e754c09b6a5",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-1024x1024.png",
+      "bytes": 37459,
+      "sha256": "4b98730e39f2acc6cc6cf291c24a6cda4d9d2b4543ef4b8c4b20dde4801ab2e6",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-114x114.png",
+      "bytes": 3699,
+      "sha256": "7eab655e92130729587a72fe0ce7d6ce18f435fc1c94f5dc0ccfda0706959ee4",
+      "width": 114,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-120x120.png",
+      "bytes": 3823,
+      "sha256": "1c76a23b5d8afc82cec25465e3e96e9eade12610ace621117cfe21d38bf46d10",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-128x128.png",
+      "bytes": 4069,
+      "sha256": "7af1220a3679726bd41b822cb387e7b7072c5afc03f5e19ab172106cabd8a4a5",
+      "width": 128,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-144x144.png",
+      "bytes": 4677,
+      "sha256": "662b942ff3da6b87d8a4d1cea092695bc9a0ec6ab22eaaec19f444061541ccd6",
+      "width": 144,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-152x152.png",
+      "bytes": 4866,
+      "sha256": "514b5867e49521150e54cdd0f5de77db631d08a31f28d57d9577e044a3b54c7c",
+      "width": 152,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-167x167.png",
+      "bytes": 5444,
+      "sha256": "ebfa56945fd3a349c7a64f05ccb680a4f7af49d081291aee47e95510a8af232f",
+      "width": 167,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-16x16.png",
+      "bytes": 446,
+      "sha256": "7fbfe845eccc65da2517eb995ddeea0b4a0b113cb9a44e5c94d284e0df566522",
+      "width": 16,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-180x180.png",
+      "bytes": 5916,
+      "sha256": "a6cf83f3c82c00f266f01f207cf58e0501f8e2896c3139d4853420cc966ae2cc",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-192x192.png",
+      "bytes": 6301,
+      "sha256": "1af51f0ae367dbad02f082b1fa23f175d90a77868381ce7d4caab8a2aa5a3ba1",
+      "width": 192,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-2048x2048.png",
+      "bytes": 83250,
+      "sha256": "9c5b126d7b440fb406482ba382e86b1f650b4dcdbe3ffc7d16cd8bc7b7cc2fed",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-20x20.png",
+      "bytes": 625,
+      "sha256": "87bfe3f42a9fde795245d869a9c7894ea530fc9d41ac7dcf93c9dd78e5a77738",
+      "width": 20,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-24x24.png",
+      "bytes": 736,
+      "sha256": "fe9ba6cc796f97d36d81855b2b8671e1e6ea3040a481513131c646f9dc6620d4",
+      "width": 24,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-256x256.png",
+      "bytes": 8350,
+      "sha256": "c0ccb44c941a7a11f364f6e6b4691f34e849a015f2f8f7b27efa6383cec2a21d",
+      "width": 256,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-29x29.png",
+      "bytes": 915,
+      "sha256": "947b88daae806ba50d12e4eca17a06b99c13667534f15eddd4d70b2a9595eaf3",
+      "width": 29,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-32x32.png",
+      "bytes": 1011,
+      "sha256": "f069438df5d438330845846d47e8807caa04fb2aece305192866ba82d4466988",
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-36x36.png",
+      "bytes": 1162,
+      "sha256": "4feb250fd1d6d51dbf05a74818569f06b268bfe36bd438f8250c29b0f5fa0426",
+      "width": 36,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-384x384.png",
+      "bytes": 12655,
+      "sha256": "b0027fb04273a3e14cebc648830f1150788ce9823856eafadc0908c8cb62d7c1",
+      "width": 384,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-4096x4096.png",
+      "bytes": 195359,
+      "sha256": "424ff6eeb212b454fb43a4d2ac41b34e7c72c0ce3537cdcf4251a0ad9ffd6a7b",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-40x40.png",
+      "bytes": 1276,
+      "sha256": "29b22a90a5427b8e66e28edc2e5cb261c08c08b933810fe03b9b694c82525158",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-48x48.png",
+      "bytes": 1477,
+      "sha256": "c0b274e642fd0d5a4a48200242673cfe52e9e2bf87f1abda81adb703cc47d672",
+      "width": 48,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-512x512.png",
+      "bytes": 17459,
+      "sha256": "4d13ec638ab56e418ca1b4138671f8a73298746f7414736e2eca7b82faeadec6",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-57x57.png",
+      "bytes": 1830,
+      "sha256": "f6b8efa511f98572b03d94ad2182bd80ae4e51578e0ccc6a6093a286073a9aeb",
+      "width": 57,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-58x58.png",
+      "bytes": 1826,
+      "sha256": "059b932964eb6ccbe4b26606fb4743880004f4452b405f463ffa61e105a67742",
+      "width": 58,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-60x60.png",
+      "bytes": 1906,
+      "sha256": "c5433293c142d1309a05d17316066608928c90f3d6093e73df71ee759e2cd3a2",
+      "width": 60,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-64x64.png",
+      "bytes": 2009,
+      "sha256": "53559c87bc7f4339f466a5f5ccf94c0c0d1af7b0946261c558cae2ba76c42f58",
+      "width": 64,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-72x72.png",
+      "bytes": 2280,
+      "sha256": "4b981edc7782cc7064a867a78fa2277504343b40458883c695285fec487924a0",
+      "width": 72,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-76x76.png",
+      "bytes": 2390,
+      "sha256": "b38654f752ddf38634a0b4890ea8c2de2bb83ad774bc112a4f49770f110022ae",
+      "width": 76,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-80x80.png",
+      "bytes": 2538,
+      "sha256": "e8afbb1c9dbdf0e10ea448da7c0b5a6befb5d3c09bbeada0cf23eaacae60b82e",
+      "width": 80,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-87x87.png",
+      "bytes": 2839,
+      "sha256": "9312b1013ba9f4e035a568a86be52e15e7d97b85c3b9d1bf6f829ce39e0567d2",
+      "width": 87,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-icon-square/gateahead-icon-square-96x96.png",
+      "bytes": 3055,
+      "sha256": "dab52fd1edd7a0d2454881172eb56e478dd66b1b38210cd7bcc8efd92e59cb3f",
+      "width": 96,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-106x128.png",
+      "bytes": 4569,
+      "sha256": "1564218790fd11dc68caacb0db2a7a6b27f7b9db11e1f408b34f2866e2c1713b",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-119x144.png",
+      "bytes": 5282,
+      "sha256": "d999cbf9212daa9a39e0b2d6269941d6ce6d327898d3207dbee548a2b9492331",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-126x152.png",
+      "bytes": 5582,
+      "sha256": "bf3cdc4957ef4e3ec7c45b699cb5f01032a17692965e078769924326504b6c43",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-138x167.png",
+      "bytes": 6207,
+      "sha256": "024e5044403db28aed8a60e496e3d7eaa3ce51d59ffbe20ac8b4641295a03c9b",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-13x16.png",
+      "bytes": 441,
+      "sha256": "0f621200814a01be52b2183378898f48936af4fe889775cc96900cbd6b2d4d3e",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-149x180.png",
+      "bytes": 6771,
+      "sha256": "9707339e0408397e217d76e65c9a04f7caea6f9eef093acf81fe59e367a6de2a",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-159x192.png",
+      "bytes": 7165,
+      "sha256": "89bfadb8568fa6354e558ae0926b716089d7964812218bc1d969d6a9e537fbb4",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-1695x2048.png",
+      "bytes": 144247,
+      "sha256": "f0e379139d49d3ada83e1d4557fa8a2176d8366f9c6866b8e24491fe28f37826",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-17x20.png",
+      "bytes": 618,
+      "sha256": "c89f8ab89dcc185c348608459116e469357908b6ae1d33d4cb495845520b84b6",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-20x24.png",
+      "bytes": 724,
+      "sha256": "345c5751c3fa76dfb3d3c9ea7e754a1df18d1c571f385aeb9165c0d9a2a85280",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-212x256.png",
+      "bytes": 9886,
+      "sha256": "fcea53d5dc3129281409e332716cd2996c2a355fe94486bab650d25de3ba01ed",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-24x29.png",
+      "bytes": 916,
+      "sha256": "bd61bb069cc133f09d9ec42661fa73101b7fac880816c304d73aac2e7a3ca182",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-26x32.png",
+      "bytes": 990,
+      "sha256": "331996aaf18e5b9b7c0585cd0d623934d851443e5c5780d67b65fd6510c70055",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-30x36.png",
+      "bytes": 1140,
+      "sha256": "904f4b51eeaa147a5630ae10510d8c852c004d6eae0fdfcbc5e30ffe1a717f09",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-318x384.png",
+      "bytes": 15816,
+      "sha256": "9c5cf13c1af9516757682a83b0149601eca9acb8a91dff5af766fed85540698c",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-3390x4096.png",
+      "bytes": 421295,
+      "sha256": "e68ba857d235bb5cd53866fa5888d08aabd76d2d8c29972f1321273090e13510",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-33x40.png",
+      "bytes": 1279,
+      "sha256": "d6a0b760720f7a486826d24710e64fcceb2b537afbd2057825b1c60aca6ff2a4",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-40x48.png",
+      "bytes": 1615,
+      "sha256": "60c75d35202dc447718fcd2f8ed653e4dbf54955d4821ea7fccfd91d7d20b59c",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-424x512.png",
+      "bytes": 22635,
+      "sha256": "92cdc71f9e583d7b61d7a0dae631737326467486d876b092bb65eb9ecb55e209",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-47x57.png",
+      "bytes": 1862,
+      "sha256": "f77e990c47f31cbfffbb099e68ed75459bd9f5cd8751b1137e72492583310d5f",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-48x58.png",
+      "bytes": 1890,
+      "sha256": "e75ac55ffd8da80c89fcbf311df74b834c800378c158ec435cfda7beadd8a9d3",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-50x60.png",
+      "bytes": 1960,
+      "sha256": "0707c2a1decf9e0c8873e62f1ee88a4ff1c72b015199065c0d856454f8c9e2c4",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-53x64.png",
+      "bytes": 2137,
+      "sha256": "2cde52046a1ebb6bd030b2bfbf0c26ecdd71e22d14bdf78e2d5ca37d009d14b9",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-60x72.png",
+      "bytes": 2429,
+      "sha256": "08e5b9de5181b94a743549db3a566e407d4e6a147e1811a2f02e8f00adb0cf78",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-63x76.png",
+      "bytes": 2594,
+      "sha256": "09e7ee4591a850d867b1ee284a3fd5e3bc0cdffe73f516697696d329c51bdbb4",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-66x80.png",
+      "bytes": 2741,
+      "sha256": "b3d0921c44036c960370b49e8e8af752a20159a7af92d3866d575cf37d6fe92c",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-72x87.png",
+      "bytes": 2951,
+      "sha256": "fd1fe82b85dc9aef3ca359bc75a130c6248d167d4333ab08bf9f253c069ade3b",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-79x96.png",
+      "bytes": 3339,
+      "sha256": "01c59d374ac5dfef8d982e5f2cf9ea3803fed6d97cad872d3257eaaef02c806b",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-847x1024.png",
+      "bytes": 54580,
+      "sha256": "41bd71dd1f8f85d26ebf53eb19d8de6e6f92426ea23909ffd50a8ca167c4093d",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-94x114.png",
+      "bytes": 4036,
+      "sha256": "c953a852c11c446c08407ea6371ad4367432702fe51bce22970b58e9f74a75c1",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-black/gateahead-mark-black-99x120.png",
+      "bytes": 4250,
+      "sha256": "488d2e93677feff1a7e6a35caca7679dc0b6672d0e1df6ad7fac1c44498e8223",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-106x128.png",
+      "bytes": 6419,
+      "sha256": "326667190849f5b85a67a40ef48ae985b0099dc23542674f570b99387662d0c8",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-119x144.png",
+      "bytes": 7341,
+      "sha256": "44f989795d638ce3905c94d041fabd6454992fada7599534c1a68c4918c1a950",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-126x152.png",
+      "bytes": 7754,
+      "sha256": "38e66744492bdb34d79d0a466de7cde4544bc6f4f271f6f7d94ea7026f59421c",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-138x167.png",
+      "bytes": 8613,
+      "sha256": "07223f90b127710890fe9eb84b8fb7151106ef5f024530e149ca63b80a9c1aae",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-13x16.png",
+      "bytes": 688,
+      "sha256": "b876977b0a28cd8bb4ab3d0463f3659cff7d98d45b37371d11d188187c8e724f",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-149x180.png",
+      "bytes": 9313,
+      "sha256": "ba2754c2e99196720f3aef86df0d95a6ad6f2da1383f6e1c6e71347d5cb820a3",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-159x192.png",
+      "bytes": 9891,
+      "sha256": "428905e77397f58bd1c162db2c86eefa341a90ed99c4f11f166d8bab58df2e29",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-1695x2048.png",
+      "bytes": 180625,
+      "sha256": "1cd9fcb2af6fbb49f3a817a72822bd123fc090c40edc33c58d212a0923aed877",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-17x20.png",
+      "bytes": 926,
+      "sha256": "bc4cb304054d019c129263730789b420b20497a4bbd5e09eec264f2357cdf6dd",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-20x24.png",
+      "bytes": 1101,
+      "sha256": "b9a8d8b995ae479e776aab083ebf2323453ae66cb54db0316cb7b4d20968b57a",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-212x256.png",
+      "bytes": 13509,
+      "sha256": "5c211e8b9dae9f3a1706aa2f6f660f0b11d3a4d9037e37bbbadc49bfeae22964",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-24x29.png",
+      "bytes": 1368,
+      "sha256": "d20009ddceabd8f09c5dfb180701bcc6aa98eb77864d08db7582a55f5bd3b4e6",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-26x32.png",
+      "bytes": 1496,
+      "sha256": "91105af134e43f752f216f503c2528d8431ef62c5f935aa00f42118e4ce528ca",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-30x36.png",
+      "bytes": 1627,
+      "sha256": "c5d8322fab115251dad805d82523924894de2a47ddfb2aebe630d36ee3142e18",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-318x384.png",
+      "bytes": 21300,
+      "sha256": "1fb5533be7100e1315a606b47c0b3f1799a29e25db8260f0ca75be0e63e1b5e4",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-3390x4096.png",
+      "bytes": 499819,
+      "sha256": "67680738d037e9a837cb5f670bdb6f666e544374478a194760d680151a520f2b",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-33x40.png",
+      "bytes": 1874,
+      "sha256": "fd172ae3ad4bd26c1cc58adbdc005460ca01a99de86a215c014eec75ce4fa21b",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-40x48.png",
+      "bytes": 2320,
+      "sha256": "af2b37d5e7ce6224c5bc1b4a60676f3bfd57a6d81d2298ba38f4ffa96cf31102",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-424x512.png",
+      "bytes": 30014,
+      "sha256": "baff3901590ec666f64f0cc4bf4321ca713daad86101fe604c2597f1d200445b",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-47x57.png",
+      "bytes": 2692,
+      "sha256": "ca7c3651ebba2c3577b4ca8b1394a8e035608d891ae51b1758a1c5d582d56736",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-48x58.png",
+      "bytes": 2762,
+      "sha256": "f4d753f38150a73aa39b3a31bb39af6b72cb16a30eeb3cd07a0424b5c423b5c5",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-50x60.png",
+      "bytes": 2848,
+      "sha256": "1a90f01515629de418e92db61197a862b2a153d596118230b457189f47bc69e0",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-53x64.png",
+      "bytes": 3039,
+      "sha256": "52fdc53e8b96267033ef4c305f0eaa7fd745113e3e655e46b434a706002b8fd0",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-60x72.png",
+      "bytes": 3477,
+      "sha256": "2f1a9cc84d4a360e8252cadb6926c5aadf0306a888333e7cd1b0ac8081a1f6a4",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-63x76.png",
+      "bytes": 3688,
+      "sha256": "34996aa09e5c60871ec7c37bd4676cb349eda919a937c6251559e16c5dd233fe",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-66x80.png",
+      "bytes": 3967,
+      "sha256": "3a7d3b69c1a88b8b59cfb0f32c4e697e96ab4218fe8d3d42b16b7dd49279e2b2",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-72x87.png",
+      "bytes": 4290,
+      "sha256": "3e6f8689d95c5a9c1c8903c5badb466b6747f62d41ebe1473615a699d552bb9d",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-79x96.png",
+      "bytes": 4730,
+      "sha256": "fa91f38b8909ae20d063b9ad6da0713c21ff5a86c8adf9b57e2e6b5896f852dd",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-847x1024.png",
+      "bytes": 71390,
+      "sha256": "19e8f704bc7bf79d1c4052b416c0214c6739cc09b6ae9d7b9eaf349efdd4f462",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-94x114.png",
+      "bytes": 5665,
+      "sha256": "93fbe855dfb70d67ea72dea0359ee68713adf22436dcfb2bbb9de3854a57d738",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-dark/gateahead-mark-on-dark-99x120.png",
+      "bytes": 5960,
+      "sha256": "48387c76916535e877bfb04409cd895c7621773af488806a93858d141bbaf84d",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-106x128.png",
+      "bytes": 6422,
+      "sha256": "bad3fe6b52c1d05980d7389cdfd17f81a9e89cd3fb8c6e346d22c6655c15aa4f",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-119x144.png",
+      "bytes": 7289,
+      "sha256": "2e7f4cf3aa7e58090f9df2b1a95f0cfde25cf5fba0f59cf9d0807a975af123d6",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-126x152.png",
+      "bytes": 7726,
+      "sha256": "6925dea0a22f19af04fee39289f9e46fe04b5263345da1615e858c78dec6e17a",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-138x167.png",
+      "bytes": 8567,
+      "sha256": "cf818abf4cf9a85605de8ca37c905d37c7cd61c30a3af423a4430aa72c121508",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-13x16.png",
+      "bytes": 666,
+      "sha256": "769b6863cb2f5676b42915b4e2474b4665a07df8fa9acc3d5f3e050d12bf4c5b",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-149x180.png",
+      "bytes": 9321,
+      "sha256": "de1d691cdcbd40ea8754658b72475216ef34fd8d9a97672adaa721b7e0bafad8",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-159x192.png",
+      "bytes": 9956,
+      "sha256": "a1468417f53de88c2f653a3bee8f952202d3abdb98056556166bf7ed874df20d",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-1695x2048.png",
+      "bytes": 179427,
+      "sha256": "31a5c30abf84e96e2c3a7b9670c6f06ed81edadf2e2aca80e240d9be61085a2d",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-17x20.png",
+      "bytes": 912,
+      "sha256": "8430896cf7af624c84d6f7d55899d3d77b6b7a42100d882973ab912be35417e3",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-20x24.png",
+      "bytes": 1086,
+      "sha256": "8fcd59c635b07cde8dc236184b15dc46488d10f6ccda6ab57011b9d40da7971c",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-212x256.png",
+      "bytes": 13473,
+      "sha256": "328738c328ad09eadb238d7ebf2eb5bea41c5c883911bd64a4dd2d9e9ff33dd5",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-24x29.png",
+      "bytes": 1346,
+      "sha256": "1bec5fb2fc71d9e894b6c23a3d4c4b924845019607570fac868184fc879e90da",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-26x32.png",
+      "bytes": 1495,
+      "sha256": "631edd7d0a108df3790cfbac4b27e2ecfa38fa23dc0f5e0f95d2eb0e8eb2bec7",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-30x36.png",
+      "bytes": 1632,
+      "sha256": "b784898dbe81e568bcdd5b0e54d980f592ffdc6fada5b4bf05070b078fc00729",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-318x384.png",
+      "bytes": 21291,
+      "sha256": "17bc732559265024604eb36d45299dcf7e25a37fd60f693a43a42792f733c1aa",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-3390x4096.png",
+      "bytes": 496735,
+      "sha256": "aa3a585cbd665cd0451d3f899a5da71ce93ee0682dc85bb9d0e2a170851abddd",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-33x40.png",
+      "bytes": 1856,
+      "sha256": "9bdfdc1b81d87d7e9f17d26e339153748f81a5903768d06a6813b57b92e114d4",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-40x48.png",
+      "bytes": 2331,
+      "sha256": "0474e209c1d2711d1f0036b1a19b1a94e892eeea012ce745a4404b77d6344582",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-424x512.png",
+      "bytes": 29943,
+      "sha256": "4f491bfade9474ce7e716860e306d3bf0871ae8ca23d777d9e17afb6fadd7f8c",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-47x57.png",
+      "bytes": 2712,
+      "sha256": "5d86720f24b55beebe2a5e0eac430b7d8a980f57da2c80f09bcfe8ccb24dd27d",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-48x58.png",
+      "bytes": 2768,
+      "sha256": "3a7ed13a396dd68f9372b449d53ad836bd90b28667f683e6d71d922d72088a1d",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-50x60.png",
+      "bytes": 2847,
+      "sha256": "361c4ed10a183c72c21c0d4eb914ac7fa47b32b38bccc212d912023db621bb8f",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-53x64.png",
+      "bytes": 3059,
+      "sha256": "8a6ae291ab0f284ad4550953707f1ab55085a401e24a81a0afb176a44846600f",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-60x72.png",
+      "bytes": 3549,
+      "sha256": "fd0cf43d8f45728bb5263ee14235ea0c5ec7d9367f5f7aa91f7ed935484342a2",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-63x76.png",
+      "bytes": 3681,
+      "sha256": "693d349cc387d96b8005bb51948962db43776997731b6ab38b9db1003559e1f9",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-66x80.png",
+      "bytes": 3972,
+      "sha256": "d19b02c2d8048b3baf361ae82f1b7c7c44cb84644b72d9fa1435142bf5d1206b",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-72x87.png",
+      "bytes": 4291,
+      "sha256": "86ffc888937a55700bb5a651e91517033093259e9da08873e1c7e11d56c42cbf",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-79x96.png",
+      "bytes": 4724,
+      "sha256": "061cb36deb453acdea6094d477842beb3624c35c63e63471547ccafecd06fa02",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-847x1024.png",
+      "bytes": 71171,
+      "sha256": "3f6369a496a0f335f9bd1942920501a33252cfd3a1c7d3a6cca992833026c5bf",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-94x114.png",
+      "bytes": 5683,
+      "sha256": "98a58f7cc918a72042c922d00eaebf5b43f80cde9eaf49ba33810233014c91f0",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-on-light/gateahead-mark-on-light-99x120.png",
+      "bytes": 5941,
+      "sha256": "b46c7bd27cdd37e5a1903bbace4f9ed5dad0f1345304fca854e62747337dedcf",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-106x128.png",
+      "bytes": 4915,
+      "sha256": "5e17e6331c287507b1ed2a8c3c4723e77872f74dff1aeacfb8f89ff712b88683",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-119x144.png",
+      "bytes": 5689,
+      "sha256": "2416e3d7b2b67f3a08659f0057a0728c6914bc9832961ad7b0e4a4dd058063a6",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-126x152.png",
+      "bytes": 5986,
+      "sha256": "0eb35c9e03c01f0522d204f9ba620f152d791a498a2886329ad127f80fe7cb6b",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-138x167.png",
+      "bytes": 6661,
+      "sha256": "bab4c5633252b195682aa2afe4eae8adacfc1cdb91ab23b11fff1d3e0ee6faff",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-13x16.png",
+      "bytes": 478,
+      "sha256": "b5599dd4d54f66649f42c4e42f4cb5cb1722d1bfb218ea85d4810122aa7ea69f",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-149x180.png",
+      "bytes": 7288,
+      "sha256": "a6d397982db31a9de1529f78b7749c3b064c41e2acf1a374cdd3fb77de7189ec",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-159x192.png",
+      "bytes": 7703,
+      "sha256": "e4a5f3a77323659fb65a62ee49249846b9053454a6db57cb73e203cfd73484e9",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-1695x2048.png",
+      "bytes": 152541,
+      "sha256": "b62328e6e8d0e5462f40de02a7a808bcea506736df491d6fd2ed1dbb1b364015",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-17x20.png",
+      "bytes": 658,
+      "sha256": "a96281c4c1f1c61c91bc3a0d5003bfb9317b14f6ea57763ff784a1b2766577bc",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-20x24.png",
+      "bytes": 777,
+      "sha256": "941ea5c1418c6477464b81ac4fde0818a4141903394e1f7eb69cd822e0ad61a0",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-212x256.png",
+      "bytes": 10637,
+      "sha256": "fc4f65c4cee0ed05f15de1ae1dade1bf65859cbdfbd7b70e865049be78e86feb",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-24x29.png",
+      "bytes": 997,
+      "sha256": "2c45486fa46caf88efd472dbc436cb350b44f7b7312a58f238fca55d265ed4b5",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-26x32.png",
+      "bytes": 1077,
+      "sha256": "54be9becb624cb8285aea760221350f2e2647f502074498eea027bde6867748e",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-30x36.png",
+      "bytes": 1216,
+      "sha256": "86492be9786cf58780151e2d87115fe75ec4d7fa08f0461bcbf4fe137257a1fa",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-318x384.png",
+      "bytes": 16740,
+      "sha256": "f9d61036f39928395777a8eee2357c7f3a0ce6c8f95d6cee56bfe6d2dff535c4",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-3390x4096.png",
+      "bytes": 439293,
+      "sha256": "a430ce1bba0f47367104312d70a2b5191cf6ffe1a00f64e477ab91d71231aed5",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-33x40.png",
+      "bytes": 1384,
+      "sha256": "d553985e419e743a724b17ae223e379b9927eab1f4908a568aa766f603b5f76b",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-40x48.png",
+      "bytes": 1729,
+      "sha256": "5f84acd2cd22eae2d5c2c56481fc9b58c3a3f1ac5c461dbb4f0c680d449dc553",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-424x512.png",
+      "bytes": 24023,
+      "sha256": "b706851bad8debee6622342fd94b64900aa78f6635b21c7fc2946ebfca24a8f2",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-47x57.png",
+      "bytes": 1997,
+      "sha256": "11d381489feb09989fadecd31e93c74904d844fe5c34a82fff569f8c982e32ef",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-48x58.png",
+      "bytes": 2064,
+      "sha256": "5aecb95d553ce5465e89889f75ebd53b9c4daed14e5970c1f850e43782ad13b1",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-50x60.png",
+      "bytes": 2121,
+      "sha256": "91b2d141476710079ed3454ec70efd105891402bd4297689330b60de634e0027",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-53x64.png",
+      "bytes": 2294,
+      "sha256": "9f575a4227b5992157a17ec5f73e5cf2b348ba93f4023dd7131a040b68530537",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-60x72.png",
+      "bytes": 2636,
+      "sha256": "60f1002fe674ef6a5f6f3e401e4294f6436501e3f47bfba0dded34200d22d544",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-63x76.png",
+      "bytes": 2777,
+      "sha256": "8c01039267423a72bcf3ae9fe44c95e84c096b5e93790fe5ee12c07915b0dc7a",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-66x80.png",
+      "bytes": 2998,
+      "sha256": "0dd68fa3639f883f342905160edd11d38c1fd2121b01d31aab89d39aeb8178d2",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-72x87.png",
+      "bytes": 3232,
+      "sha256": "0b94fb53b393d00401c57fc306d7b98864fb35c316799708bd9e41dcd7fe0310",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-79x96.png",
+      "bytes": 3607,
+      "sha256": "9a26dced5e46da78c136b69342dc9e9c850a5553f8a1b885036ca5d205e2fd62",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-847x1024.png",
+      "bytes": 57862,
+      "sha256": "c3c27ff5343751c37e48f156dcdfaa95fd9785931e0273841c84a72b4ad7ccb3",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-94x114.png",
+      "bytes": 4363,
+      "sha256": "f5c1c76b249e19889b025b6bea97260dcd07b9a67c651cdd9b67af3002b0773a",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "png/gateahead-mark-white/gateahead-mark-white-99x120.png",
+      "bytes": 4610,
+      "sha256": "53a4fad064a37b9fcabb38bb7aa40e79f4c2caf2a34c1b569785c79be57c6f68",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "preview.html",
+      "bytes": 2678,
+      "sha256": "98c29622bc8018ed14eda209234e9c4b75da27c47831a02753d9882c7ebd282e"
+    },
+    {
+      "path": "preview.png",
+      "bytes": 91774,
+      "sha256": "5fd8f060d4c195f3b64d35b79aa1411f2e51bd0e58f90ef5dc087e493c0d2287",
+      "width": 1165,
+      "height": 1063,
+      "mode": "RGB"
+    },
+    {
+      "path": "reference/crossing-pin-concept.png",
+      "bytes": 1275582,
+      "sha256": "81c3bcf274a1cf4c93bf5613df1661fd4fa05c748bc11363e49fdf2871d27d7a",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGB"
+    },
+    {
+      "path": "scripts/export.py",
+      "bytes": 11183,
+      "sha256": "babc37b62bef3ae989be87cf48b77be9881ef13f68cfa0d3f15139e8a8243e55"
+    },
+    {
+      "path": "scripts/render.mjs",
+      "bytes": 4458,
+      "sha256": "61004b6055226151692d63d0321c05d3cbed625fdeaff5d82bab90371509218d"
+    },
+    {
+      "path": "svg/gateahead-icon-rounded.svg",
+      "bytes": 773,
+      "sha256": "f8b0163100b47f7dbeb8e33bada1a2afd2ffa63eae458c4c4d697023e5df4782"
+    },
+    {
+      "path": "svg/gateahead-icon-square.svg",
+      "bytes": 764,
+      "sha256": "608196fe9992f540dca2024ec2b8d4b4ae26fd47596c6b45a0481e5e977fcbdd"
+    },
+    {
+      "path": "svg/gateahead-mark-black.svg",
+      "bytes": 647,
+      "sha256": "8deb47bc911828b012e19b1bd0be0619face87398859257436e55789216f495a"
+    },
+    {
+      "path": "svg/gateahead-mark-on-dark.svg",
+      "bytes": 647,
+      "sha256": "0d1a21f3ae5266222f78b6b53f0e29abc8d5ea24a2638826d239954273090109"
+    },
+    {
+      "path": "svg/gateahead-mark-on-light.svg",
+      "bytes": 647,
+      "sha256": "f5347bca71db5f34a295b3da039a523ef97b9a35c545dc9a33c0e6ed1d71cc7c"
+    },
+    {
+      "path": "svg/gateahead-mark-white.svg",
+      "bytes": 647,
+      "sha256": "862906eb9426a4c4cb34096b52d8238946a29a0eaac3f77f9c0220e07e6465b7"
+    },
+    {
+      "path": "tiff/gateahead-icon-rounded-4096.tiff",
+      "bytes": 297620,
+      "sha256": "930d9e1fd64bb3a945e2aaac074a7b74f10fca6ed50c969ae552a118b8ed5eae",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "tiff/gateahead-icon-square-4096.tiff",
+      "bytes": 258152,
+      "sha256": "f9a7e35c9f2023d58348f5b9232224e7a139e6c52ddfa50863a3be3c06f2f9e9",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "tiff/gateahead-mark-black-4096.tiff",
+      "bytes": 214702,
+      "sha256": "08b923774ea8c9d286b0119e7310b298d80bf15f6a2d147b518ef40085d9f0be",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "tiff/gateahead-mark-on-dark-4096.tiff",
+      "bytes": 294014,
+      "sha256": "050c6a20b3de356e7e9b0ca3e4729702515a3daed114eb4253033aeb5c9ddcb4",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "tiff/gateahead-mark-on-light-4096.tiff",
+      "bytes": 288096,
+      "sha256": "f25634d4f3958653badf31c43b7d9cb2351a1351e8b245f7934de203368262f6",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "tiff/gateahead-mark-white-4096.tiff",
+      "bytes": 231024,
+      "sha256": "1a43a2ae41593b2fc8f9adcc2120c0bdb57e05bbe1753abe5ea1600e5405f07b",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-1024x1024.webp",
+      "bytes": 19206,
+      "sha256": "4e358b1c5df5617528259b4a7125f4f57c6ddf4c673966e87ce7ea0852728337",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-114x114.webp",
+      "bytes": 2502,
+      "sha256": "08d1d2f68be3374ffd29bde5fc45ba99b134fa6d81f0ea43ba2bed5458d3f92e",
+      "width": 114,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-120x120.webp",
+      "bytes": 2634,
+      "sha256": "c2d6f755aa28a2f8bc37580ca0ac48ecf942bb1a9cc01751e6952916f1368c5a",
+      "width": 120,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-128x128.webp",
+      "bytes": 2716,
+      "sha256": "27a19de6965f961d476637919fc055e58dd2550d0b297f8e7de02077e5772803",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-144x144.webp",
+      "bytes": 3174,
+      "sha256": "bf73f08fd24fed1fdc8441c0cef68d86e64aa333fc59b04d8708ea789ce99a84",
+      "width": 144,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-152x152.webp",
+      "bytes": 3376,
+      "sha256": "b50e2ec0e74b51486a39ab1b737ed5c7f3082d34a3f13af15f9e2a33e95ff728",
+      "width": 152,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-167x167.webp",
+      "bytes": 3624,
+      "sha256": "34c3ec64e99f98a6f6b080fa5eb13769a3e5461b93e5181a8688b38bb815bcd3",
+      "width": 167,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-16x16.webp",
+      "bytes": 386,
+      "sha256": "9961a37f0c806b4f67875a87c83180ce964ab010f6083bafef21c46b3eebca31",
+      "width": 16,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-180x180.webp",
+      "bytes": 3970,
+      "sha256": "c86afcd468c0220c4163cecae37b33ccd369f7610058a99e600bb75fd04e7e16",
+      "width": 180,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-192x192.webp",
+      "bytes": 4160,
+      "sha256": "ed8ad059502521194788dca5647bed71409f6fc77368104bbb5426c4038791fa",
+      "width": 192,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-2048x2048.webp",
+      "bytes": 36758,
+      "sha256": "33b230eab1519a0255be0e70f4ae7600fe25666faaab0c5c3e5cf1efa1a55600",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-20x20.webp",
+      "bytes": 472,
+      "sha256": "02ffc3a46b75716ce36f939ab1eb5c56495d0c2498f2fbdabf7859a9658a604c",
+      "width": 20,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-24x24.webp",
+      "bytes": 576,
+      "sha256": "18049ac64e0ac7b95462f5c01fea0f4ceedf838bcda4ab71ef8e0045309b3c9a",
+      "width": 24,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-256x256.webp",
+      "bytes": 5304,
+      "sha256": "716ae1aba2332914325c22c3446f7e8b5c793632a339f85ab361c902e9cb7819",
+      "width": 256,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-29x29.webp",
+      "bytes": 658,
+      "sha256": "6b6fde47f0014e09d609bbc8381a2a248141918f112e8dab95cdc143acf0cf2f",
+      "width": 29,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-32x32.webp",
+      "bytes": 684,
+      "sha256": "1c8fe86fdcab1009ef472d3a17141909f095830dd8340bc8ac8d1b43e6ac423d",
+      "width": 32,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-36x36.webp",
+      "bytes": 774,
+      "sha256": "38872173e67acb11e91979f39d47b5f1628d3e9357a0abfb214cde6c0964382b",
+      "width": 36,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-384x384.webp",
+      "bytes": 7612,
+      "sha256": "c570f6f8a225d143f2c2fac80e99696b5f35951b9c60d7d618c0bd0654bace7d",
+      "width": 384,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-4096x4096.webp",
+      "bytes": 69688,
+      "sha256": "b058d4a823aa395c94fc9562618bf1fb98696d138cd58be770386a878a317b68",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-40x40.webp",
+      "bytes": 906,
+      "sha256": "f2abb21a6dc52277b6a5ada7e122ed50f7566c483f284b5ddcf3ab4f09ee8d3b",
+      "width": 40,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-48x48.webp",
+      "bytes": 1006,
+      "sha256": "6f7f8f354cee52fb2d9bc373189086ab598752431639c4ce2177b3699d80e606",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-512x512.webp",
+      "bytes": 10048,
+      "sha256": "0efa4a4054ab9c857b4317e37698a708d4c0d777b5a9ecac6c4f9c7397795cc7",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-57x57.webp",
+      "bytes": 1334,
+      "sha256": "907f18d9661f3d184fd6cbd06b826bf2cc0f33be85ee49d11ddd57cb56f27edb",
+      "width": 57,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-58x58.webp",
+      "bytes": 1148,
+      "sha256": "25a9089e4f8e4098afd504166466abc577e26d6cf25f1a57e23ca7ee606af71a",
+      "width": 58,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-60x60.webp",
+      "bytes": 1356,
+      "sha256": "6916c53a9d80031b6521619c8bce5775e509ab9b8b8fefdf1bfdadd229021243",
+      "width": 60,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-64x64.webp",
+      "bytes": 1428,
+      "sha256": "8b7ada91afb5b701f7d282aea67e412b92078d6ed5a65654da4d955e12b5224f",
+      "width": 64,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-72x72.webp",
+      "bytes": 1616,
+      "sha256": "b378793713680076a5a5b41a5ae9eb83ffdd8eb1d06dac473ca00375aab13366",
+      "width": 72,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-76x76.webp",
+      "bytes": 1636,
+      "sha256": "8c3a5f8c60f02b5f78fc213d7f6abd51dc1ade2bba7071e7b02b7ada25b920d8",
+      "width": 76,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-80x80.webp",
+      "bytes": 1786,
+      "sha256": "e0bbb0c13fa7c9c44b3fd1d30465b57c26930ea5fde8c9227b9f7a6e55506049",
+      "width": 80,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-87x87.webp",
+      "bytes": 1996,
+      "sha256": "65dd46abd1be15331c1c847810b6b5d8d688c87cf464678e06260aec1d8d287d",
+      "width": 87,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-rounded/gateahead-icon-rounded-96x96.webp",
+      "bytes": 2102,
+      "sha256": "e585e6180952cc2557d37ba03d5d4d9c1da8602c1a5190a5bd913e854b27fe3f",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-1024x1024.webp",
+      "bytes": 14514,
+      "sha256": "5420d142c62170683b62d7f9ded6f5663cacf688fad2984ae9718890db4b12d8",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-114x114.webp",
+      "bytes": 1944,
+      "sha256": "8259afe6e9cb9e360ccbad1524e13e6a37b6efe8c9b62b8169d5eeed343ea656",
+      "width": 114,
+      "height": 114,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-120x120.webp",
+      "bytes": 1988,
+      "sha256": "bf64d0ca28c58efc54e88ad525b15460bee0f785cec2c1d12144b7081382f4f9",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-128x128.webp",
+      "bytes": 2138,
+      "sha256": "34f322d8a6069341b4d7860eb64ccef6c202919f22f238cdda0eb44624ea9906",
+      "width": 128,
+      "height": 128,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-144x144.webp",
+      "bytes": 2368,
+      "sha256": "f3308aa8559e7c5311f8e0fc0edcbf6e1af5b4d40ff964eb7d7994934a5086d1",
+      "width": 144,
+      "height": 144,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-152x152.webp",
+      "bytes": 2520,
+      "sha256": "7d3d44f6c213fae40552b074e4f5a64feb9ee130c18f366ff37c163b7156c181",
+      "width": 152,
+      "height": 152,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-167x167.webp",
+      "bytes": 2702,
+      "sha256": "a3bbe58eed541d614078a1af351d0407859acdfbedfbbd04c8880b213316bd97",
+      "width": 167,
+      "height": 167,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-16x16.webp",
+      "bytes": 300,
+      "sha256": "d052d56f8837395f244e099ebe3753e1b4f9c92bfb27309a7d9bdff4a69b735a",
+      "width": 16,
+      "height": 16,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-180x180.webp",
+      "bytes": 2934,
+      "sha256": "39ba38086a1194d03cd1895c265f7b21adb031026514a8300b7a1a5fe15f1638",
+      "width": 180,
+      "height": 180,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-192x192.webp",
+      "bytes": 3110,
+      "sha256": "0e7a18d4875fa1567fd64798ab28b76bb3c424e9e92073a8bb87f6c619177f50",
+      "width": 192,
+      "height": 192,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-2048x2048.webp",
+      "bytes": 28908,
+      "sha256": "a99e48168024fa2609d8c79995564b2c50e9f3212d82b89917b316daea3dc9b3",
+      "width": 2048,
+      "height": 2048,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-20x20.webp",
+      "bytes": 372,
+      "sha256": "af8a270ad0cb0940cee06d84ef7a16caf2ee9bff7719c3046661dacd758522ac",
+      "width": 20,
+      "height": 20,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-24x24.webp",
+      "bytes": 434,
+      "sha256": "483b1c67c268f5b22683a83170ba52c7523d4266d942dd0da8047f0a3bf9bed9",
+      "width": 24,
+      "height": 24,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-256x256.webp",
+      "bytes": 4006,
+      "sha256": "869cb24b4e850fdf568e00d81252cf5f309039db69706c939dc1af9ec9cdf24c",
+      "width": 256,
+      "height": 256,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-29x29.webp",
+      "bytes": 502,
+      "sha256": "b0bec9b68874c6559303c259b0806f33c071d848bb82017421e21153a4dd0ae5",
+      "width": 29,
+      "height": 29,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-32x32.webp",
+      "bytes": 556,
+      "sha256": "a290000940a301121a7d459e37c4343bcdef176597bba762f2d65e7cd4673f2d",
+      "width": 32,
+      "height": 32,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-36x36.webp",
+      "bytes": 606,
+      "sha256": "b6176d1c416bc94b015ee3565996e5d978419048981ad385699cb1b8c6359280",
+      "width": 36,
+      "height": 36,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-384x384.webp",
+      "bytes": 5698,
+      "sha256": "74951f8ce45800dc238060b86750de2a5dda78e56c731acb73e7e90a712a8227",
+      "width": 384,
+      "height": 384,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-4096x4096.webp",
+      "bytes": 56646,
+      "sha256": "c6c4e17ff6404bdb8ffc3a5e51ea512026393a6db40c5b7a0a4ab32e2a2b0668",
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-40x40.webp",
+      "bytes": 682,
+      "sha256": "db0e0a074012c863a677191856dab1eba9d1f706b661219b4e4fff5bbe00dd5d",
+      "width": 40,
+      "height": 40,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-48x48.webp",
+      "bytes": 786,
+      "sha256": "4b4d8b20dabf5e4a7e7f6c163e4ae405e007c0bd03c61d4d20d89e0b6a27d9a6",
+      "width": 48,
+      "height": 48,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-512x512.webp",
+      "bytes": 7530,
+      "sha256": "c3920e7fc4a8d105cc1259239c3083b12e525280ce486cf314e87096581255ed",
+      "width": 512,
+      "height": 512,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-57x57.webp",
+      "bytes": 916,
+      "sha256": "e9bc621ecde7b425a623f01d8876a678eeb9905a744c667c46ff9e250f9fe5be",
+      "width": 57,
+      "height": 57,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-58x58.webp",
+      "bytes": 902,
+      "sha256": "2c300efb4055d64746f84133da0c62557e20eca3727e84a54a290b96b987eee8",
+      "width": 58,
+      "height": 58,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-60x60.webp",
+      "bytes": 930,
+      "sha256": "717a86cad70caae301e61cd6cc6c4259ac393e55c8aa1d36d1b25132b4f57ea8",
+      "width": 60,
+      "height": 60,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-64x64.webp",
+      "bytes": 972,
+      "sha256": "64d75f7822bbc12c4bce633a430fef378786d5f84d269231b23f2beca505d8d3",
+      "width": 64,
+      "height": 64,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-72x72.webp",
+      "bytes": 1090,
+      "sha256": "8af140f1923f3db24fea52641a8bdb01d3e9e955cca8da83aefc6e8da81e1bfd",
+      "width": 72,
+      "height": 72,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-76x76.webp",
+      "bytes": 1126,
+      "sha256": "a0fff444b5fd0496d003ee854be031583bba88d2f89e750dca561b9fb7450ed5",
+      "width": 76,
+      "height": 76,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-80x80.webp",
+      "bytes": 1398,
+      "sha256": "13056b2c1071ce001180ab78c5b0ad6aff48058b5a1ababaf3e61d1bcfe0bbc6",
+      "width": 80,
+      "height": 80,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-87x87.webp",
+      "bytes": 1544,
+      "sha256": "d719e983b4107b9260cd906d2f8aabb1950f510d591faed41f4d5d329a8c084c",
+      "width": 87,
+      "height": 87,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-icon-square/gateahead-icon-square-96x96.webp",
+      "bytes": 1626,
+      "sha256": "180f7c194ac91d7180c1313d5d3a27b4d8f9b6ee0248ec02af454a6512f563b7",
+      "width": 96,
+      "height": 96,
+      "mode": "RGB"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-106x128.webp",
+      "bytes": 1626,
+      "sha256": "725b9e69d735226c45a68c87081c6190788ae7cb26c1691221c1d56b4ecf2219",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-119x144.webp",
+      "bytes": 1880,
+      "sha256": "dac0a3bd6ffa8bcff89c94b8d5414062cc0df01758de72855d8843380ded43db",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-126x152.webp",
+      "bytes": 1990,
+      "sha256": "5b3d60e24d1868dee8b33b087cab579a13043efa7b4c41f53c008511019c60ab",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-138x167.webp",
+      "bytes": 2164,
+      "sha256": "2e1a0a054fbc90eb566a0742fe7bd2d38f8c11d334246cc1acaf0b4221c29836",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-13x16.webp",
+      "bytes": 214,
+      "sha256": "a3a3376ddb28c7a82b3404859a8d00287cddc50ccff3b1170f3d55b688d45f00",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-149x180.webp",
+      "bytes": 2356,
+      "sha256": "2913c738aae97c38a65355219fabd4fca73624f4f0752ace0f7cae4e8e4d61b7",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-159x192.webp",
+      "bytes": 2504,
+      "sha256": "ed24ab62a5a59c7df6809cf39df9e816a1f169781ad4a1e38d30f0784a52202d",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-1695x2048.webp",
+      "bytes": 29306,
+      "sha256": "a8eb1b35152f9024d972a32280bf34e09a9e6ee70ff7867ac71674b09e6dbeef",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-17x20.webp",
+      "bytes": 280,
+      "sha256": "cb617987943b03271a2cc62d6cf673b8a4f0573b8eff4c9ba1a9831ee6551230",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-20x24.webp",
+      "bytes": 318,
+      "sha256": "9efa93e34464078799a71dab950e0678815792a4203bd16a0b2ab2da8b5eab00",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-212x256.webp",
+      "bytes": 3366,
+      "sha256": "47e3983177dc8439347e798e937005f1e5458815bed404625e9275e519ede4fc",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-24x29.webp",
+      "bytes": 406,
+      "sha256": "e45c7a555aef30c1bb5a8e87bd9374ccb89062a7dcf75b5261be03d99dc0a496",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-26x32.webp",
+      "bytes": 436,
+      "sha256": "33e4ddce701d5c65790ccc9e991154c9173d3d6fe8b0ca1199f6e37299a7b099",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-30x36.webp",
+      "bytes": 480,
+      "sha256": "ef26f63dd69b8f54348f2c83dca1173ff9bc44f383b22d579a5ff303d661ef83",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-318x384.webp",
+      "bytes": 5158,
+      "sha256": "1e066e82eff48826a8c1cc0e83fd9b7124e8f7f7041804ebc5b93564e01f4524",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-3390x4096.webp",
+      "bytes": 58248,
+      "sha256": "bcd804a07df06704e91be16e1c5900bd5bc1395d954608faca34bd6f72369969",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-33x40.webp",
+      "bytes": 530,
+      "sha256": "ca63df3a94ee684de837bc56cebd8b86756b5f32bfd050035e46fb53936ac432",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-40x48.webp",
+      "bytes": 638,
+      "sha256": "7741626f297e8bf0bd69e8b79f199440c1217e938bb160d5098e0e049b7d60b1",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-424x512.webp",
+      "bytes": 6940,
+      "sha256": "5413a4281909e98d271091ddda337e825b5f35708fb1e116e1902c9c65892df0",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-47x57.webp",
+      "bytes": 722,
+      "sha256": "0284d86a3d221b0ea30e2da8603644bd354f2e1af2eab23be7f0f782319dd4f4",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-48x58.webp",
+      "bytes": 738,
+      "sha256": "c26a4565e429858805feeee22de5ecb64c20a9df464613397e40d1ee4f9a76e0",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-50x60.webp",
+      "bytes": 754,
+      "sha256": "97a10f80dadfd9726080adc28f4c3dbbc0dbb3a66a83149de814cf9b4eedf1e0",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-53x64.webp",
+      "bytes": 822,
+      "sha256": "0d03f7c741bee7e856bc604e5effdb6cb2b10bbb0e5d4350389d9737cc067df7",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-60x72.webp",
+      "bytes": 912,
+      "sha256": "07fe131cb807a2e965ccbf1e641343b5cdee5033941a9bf58e65385a113ecdf0",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-63x76.webp",
+      "bytes": 976,
+      "sha256": "6549c1b05f29b0d57d0b2db080006b44dec1f29a40c8c590562a73de8e991831",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-66x80.webp",
+      "bytes": 1048,
+      "sha256": "939707d3f5b105d0159e44391f148ae10a7a2821553d59f4e01966f4918b3604",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-72x87.webp",
+      "bytes": 1112,
+      "sha256": "e2a1aef241ff348f5cef43bccf7ad14bd405208cd6f0fbd74023c78a75eb7113",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-79x96.webp",
+      "bytes": 1228,
+      "sha256": "d200c665d14ac8b2486f86297b91e4620128a96e504589e17936c59ebaa89a8f",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-847x1024.webp",
+      "bytes": 14412,
+      "sha256": "283476b58f42292dd71ad009c3af4d0ed65b9b28a226fc3e8c7a5cae509a755a",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-94x114.webp",
+      "bytes": 1472,
+      "sha256": "a42fd19665b8e66a214fbc372945c98f0016668866189ddc120134cffce132cb",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-black/gateahead-mark-black-99x120.webp",
+      "bytes": 1530,
+      "sha256": "4736e10e74b42a5acd0a17f8ae60b584c188841735773a5423accdccfbc4adce",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-106x128.webp",
+      "bytes": 2484,
+      "sha256": "0d0b4972f446fb5cdac8c662a2d1db7e91d2d956b16c551dfd0e259107b1c915",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-119x144.webp",
+      "bytes": 2868,
+      "sha256": "7e4c01dc2476c8f61998b28ec5e688a2ad01d00b22b4941c6362f2bcef775604",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-126x152.webp",
+      "bytes": 3018,
+      "sha256": "4d618f27e7b3c3d208dcf99110cd00796bdc76e50f4a3f2ff6a5448d99deda07",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-138x167.webp",
+      "bytes": 3238,
+      "sha256": "bfcf286be0332a6cc55d38f19e873d6063ed9c396e063a9acdd0050bff9a1246",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-13x16.webp",
+      "bytes": 404,
+      "sha256": "65d7a1331b639f3e47b95c0ca09f075b05e4aa1c4cb119b31662d99bd1578f76",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-149x180.webp",
+      "bytes": 3524,
+      "sha256": "37de9eb829ec20bce91eb7058ee31274b6fe60046d3667f531a55d3718bf3c2e",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-159x192.webp",
+      "bytes": 3690,
+      "sha256": "7180250793b2a23d8382f2e2733777a14d4c235bcc919353a6ee098662909920",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-1695x2048.webp",
+      "bytes": 34324,
+      "sha256": "8ff718a8af1d2d216c1d171314780c10288b21e18263e7b02d8e041a4bbc9e29",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-17x20.webp",
+      "bytes": 538,
+      "sha256": "32043043fba7826791b9b6ebe247bc5685b86a80ca61792a77d0fa52f7f494ca",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-20x24.webp",
+      "bytes": 578,
+      "sha256": "bac37bb49ff83596e117b5d2e8b1cf8940ae8e986cb3e1773ceba27db308634b",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-212x256.webp",
+      "bytes": 4714,
+      "sha256": "13caf4b876c633a8dd2e1563ff6824bbe5f01b7b0847c88686aa9a725b0b94e2",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-24x29.webp",
+      "bytes": 692,
+      "sha256": "3f2289dced8a711d3b66c48660026ca327d33d4a64c822a88e89f93d2d4ae263",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-26x32.webp",
+      "bytes": 742,
+      "sha256": "14e1e5d06f8d58e938cc15f9206c49bfbb92b55f5e0b106cb137b484804ba2a6",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-30x36.webp",
+      "bytes": 780,
+      "sha256": "721bca8ad36d8cfa812223f63bb868ec566ba74cf8fb9340bde1bfff08a577cf",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-318x384.webp",
+      "bytes": 6984,
+      "sha256": "246b581233d3cc9cd395f51367774665f7a7f7bce0afd2bbcd6d50601962e1d8",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-3390x4096.webp",
+      "bytes": 67818,
+      "sha256": "d252d6e299d78cc0cb1d886fabfa1170f26785b26bb5794bba53364ccdc6323f",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-33x40.webp",
+      "bytes": 904,
+      "sha256": "1b25e3c1fd171dfa6cd6bbeb23f329e59eac09cfdcc739bd633eb587013a51bf",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-40x48.webp",
+      "bytes": 1020,
+      "sha256": "b6ffd598d7b7a95eb3b074b6c4b26f34a31d3ffd3e9d3b1b1828810e2dc12de6",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-424x512.webp",
+      "bytes": 9186,
+      "sha256": "5ba3fdca474be2f65abb074e5e1ecc3417a6a6d5af15efbc9e967deca49fd024",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-47x57.webp",
+      "bytes": 1174,
+      "sha256": "a880d7094220af818bf5f14d252ee68f3027bae7386d949805dbae9c964c842d",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-48x58.webp",
+      "bytes": 1210,
+      "sha256": "687d08116c9092eb5becae92e2521855a92e16471a4a1fe06a956241f4038b0b",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-50x60.webp",
+      "bytes": 1214,
+      "sha256": "7d8819815f06f7802f14e9104278d295b761c5efa90f4edf8ddb8704e2988a9e",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-53x64.webp",
+      "bytes": 1336,
+      "sha256": "02caa83a5bcc57c64cd63339a7e1ca5b3d7efc6d5fc8c2da4a10b667dc23819b",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-60x72.webp",
+      "bytes": 1468,
+      "sha256": "33de71c7a2e18e576cae7f09403bae26a4cda7cb0014c0e5e1008f2e28f4fa9c",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-63x76.webp",
+      "bytes": 1560,
+      "sha256": "315c3aa6ea9af505c82caf47acdf7a526b0119095a8dd077d498590cf04c5620",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-66x80.webp",
+      "bytes": 1688,
+      "sha256": "3ae1d5b7e93385459799acce7898995c05027c1b8b7ef5541bb2fce033ba0859",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-72x87.webp",
+      "bytes": 1774,
+      "sha256": "d9ce4e651ef7875aadcafd7d855dae743acb531c1c0c001939690028b4180596",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-79x96.webp",
+      "bytes": 1948,
+      "sha256": "1fcce6c18276ac673264780db98578322e5122e5a2efbb1d476f26a4e5acfe37",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-847x1024.webp",
+      "bytes": 17874,
+      "sha256": "db90c374e811820da4d98f9eb30e69f295721b714a8a9f9411f3685ab97f0b49",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-94x114.webp",
+      "bytes": 2320,
+      "sha256": "a050ae617a6499f61011c36c317b48084defac1e64b9dbc2f1a0f66cac3cc14f",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-dark/gateahead-mark-on-dark-99x120.webp",
+      "bytes": 2354,
+      "sha256": "3893fd91d937a1c1f895d8cd2aba3d920e91467ed21cf5e0fe234b76cb70b635",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-106x128.webp",
+      "bytes": 2556,
+      "sha256": "c1813f81efa656ec3399c25f9ccf327a5f57ec980e5c6b4df1928e6935e79fa4",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-119x144.webp",
+      "bytes": 2884,
+      "sha256": "660412b56e8cc82ccfa107cfc15b42a736fa214db8bc116bdaadf3d8d440ec59",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-126x152.webp",
+      "bytes": 3020,
+      "sha256": "367d140b5883e0d7ba678ad47ef6561e53c646eeff3082c1c534ebf3e522265b",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-138x167.webp",
+      "bytes": 3260,
+      "sha256": "396f28a518a4b0811b08c773f7d19900355bd137ac54c853c2458e6f2539d0d1",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-13x16.webp",
+      "bytes": 394,
+      "sha256": "0d1cbf2222e4957d4fe940c33d8ee12963a21c0d12400c0b84f22cfdfcebc207",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-149x180.webp",
+      "bytes": 3508,
+      "sha256": "28a855bfe10f3edbfa7be8ec6410953aac33b424b67e87a343fc543c5253ded9",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-159x192.webp",
+      "bytes": 3698,
+      "sha256": "397a81e7c28ec2a59810eb56d38229e7d7efc185bd11475234b2585ece9907ae",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-1695x2048.webp",
+      "bytes": 33750,
+      "sha256": "7db6ff4357b73194104a7c854308e7e6f05461744349527a7c0e62e648cdf9a5",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-17x20.webp",
+      "bytes": 522,
+      "sha256": "c070dd981ab3ac404ba3bcafa7ff9a5f5abe2e2e434199c694c67b30de53eb1a",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-20x24.webp",
+      "bytes": 558,
+      "sha256": "dade34b7eabe2034df09ccb5ea8643eda57c226667bcab50f356e953e2b8c555",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-212x256.webp",
+      "bytes": 4854,
+      "sha256": "ca50317ab7b2404277eb18d5992d109b41e50e9431bd47adf80911681deca37f",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-24x29.webp",
+      "bytes": 666,
+      "sha256": "9851c2e06df7c0d64f252c19d3cff1310ac1e2573ff058edbaee3255e2f730f5",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-26x32.webp",
+      "bytes": 718,
+      "sha256": "8ed409760b76b80d0fb515f0c3366c1d6ce8c7b121babffc85a31a642b432270",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-30x36.webp",
+      "bytes": 776,
+      "sha256": "78162af2b34202e9b6de442ceae8b6b99703cf0b7dd10b0d04ba974dc9d2a9a9",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-318x384.webp",
+      "bytes": 7012,
+      "sha256": "4c27e51ec4529bf0c6bd19482977757525d5729a696f9c36fec09e6af91c4902",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-3390x4096.webp",
+      "bytes": 68484,
+      "sha256": "06223444e4babc59a9cffc94538653ac63c908b6f5d372b2c1e6d2de8edc9a5f",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-33x40.webp",
+      "bytes": 876,
+      "sha256": "b46a8cc96d340f1fd7a645f4c098880e253482ab3fd53fa5f35b8429bc468569",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-40x48.webp",
+      "bytes": 1000,
+      "sha256": "92e01869b863f6aed7ffc9e3f3e90405767ef8b236a21f34093578267ba60a52",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-424x512.webp",
+      "bytes": 9084,
+      "sha256": "28b488d25f2cda5663f4d5d9282079d6033e423df7d2d9acb4dcaa0492782a33",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-47x57.webp",
+      "bytes": 1150,
+      "sha256": "a828e9fcd2920aecf3e52a61cf9a64ee19e2a65adf69799c59930f8721d0bd3a",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-48x58.webp",
+      "bytes": 1176,
+      "sha256": "33a548714a52a7e7b788fca39cdc6719fdaab22eaa058d7dff4804d3095edd06",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-50x60.webp",
+      "bytes": 1202,
+      "sha256": "78c1a2198e05173790a7b71daa19dc245d9b1eb2d3a749a95d078542abe64907",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-53x64.webp",
+      "bytes": 1348,
+      "sha256": "99ef5a5d614c37619b370c680a4ee7e1a106e0586aade6daaca4f5aa02729697",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-60x72.webp",
+      "bytes": 1520,
+      "sha256": "26eb22455ef6bdd1bf0e980072c409ce81806f286e59584d07ae21db316adbda",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-63x76.webp",
+      "bytes": 1596,
+      "sha256": "824256a9cbbedf64e687859464419e15a5dc81ae60fe36e2cfb7f439471cfa5c",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-66x80.webp",
+      "bytes": 1738,
+      "sha256": "0403e66813af8b3e8abc1d9acfaf39b493da8f061a9906f26bbc536f45080f6a",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-72x87.webp",
+      "bytes": 1830,
+      "sha256": "1ef2494f8e314be72e7d37c785f41272966a40649b6d50f5b342dfa34fb5a72a",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-79x96.webp",
+      "bytes": 1944,
+      "sha256": "6c198fb87cf144b7941e5b94bef8f88dbe84b8f265cd66e8a5f675dd2e38997b",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-847x1024.webp",
+      "bytes": 17766,
+      "sha256": "92b7cc8dbce44c11d85f6441ab524098c5965d83a6a47289efb47559cd41e2fa",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-94x114.webp",
+      "bytes": 2354,
+      "sha256": "0efbbed0783cfcfa68f38c9bd52f1459c31ce933706b78471cc02baf0830c3a6",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-on-light/gateahead-mark-on-light-99x120.webp",
+      "bytes": 2372,
+      "sha256": "444608fe4f608893bfc4c2038a85d00923f98b76f4b511b006deac64e2e60200",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-106x128.webp",
+      "bytes": 1650,
+      "sha256": "73644a5832f47849a208aed2a3570c995fd92af2602abf745b4388054a1a8fd4",
+      "width": 106,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-119x144.webp",
+      "bytes": 1902,
+      "sha256": "937e36c348976cb70af5fcfc7b18df719393088212718448894d0895dd2796b0",
+      "width": 119,
+      "height": 144,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-126x152.webp",
+      "bytes": 2000,
+      "sha256": "dc6460bd3a9a1193a7b60921b728e079d1e088db488048bb14c50760d546eab4",
+      "width": 126,
+      "height": 152,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-138x167.webp",
+      "bytes": 2164,
+      "sha256": "82ccfc179302e3fc7d624caf654b524f168732f1c3ca2ca2121cfadc132c7733",
+      "width": 138,
+      "height": 167,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-13x16.webp",
+      "bytes": 216,
+      "sha256": "66e70bff1db6e539981c9c18498cacea289d069d204866b77bae9b78d4b3d6e5",
+      "width": 13,
+      "height": 16,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-149x180.webp",
+      "bytes": 2338,
+      "sha256": "26fb9f9f64c9bbdd44bdbe2364d3e5d1e147439b6e047e26377a6bcea2dedec1",
+      "width": 149,
+      "height": 180,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-159x192.webp",
+      "bytes": 2500,
+      "sha256": "fb8aa793cd9b5682a2e153911a3d275633a65dbfa7118c5d5916284a6bfd9c29",
+      "width": 159,
+      "height": 192,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-1695x2048.webp",
+      "bytes": 29224,
+      "sha256": "51ee8e26b43435c2ec81bbea593d3cfe3b72f9f2e4922cb2e95b857d5650089c",
+      "width": 1695,
+      "height": 2048,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-17x20.webp",
+      "bytes": 284,
+      "sha256": "2509a2cc6a79acbd5e38535cc02715098407f825d3593c40e9303d07dbb7244b",
+      "width": 17,
+      "height": 20,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-20x24.webp",
+      "bytes": 318,
+      "sha256": "b886b5b90f40f3af98d6df2545633d113f0de8c4b03710164d2e6e2c173449cf",
+      "width": 20,
+      "height": 24,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-212x256.webp",
+      "bytes": 3336,
+      "sha256": "e13207e0218c8b4099bcbc78089ac1a342a7f8441b1e1f16893f81baf2ef5db8",
+      "width": 212,
+      "height": 256,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-24x29.webp",
+      "bytes": 398,
+      "sha256": "42caa8198be5749520fdecc75082a2b36ea712ede33a46979c27366ae97dc7e0",
+      "width": 24,
+      "height": 29,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-26x32.webp",
+      "bytes": 434,
+      "sha256": "3f9bdbc7f1c5d62fd5093d78aac55857372a434577fc7f05ba3b15982a68980c",
+      "width": 26,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-30x36.webp",
+      "bytes": 468,
+      "sha256": "c383c96534b344f6e0e1a3dc601f02ff703b09adeca4151d6545d76d0a93e0e4",
+      "width": 30,
+      "height": 36,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-318x384.webp",
+      "bytes": 5126,
+      "sha256": "94ef165f4fc8b3a35f1f9e283f56f353fc60d570118f231427220d4e180abd2d",
+      "width": 318,
+      "height": 384,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-3390x4096.webp",
+      "bytes": 57904,
+      "sha256": "780e17cee5f8b40ada713f508bb286a598c32adc42227a0da028ad6e5951ace3",
+      "width": 3390,
+      "height": 4096,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-33x40.webp",
+      "bytes": 522,
+      "sha256": "a319e05fcce79a3d2cc659c1602642e513086ee28e2f91d2d09957bfbac46ab0",
+      "width": 33,
+      "height": 40,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-40x48.webp",
+      "bytes": 648,
+      "sha256": "227581eaed99dc5a670cc5b77c89a4072e246f60de5b1a41999f53afe4f9f878",
+      "width": 40,
+      "height": 48,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-424x512.webp",
+      "bytes": 6920,
+      "sha256": "048d3d1d37d991bc56b31e5e0fb0d8f2af4565ae97578e300b9f159846c484c4",
+      "width": 424,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-47x57.webp",
+      "bytes": 736,
+      "sha256": "b7873eac95cd037b2728718b7eb6d2e03375ca132358b93be8ab9796d3d21d52",
+      "width": 47,
+      "height": 57,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-48x58.webp",
+      "bytes": 744,
+      "sha256": "f4e193a2cfc3ae17aa8d075dd94b346aa79a44f6badf264d5590e4b0da0deac4",
+      "width": 48,
+      "height": 58,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-50x60.webp",
+      "bytes": 770,
+      "sha256": "538458268cc0a59ccc3d8e32b7dd794024e9c06f6fbd5aa287fdab24489d6053",
+      "width": 50,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-53x64.webp",
+      "bytes": 836,
+      "sha256": "d59b30286aa8aa351e6bce94cf22a21ddfe6c856d92046ce0e379c278362c5da",
+      "width": 53,
+      "height": 64,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-60x72.webp",
+      "bytes": 926,
+      "sha256": "d8c68b79bb07f2441d89ece3a58e5b39c3d8005093dd888db51f88f6489d16c4",
+      "width": 60,
+      "height": 72,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-63x76.webp",
+      "bytes": 984,
+      "sha256": "e0eb6140eeaa80138ca7f7ea1009be398f17848ab38620cabdbaa5d871f942af",
+      "width": 63,
+      "height": 76,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-66x80.webp",
+      "bytes": 1058,
+      "sha256": "2d4d9940527bee4807460c9125965ee9296055549594c81901e72584636aaf5b",
+      "width": 66,
+      "height": 80,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-72x87.webp",
+      "bytes": 1132,
+      "sha256": "0a6a98c8d28d9027e00577d2d505fd627b78b763609b93a29d91f8a871011e4d",
+      "width": 72,
+      "height": 87,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-79x96.webp",
+      "bytes": 1242,
+      "sha256": "384a459f8104c6a9b5b11b8dd15288615e94cb89d155dde88ef4415475efab88",
+      "width": 79,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-847x1024.webp",
+      "bytes": 14340,
+      "sha256": "0de8249a509568b28599c09c5bae494404eff111da716a786d63ede3766ca709",
+      "width": 847,
+      "height": 1024,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-94x114.webp",
+      "bytes": 1488,
+      "sha256": "a239c637a8d35248c9ff3e34dad034b87815e25fb73e2587d2973bdc885bac67",
+      "width": 94,
+      "height": 114,
+      "mode": "RGBA"
+    },
+    {
+      "path": "webp/gateahead-mark-white/gateahead-mark-white-99x120.webp",
+      "bytes": 1550,
+      "sha256": "4f0efaef58d0573d1074f2fcce00f57ef8cefcdc93285227ec0577e8561b9231",
+      "width": 99,
+      "height": 120,
+      "mode": "RGBA"
+    }
+  ]
+}
