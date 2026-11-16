@@ -15,7 +15,8 @@ async function findTests(directory) {
 const output = await mkdtemp(join(tmpdir(), "gateahead-tests-"));
 try {
   const files = await findTests("src");
-  await build({ entryPoints: files, outbase: "src", outdir: output, outExtension: { ".js": ".mjs" }, bundle: true, platform: "node", format: "esm", logLevel: "warning" });
+  await build({ entryPoints: files, outbase: "src", outdir: output, outExtension: { ".js": ".mjs" }, bundle: true, platform: "node", format: "esm", logLevel: "warning",
+    banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" } });
   for (const file of files) {
     const compiled = join(output, relative("src", file).replace(/\.ts$/, ".mjs"));
     const result = spawnSync(process.execPath, [compiled], { stdio: "inherit" });

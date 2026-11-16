@@ -17,6 +17,14 @@ npm run build
 
 Run the local checks with `npm test`.
 
+Install the pinned test tools with `npm ci` and Chromium with `npx playwright install chromium`. With the development server running, `npm run test:browser` runs 93 controlled Chromium scenarios: five crossing workflows, 40 desktop/phone user journeys, and 48 paired data/network/clock cases. These cover GPS permissions and delayed replies, city search, saved gates, sharing, reporting, keyboard navigation, commute checks, opposing trains, stale reports, partial discovery, offline fallback, reduced motion, clock differences, and browsers without map graphics. Requests are intercepted; test reports and train-provider requests never reach live servers.
+
+`BROWSER_BASE_URL` defaults to `http://127.0.0.1:5173`; `BROWSER_ARTIFACTS` selects a screenshot/report directory. Each script also runs separately. `PLAYWRIGHT_MODULE` can point to another installed Playwright package. The scripts fail on unexpected JavaScript/console errors and save JSON results and failure screenshots.
+
+`node scripts/browser-journeys-check.mjs` exercises 20 user journeys in desktop and phone/touch profiles (40 cases), including first visit, GPS allowed/denied and delayed callbacks, city-search keyboard races, map confirmation and keyboard focus, saved gate rename/removal/races, clipboard sharing and shared-link reloads, report replacement/expiry, and automatic checks inside/outside commute hours. Incoming-link tests compare waiting normally, selecting another cached gate, and navigating away while a fresh crossing lookup is pending. It uses controlled API replies and isolated browser storage; no observations reach a live report server. It accepts the same Playwright/base URL/artifact variables; its artifact default is `/tmp/gateahead-browser-journeys`. Set `BROWSER_SCENARIO` to a name substring to rerun one journey. Phone profiles emulate touch and layout in Chromium; they do not replace native-device testing.
+
+After `npm run build`, start `npm run preview` and run `npm run test:offline` for five production checks: page rendering, service-worker installation, offline reload/navigation, cached JavaScript/CSS, and returning online. Its default `BROWSER_BASE_URL` is `http://127.0.0.1:4173`; it accepts the same Playwright and artifact environment variables. The shell cache handles hosting `Vary: Origin` headers while leaving API responses outside the service-worker cache.
+
 ## Navigation
 
 Search and location controls sit above the map. **Nearby**, **Trains**, and **Saved** each have their own view. Selecting a crossing opens its details; **Back to crossings** returns to the nearby list. Theme, automatic checks, and commute hours are in **Settings**. Reporting opens a separate dialog, and secondary route details stay collapsed until requested.

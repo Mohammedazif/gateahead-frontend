@@ -61,3 +61,37 @@ test("a second fresh train remains current after the first scene report expires"
   assert.deepEqual(result.trains.map((train) => train.number), ["16511"]);
   assert.equal(result.trains[0].eta_min, 1);
 });
+
+test("a stopped train does not cross or pass a gate on the client timer", () => {
+  const stopped = { ...scene, trains: [{ ...scene.trains[0], movement: "stopped" as const, eta_min: -1,
+    current: "Pazhayangadi", age_min: 0 }] };
+  const result = currentScene(stopped, at + 90000)!;
+  assert.equal(result.trains[0].eta_min, -1);
+  assert.equal(result.passed!.length, 0);
+  assert.equal(result.awaiting_update!.length, 0);
+});
+
+test("an expired stopped report remains unresolved beside a fresh second train", () => {
+  const mixed = { ...scene, crossing: { id: "elimala", name: "Elimala", lat: 12.06, lon: 75.23 }, trains: [
+    { ...scene.trains[0], number: "16650", current: "Pazhayangadi", movement: "stopped" as const, age_min: 7.5 },
+    { ...scene.trains[0], number: "16603", motion: { direction: -1, speed_kmh: 60, valid_for_sec: 420 } },
+  ] };
+  const result = currentScene(mixed, at + 60000)!;
+  assert.deepEqual(result.trains.map((train) => train.number), ["16603"]);
+  assert.equal(result.awaiting_update![0].number, "16650");
+  assert.equal(result.awaiting_update![0].current, "Pazhayangadi");
+  assert.equal(result.passed!.length, 0);
+  assert.equal(mixed.trains.length, 2);
+});
+
+test("nearby and train lists hold stopped estimates and mark expired reports unresolved", () => {
+  const stopped = { ...prediction, approaching: [{ ...prediction.approaching[0], eta: 3, at_station: true,
+    current: "Pazhayangadi", age_min: 7 }], gate_predictions: [{ ...prediction.gate_predictions![0], eta: 3 }] };
+  const held = currentPrediction(stopped, at + 30000)!;
+  assert.equal(held.gate_predictions![0].eta, 3);
+  assert.equal(held.approaching[0].eta, 3);
+  const expired = currentPrediction(stopped, at + 60000)!;
+  assert.equal(expired.gate_predictions!.length, 0);
+  assert.equal(expired.approaching.length, 0);
+  assert.equal(expired.awaiting_update![0].current, "Pazhayangadi");
+});

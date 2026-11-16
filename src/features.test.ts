@@ -68,3 +68,22 @@ test("checked gates retain their latest train when switching between details and
   assert.equal(markGates([gate], latest)[0].eta, 4);
   assert.equal(predict.approaching[0].train, "16323");
 });
+
+test("an unresolved train suppresses a later train's gate countdown", () => {
+  const gate = { id: "elimala", name: "Near Elimala", lat: 12.06, lon: 75.23, km: 2.6, source: "osm" };
+  const predict = { approaching: [], gate_predictions: [{ id: "elimala", train: "16603", eta: 12, status: "approaching" }],
+    awaiting_update: [{ number: "16650", ids: ["elimala"] }] } as unknown as Predict;
+  const marked = markGates([gate], predict)[0];
+  assert.equal(marked.status, "uncertain");
+  assert.equal(marked.eta, undefined);
+});
+
+test("a fresh gate check resolves only that gate's waiting report", () => {
+  const predict = { cached_at: 10, approaching: [], gate_predictions: [],
+    awaiting_update: [{ number: "16650", name: "Parasuram", current: "Pazhayangadi", age_min: 14,
+      reason: "stopped_report", ids: ["elimala", "further-north"] }] } as Predict;
+  const scene = { cached_at: 20, available: true, crossing: { id: "elimala" }, trains: [], awaiting_update: [] } as unknown as Scene;
+  const updated = withGateChecks(predict, [scene])!;
+  assert.deepEqual(updated.awaiting_update![0].ids, ["further-north"]);
+  assert.deepEqual(predict.awaiting_update![0].ids, ["elimala", "further-north"]);
+});

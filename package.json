@@ -6,7 +6,9 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "node scripts/test.mjs"
+    "test": "node scripts/test.mjs",
+    "test:browser": "node scripts/run-browser-checks.mjs",
+    "test:offline": "node scripts/browser-offline-check.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.1.2",
@@ -20,8 +22,9 @@
     "@types/react-dom": "^19.1.2",
     "@types/three": "^0.176.0",
     "@vitejs/plugin-react": "^4.4.1",
+    "esbuild": "^0.25.12",
+    "playwright": "1.62.1",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
-    "esbuild": "^0.25.12"
+    "vite": "^6.3.5"
   }
 }

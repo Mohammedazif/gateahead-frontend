@@ -7,6 +7,8 @@ import type { Theme } from "../theme";
 import { checkedAgo } from "./checked";
 import { SavedGates, RefreshControls } from "./FeatureControls";
 import { GateDetails } from "./GateDetails";
+import { CoverageNotice } from "./CoverageNotice";
+import { AwaitingUpdate } from "./AwaitingUpdate";
 import { Dialog } from "../ui/Dialog";
 import { Icon, type IconName } from "../ui/Icon";
 import type { RefreshSettings, SavedGate } from "../features";
@@ -17,6 +19,10 @@ const tabs: { id: Tab; label: string; icon: IconName }[] = [
   { id: "trains", label: "Trains", icon: "train" },
   { id: "saved", label: "Saved", icon: "saved" },
 ];
+
+function activeGate(gate: Gate): boolean {
+  return gate.eta != null || Boolean(gate.groupEstimate) || gate.status === "uncertain";
+}
 
 type Props = {
   favorites: SavedGate[];
@@ -66,10 +72,10 @@ export function TrainSheet(props: Props) {
   const nav = useRef<HTMLElement>(null);
   useEffect(() => { if (scroll.current) scroll.current.scrollTop = 0; }, [tab, selected?.id, place]);
   const ranked = [...gates].sort((a, b) => {
-    const hot = Number(a.eta == null && !a.groupEstimate) - Number(b.eta == null && !b.groupEstimate);
+    const hot = Number(!activeGate(a)) - Number(!activeGate(b));
     return hot || (a.eta != null && b.eta != null ? a.eta - b.eta : a.km - b.km);
   });
-  const shown = [...ranked.filter((gate) => gate.eta != null || gate.groupEstimate), ...ranked.filter((gate) => gate.eta == null && !gate.groupEstimate).slice(0, 12)];
+  const shown = [...ranked.filter(activeGate), ...ranked.filter((gate) => !activeGate(gate)).slice(0, 12)];
 
   function changeTab(next: Tab) {
     props.onCloseGate();
@@ -116,8 +122,8 @@ export function TrainSheet(props: Props) {
             {note && <p className="notice">{friendlyError(note)}</p>}
             {!place && <div className="empty-state"><Icon name="pin" size={30} /><h3>Start with a place</h3><p>Use the search above the map, share your location, or tap a point on the railway.</p></div>}
             {shown.length > 0 && <div className="gates"><ul>{shown.map((gate) => <li key={gate.id}>
-              <button type="button" className={gate.eta != null || gate.groupEstimate ? "hot crossing-row" : "crossing-row"} onClick={() => { setExpanded(false); onSelect(gate); }}>
-                <span className="crossing-dot" aria-hidden="true" /><span className="crossing-copy"><strong>{gate.name || "Level crossing"}</strong><small>{gate.km.toFixed(1)} km away{gate.eta != null ? ` · Est. ${gateLabel(gate.eta, gate.closesIn, gate.status)}` : gate.groupEstimate ? " · Train near this group · open for gate timing" : ""}</small></span><Icon name="chevron" size={16} />
+              <button type="button" className={activeGate(gate) ? "hot crossing-row" : "crossing-row"} onClick={() => { setExpanded(false); onSelect(gate); }}>
+                <span className="crossing-dot" aria-hidden="true" /><span className="crossing-copy"><strong>{gate.name || "Level crossing"}</strong><small>{gate.km.toFixed(1)} km away{gate.status === "uncertain" ? " · Position update needed" : gate.eta != null ? ` · Est. ${gateLabel(gate.eta, gate.closesIn, gate.status)}` : gate.groupEstimate ? " · Train near this group · open for gate timing" : ""}</small></span><Icon name="chevron" size={16} />
               </button></li>)}</ul>
               {gates.length > shown.length && <p className="quiet">{gates.length - shown.length} more crossings are marked on the map.</p>}
             </div>}
@@ -187,11 +193,13 @@ function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[] }) {
     grouped.set(row.train, list);
   }
   if (grouped.size === 0 && sightings.length === 0 && passed.length === 0) {
-    return <p className="quiet">No train estimates available on this stretch right now.</p>;
+    return <><CoverageNotice coverage={predict.coverage} /><AwaitingUpdate trains={predict.awaiting_update} />{!predict.awaiting_update?.length && <p className="quiet">No train estimates available on this stretch right now.</p>}</>;
   }
   return (
     <div className="results">
-      {grouped.size === 0 ? (
+      <CoverageNotice coverage={predict.coverage} />
+      <AwaitingUpdate trains={predict.awaiting_update} />
+      {grouped.size === 0 && !predict.awaiting_update?.length ? (
         <p className="quiet">No approaching train was found in the available reports. Gate position is unknown.</p>
       ) : (
         [...grouped.entries()].map(([number, rows]) => {

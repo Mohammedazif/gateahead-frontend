@@ -1,4 +1,5 @@
 import type { Scene } from "../api";
+import { snapshotTime } from "../snapshotClock";
 
 export type LngLat = { lat: number; lon: number };
 export type Plane = { x: number; y: number };
@@ -9,6 +10,7 @@ export type MapRun = {
   crossing: LngLat;
   train: {
     alongKm: number; status: string; onSegment?: boolean; ageMin?: number;
+    movement?: "moving" | "stopped";
     etaMin?: number; closesInMin?: number; snapshotAt?: number;
     motion?: { direction: number; speed_kmh: number; valid_for_sec: number };
   } | null;
@@ -56,14 +58,15 @@ export function sceneRun(scene: Scene, historical = false): MapRun | null {
     trains: historical || scene.offline ? [] : scene.trains.map((row) => ({ number: row.number, name: row.name,
       rail: row.track?.rail, alongKm: row.track?.along_km ?? row.along_km,
       onSegment: row.track?.position_on_segment ?? row.position_on_segment === true,
-      motion: row.track?.motion ?? row.motion, status: row.status, etaMin: row.eta_min,
+      movement: row.movement, motion: row.movement === "stopped" ? undefined : row.track?.motion ?? row.motion, status: row.status, etaMin: row.eta_min,
       closesInMin: row.closes_in_min, ageMin: row.age_min,
-      snapshotAt: row.snapshot_at == null ? scene.cached_at : row.snapshot_at * 1000 })) };
+      snapshotAt: snapshotTime(row.snapshot_at == null ? undefined : row.snapshot_at * 1000, scene.cached_at) })) };
 }
 
 export function runFreshUntil(run: MapRun, now: number): number {
   const trains = run.trains ?? (run.train ? [run.train] : []);
-  return Math.max(now, ...trains.map((train) => (train.snapshotAt ?? now) + (train.motion?.valid_for_sec ?? 120) * 1000));
+  return Math.max(now, ...trains.map((train) => (train.snapshotAt ?? now) +
+    (train.movement === "stopped" ? Math.max(0, 8 - (train.ageMin ?? 0)) * 60 : train.motion?.valid_for_sec ?? 120) * 1000));
 }
 
 const LAT_M = 110570;
@@ -198,9 +201,11 @@ export function frameAt(
 
   const current = train;
   const elapsed = Math.max(0, hold ? Math.floor(elapsedSec) : elapsedSec);
-  const fresh = current != null && (current.ageMin ?? 0) + elapsed / 60 < 8 && elapsed <= (current.motion?.valid_for_sec ?? 120);
-  const remaining = current?.etaMin == null ? null : current.etaMin - elapsed / 60;
-  const downIn = current?.closesInMin == null ? null : current.closesInMin - elapsed / 60;
+  const stopped = current?.movement === "stopped";
+  const fresh = current != null && (current.ageMin ?? 0) + elapsed / 60 < 8 && (stopped || elapsed <= (current.motion?.valid_for_sec ?? 120));
+  const travelMinutes = stopped ? 0 : elapsed / 60;
+  const remaining = current?.etaMin == null ? null : current.etaMin - travelMinutes;
+  const downIn = current?.closesInMin == null ? null : current.closesInMin - travelMinutes;
   const lowered = fresh && (remaining == null || remaining >= -2) &&
     (current.status === "closed" || (current.status === "closing_soon" && downIn != null && downIn <= 0)) ? 1 : 0;
   const reach = BARRIER_HALF_M * lowered;
@@ -216,7 +221,7 @@ export function frameAt(
   }
 
   let marker: RunFrame["train"] = null;
-  const motion = current?.motion;
+  const motion = stopped ? undefined : current?.motion;
   const moving = motion && Math.abs(motion.direction) === 1 && Number.isFinite(motion.speed_kmh) && motion.speed_kmh > 0 && remaining != null;
   const total = points.slice(1).reduce((sum, point, i) => sum + len(sub(point, points[i])), 0);
   const metres = moving ? gate.metres - motion.direction * motion.speed_kmh * remaining * 1000 / 60 : (current?.alongKm ?? 0) * 1000;

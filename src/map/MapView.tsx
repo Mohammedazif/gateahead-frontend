@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import maplibregl from "maplibre-gl";
 
@@ -35,6 +35,7 @@ type GateProbe = Window & {
 };
 
 export function MapView({ place, pending, gates, selectedId, run, focusedTrain, focusRequest, onFocusTrain, theme, onPlace, onSelect }: Props) {
+  const [unavailable, setUnavailable] = useState(false);
   const holder = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const gatesRef = useRef(gates);
@@ -63,14 +64,23 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
   useEffect(() => {
     const node = holder.current;
     if (!node || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: node,
-      style: styleRef.current,
-      center: [79.6, 22.5],
-      zoom: 4.3,
-      minZoom: 3.2,
-      attributionControl: false,
-    });
+    let map: maplibregl.Map;
+    try {
+      map = new maplibregl.Map({
+        container: node,
+        style: styleRef.current,
+        center: [79.6, 22.5],
+        zoom: 4.3,
+        minZoom: 3.2,
+        attributionControl: false,
+      });
+    } catch {
+      // Graphics support can be unavailable on older devices or remote desktops.
+      // The crossing list, place search, and reports still work without a map.
+      node.replaceChildren();
+      setUnavailable(true);
+      return;
+    }
     const resizeObserver = new ResizeObserver(() => map.resize());
     resizeObserver.observe(node);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -403,7 +413,7 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     };
   }, [place]);
 
-  return <div ref={holder} className="map" />;
+  return <><div ref={holder} className="map" />{unavailable && <p className="map-unavailable" role="status">Map unavailable in this browser. Search a place to use the crossing list.</p>}</>;
 }
 
 function applyThemePaint(map: maplibregl.Map, theme: Theme) {

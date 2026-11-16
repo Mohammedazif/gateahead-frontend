@@ -14,6 +14,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
     };
   }, []);
   return <dialog ref={ref} className="utility-dialog" aria-labelledby={titleId} onCancel={onClose}
+    onKeyDown={(event) => { if (event.key === "Escape") event.stopPropagation(); }}
     onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div className="dialog-frame">
       <header className="dialog-header"><h2 id={titleId}>{title}</h2><button type="button" className="icon-button" aria-label={`Close ${title}`} onClick={onClose}><Icon name="close" /></button></header>

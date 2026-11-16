@@ -22,6 +22,12 @@ export function CitySearch({ onPick, autoFocus = false }: Props) {
       setFailed(false);
       return;
     }
+    // Results belong to the query that produced them. Enter must not select
+    // an old city while the replacement query is still waiting to load.
+    setResults([]);
+    setActive(0);
+    setNote(null);
+    setFailed(false);
     const ctrl = new AbortController();
     const timer = window.setTimeout(() => {
       fetchCities(trimmed, ctrl.signal)

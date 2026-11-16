@@ -1,0 +1,369 @@
+import assert from "node:assert/strict";
+import { mkdir, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+
+// Human workflows run against React/MapLibre, with isolated browser storage
+// and controlled service replies. Nothing is posted to live train/report APIs.
+const require = createRequire(import.meta.url);
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
+const base = process.env.BROWSER_BASE_URL || "http://127.0.0.1:5173";
+const artifacts = resolve(process.env.BROWSER_ARTIFACTS || "/tmp/gateahead-browser-journeys");
+const filter = process.env.BROWSER_SCENARIO;
+await mkdir(artifacts, { recursive: true });
+const browser = await chromium.launch({ headless: true, args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"] });
+const results = [];
+const profiles = [
+  { name: "desktop", viewport: { width: 1440, height: 1000 } },
+  { name: "phone", viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 },
+];
+const cities = [{ name: "Kannur", state: "Kerala", lat: 12, lon: 75 }, { name: "Kozhikode", state: "Kerala", lat: 13, lon: 76 }];
+const gateA = { id: "osm:node:9004", name: "School Road", lat: 12, lon: 75, km: 0.4, source: "osm" };
+const gateB = { id: "osm:node:9104", name: "Station Road", lat: 13, lon: 76, km: 0.3, source: "osm" };
+const gateC = { ...gateA, id: "osm:node:9005", name: "Canal Road", lat: 12.002, km: 0.7 };
+const visible = (locator) => locator.first().waitFor({ state: "visible", timeout: 10000 });
+const body = (page) => page.locator("body").innerText();
+const settle = async (page) => { await page.getByText("Checking this crossing…", { exact: true }).waitFor({ state: "hidden" }); };
+async function pickCity(page, name) {
+  await page.locator(".location-open").click();
+  await page.getByRole("combobox").fill(name);
+  await page.getByRole("option", { name: new RegExp(name) }).click();
+}
+async function openGate(page, name = "School Road") {
+  await page.getByRole("tab", { name: "Nearby", exact: true }).click();
+  await page.getByRole("button", { name: new RegExp(name) }).click();
+  await visible(page.getByLabel("Crossing details"));
+  await settle(page);
+}
+async function mapTap(page) {
+  const canvas = page.locator("canvas.maplibregl-canvas");
+  if (await page.evaluate(() => navigator.maxTouchPoints > 0)) await canvas.tap({ position: { x: 55, y: 140 } });
+  else await canvas.click({ position: { x: 55, y: 140 } });
+  await visible(page.getByRole("dialog", { name: /Finding this place|Test map point|°/ }));
+}
+async function saveGate(page, name = "Home gate") {
+  page.once("dialog", (dialog) => dialog.accept(name));
+  await page.getByRole("button", { name: "Save gate", exact: true }).click();
+  await visible(page.getByRole("button", { name: "Saved · remove", exact: true }));
+}
+
+async function run(profile, name, test, options = {}) {
+  if (filter && !`${profile.name}/${name}`.includes(filter)) return;
+  const errors = [], consoleErrors = [];
+  const context = await browser.newContext({ ...profile, timezoneId: "Asia/Kolkata", serviceWorkers: "block", permissions: ["clipboard-read", "clipboard-write"] });
+  const page = await context.newPage();
+  page.setDefaultTimeout(10000);
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
+  const state = { calls: [], releases: [], heldGates: options.heldGates === true, reports: [], reportDevice: null, delayedCities: false };
+  if (options.clock) await page.clock.install({ time: new Date("2026-11-16T08:30:00+05:30") });
+  if (options.gpsDelayed) await page.addInitScript(() => {
+    navigator.geolocation.getCurrentPosition = (success, error) => { window.__gpsSuccess = success; window.__gpsError = error; };
+  });
+  if (options.storage) await page.addInitScript((storage) => {
+    if (!sessionStorage.getItem("journey-seeded")) {
+      for (const [key, value] of Object.entries(storage)) localStorage.setItem(key, JSON.stringify(value));
+      sessionStorage.setItem("journey-seeded", "yes");
+    }
+  }, options.storage);
+  await context.route("https://tiles.openfreemap.org/**", (route) => route.fulfill({ json: { version: 8, sources: {}, layers: [{ id: "background", type: "background", paint: { "background-color": "#282d2c" } }] } }));
+  // Font-provider latency is outside these controlled interaction workflows.
+  await context.route("https://fonts.googleapis.com/**", (route) => route.fulfill({ contentType: "text/css", body: "" }));
+  await context.route("**/api/**", async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname.replace(/^\/api/, "");
+    state.calls.push({ path, query: Object.fromEntries(url.searchParams), method: route.request().method() });
+    const reply = (json) => route.fulfill({ json }).catch(() => {});
+    const lat = Number(url.searchParams.get("lat"));
+    const gate = lat >= 12.5 ? gateB : gateA;
+    if (path === "/gates") {
+      if (state.heldGates && lat < 12.5) await new Promise((release) => state.releases.push(release));
+      return reply({ gates: options.twoGates && lat < 12.5 ? [gateA, gateC] : [gate] });
+    }
+    if (path === "/cities") {
+      const q = url.searchParams.get("q").toLowerCase();
+      if (state.delayedCities) await new Promise((release) => state.releases.push(release));
+      return reply({ cities: cities.filter((city) => city.name.toLowerCase().includes(q)) });
+    }
+    if (path === "/place") return reply({ name: "Test map point" });
+    if (path === "/predict") return reply({ generated_at: new Date().toISOString(), crossings: 1, checked: 0,
+      running: 0, stations: [], approaching: [], gate_predictions: [], passed: [], sightings: [], awaiting_update: [] });
+    if (path === "/scene") {
+      const chosen = [gateA, gateB, gateC].find((item) => item.id === url.searchParams.get("crossing_id")) || gateA;
+      return reply({ available: true, crossing: chosen, rail: [[chosen.lat - .03, chosen.lon], [chosen.lat + .03, chosen.lon]], trains: [], passed: [], awaiting_update: [] });
+    }
+    if (path === "/reports") {
+      if (route.request().method() === "POST") {
+        const report = route.request().postDataJSON();
+        assert.equal(report.crossing_id, gateA.id);
+        assert.match(report.installation_id, /^[0-9a-f-]{36}$/i);
+        if (state.reportDevice) assert.equal(report.installation_id, state.reportDevice);
+        state.reportDevice = report.installation_id;
+        const now = await page.evaluate(() => Date.now() / 1000);
+        state.reports = [{ state: report.state, at: now, expires_at: now + 600 }];
+      }
+      return reply({ verified: false, reports: state.reports });
+    }
+    throw new Error(`Unhandled fixture ${path}`);
+  });
+  try {
+    await page.goto(`${base}/${options.initial || ""}`, { waitUntil: "domcontentloaded" });
+    await visible(page.getByRole("heading", { name: "GateAhead", exact: true }));
+    await page.waitForFunction(() => Boolean(document.querySelector("canvas.maplibregl-canvas")));
+    await test(page, context, state);
+    assert.deepEqual(errors, [], "no uncaught browser errors");
+    assert.deepEqual(consoleErrors, [], "no unexpected console errors");
+    const layout = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
+    assert.ok(layout.scroll <= layout.width + 1, `horizontal overflow ${JSON.stringify(layout)}`);
+    await page.screenshot({ path: resolve(artifacts, `${profile.name}-${name}.png`), fullPage: true });
+    results.push({ profile: profile.name, name, passed: true, calls: state.calls.length, errors });
+    console.log(`PASS ${profile.name}/${name}`);
+  } catch (error) {
+    await page.screenshot({ path: resolve(artifacts, `${profile.name}-${name}-failure.png`), fullPage: true }).catch(() => {});
+    results.push({ profile: profile.name, name, passed: false, error: error.stack || String(error), errors, consoleErrors, calls: state.calls });
+    console.error(`FAIL ${profile.name}/${name}: ${error.message}`);
+  } finally {
+    state.releases.forEach((release) => release());
+    await context.close();
+  }
+}
+
+try {
+  for (const profile of profiles) {
+    await run(profile, "first-visit-search-keyboard", async (page, _context, state) => {
+      await visible(page.getByRole("heading", { name: "Start with a place" }));
+      await page.getByRole("tab", { name: "Trains", exact: true }).click();
+      assert.equal(await page.getByRole("button", { name: "Check trains", exact: true }).isDisabled(), true);
+      await page.locator(".location-open").click();
+      const input = page.getByRole("combobox");
+      await input.fill("zzzz");
+      await visible(page.getByText("No Indian city matches that."));
+      await input.fill("Kannur");
+      await page.getByRole("option").first().waitFor();
+      await input.press("ArrowDown");
+      await input.press("Enter");
+      await visible(page.getByRole("button", { name: /School Road/ }));
+      assert.match(await page.locator(".location-open").innerText(), /Kannur/);
+      assert.equal(state.calls.filter((call) => call.path === "/predict").length, 0);
+    });
+
+    await run(profile, "gps-permission-granted", async (page, context) => {
+      await context.grantPermissions(["geolocation"]);
+      await context.setGeolocation({ latitude: 12, longitude: 75 });
+      await page.getByRole("button", { name: "Use my location", exact: true }).click();
+      await visible(page.getByRole("button", { name: /School Road/ }));
+      await visible(page.getByRole("button", { name: "Use my location", exact: true }));
+      assert.match(await page.locator(".location-open").innerText(), /Test map point/);
+    });
+
+    await run(profile, "gps-denied-recovers-with-search", async (page) => {
+      await page.getByRole("button", { name: "Use my location", exact: true }).click();
+      await visible(page.getByText("Location was blocked. Tap the map to drop a pin."));
+      await pickCity(page, "Kannur");
+      await visible(page.getByRole("button", { name: /School Road/ }));
+      assert.doesNotMatch(await body(page), /Location was blocked/);
+    });
+
+    for (const outcome of ["success", "error"]) await run(profile, `old-gps-${outcome}-cannot-replace-city`, async (page) => {
+      await page.getByRole("button", { name: "Use my location", exact: true }).click();
+      await pickCity(page, "Kozhikode");
+      await visible(page.getByRole("button", { name: /Station Road/ }));
+      await page.evaluate((outcome) => outcome === "success"
+        ? window.__gpsSuccess({ coords: { latitude: 12, longitude: 75 } })
+        : window.__gpsError({ code: 1, message: "late denied GPS" }), outcome);
+      await page.waitForTimeout(150);
+      assert.match(await page.locator(".location-open").innerText(), /Kozhikode/);
+      assert.doesNotMatch(await body(page), /Location was blocked/);
+      await visible(page.getByRole("button", { name: "Use my location", exact: true }));
+    }, { gpsDelayed: true });
+
+    await run(profile, "typing-new-city-does-not-select-old-result", async (page, _context, state) => {
+      await page.locator(".location-open").click();
+      const input = page.getByRole("combobox");
+      await input.fill("Kannur");
+      await visible(page.getByRole("option", { name: /Kannur/ }));
+      state.delayedCities = true;
+      await input.fill("Kozhikode");
+      await input.press("Enter");
+      assert.equal(await page.getByRole("dialog", { name: "Find a crossing", exact: true }).count(), 1);
+      assert.equal(state.calls.filter((call) => call.path === "/gates").length, 0);
+      state.delayedCities = false;
+      state.releases.forEach((release) => release());
+      await visible(page.getByRole("option", { name: /Kozhikode/ }));
+      await input.press("Enter");
+      await visible(page.getByRole("button", { name: /Station Road/ }));
+    });
+
+    await run(profile, "map-pick-cancel-confirm-double-tap", async (page, _context, state) => {
+      await page.waitForTimeout(350);
+      await mapTap(page);
+      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+      assert.equal(state.calls.filter((call) => call.path === "/gates").length, 0);
+      // End the previous touch gesture before a deliberate new map selection.
+      // MapLibre's tap recognizer keeps its gesture window for500ms.
+      await page.waitForTimeout(650);
+      await mapTap(page);
+      await page.getByRole("button", { name: "Look up", exact: true }).evaluate((button) => { button.click(); button.click(); });
+      await visible(page.locator(".crossing-row"));
+      assert.equal(state.calls.filter((call) => call.path === "/gates").length, 1);
+    });
+
+    await run(profile, "map-pick-escape-keeps-selected-crossing", async (page) => {
+      await openGate(page);
+      await mapTap(page);
+      await page.keyboard.press("Escape");
+      assert.equal(await page.getByRole("dialog").count(), 0);
+      await visible(page.getByLabel("Crossing details"));
+      await page.keyboard.press("Escape");
+      await visible(page.getByRole("heading", { name: "Nearby crossings", exact: true }));
+    }, { initial: "?lat=12&lon=75" });
+
+    await run(profile, "map-pick-traps-keyboard-in-confirmation", async (page) => {
+      await page.waitForTimeout(350);
+      await mapTap(page);
+      const lookUp = page.getByRole("button", { name: "Look up", exact: true });
+      await lookUp.focus();
+      await page.keyboard.press("Tab");
+      assert.equal(await page.getByRole("button", { name: "Cancel", exact: true }).evaluate((button) => button === document.activeElement), true);
+      await page.keyboard.press("Shift+Tab");
+      assert.equal(await lookUp.evaluate((button) => button === document.activeElement), true);
+      await page.keyboard.press("Escape");
+      assert.equal(await page.getByRole("dialog").count(), 0);
+    });
+
+    await run(profile, "saved-rename-reload-open-remove", async (page) => {
+      await openGate(page);
+      await saveGate(page);
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.getByLabel("Manage Home gate").click();
+      page.once("dialog", (dialog) => dialog.accept("Office gate"));
+      await page.getByRole("button", { name: "Rename", exact: true }).click();
+      await visible(page.getByRole("button", { name: /Office gate/ }));
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.getByRole("button", { name: /Office gate/ }).click();
+      await visible(page.getByLabel("Crossing details"));
+      await settle(page);
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.getByLabel("Manage Office gate").click();
+      await page.getByRole("button", { name: "Remove", exact: true }).click();
+      await visible(page.getByRole("heading", { name: "Your regular crossings, together" }));
+    }, { initial: "?lat=12&lon=75" });
+
+    await run(profile, "saved-load-cannot-override-new-city", async (page, _context, state) => {
+      await openGate(page);
+      await saveGate(page);
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      state.heldGates = true;
+      await page.getByRole("button", { name: /Home gate/ }).click();
+      await page.waitForTimeout(80);
+      await pickCity(page, "Kozhikode");
+      await visible(page.getByRole("button", { name: /Station Road/ }));
+      state.releases.forEach((release) => release());
+      await page.waitForTimeout(150);
+      assert.equal(await page.getByLabel("Crossing details").count(), 0);
+      assert.match(await page.locator(".location-open").innerText(), /Kozhikode/);
+    }, { initial: "?lat=12&lon=75" });
+
+    await run(profile, "share-link-round-trip", async (page, context) => {
+      await page.addInitScript(() => { Object.defineProperty(navigator, "share", { configurable: true, value: undefined }); });
+      await page.evaluate(() => { Object.defineProperty(navigator, "share", { configurable: true, value: undefined }); });
+      await openGate(page);
+      await page.getByRole("button", { name: "Share", exact: true }).click();
+      await visible(page.getByText("Crossing link copied.", { exact: true }));
+      const link = await page.evaluate(() => navigator.clipboard.readText());
+      const url = new URL(link);
+      assert.equal(url.searchParams.get("gate"), gateA.id);
+      await page.goto(link, { waitUntil: "domcontentloaded" });
+      await visible(page.getByLabel("Crossing details"));
+      await settle(page);
+      await visible(page.getByRole("heading", { name: gateA.name, exact: true }));
+    }, { initial: "?lat=12&lon=75" });
+
+    await run(profile, "new-city-after-shared-link-survives-reload", async (page) => {
+      await visible(page.getByLabel("Crossing details"));
+      await pickCity(page, "Kozhikode");
+      await visible(page.getByRole("button", { name: /Station Road/ }));
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await visible(page.getByRole("button", { name: /Station Road/ }));
+      assert.match(await page.locator(".location-open").innerText(), /Kozhikode/);
+      assert.equal(await page.getByLabel("Crossing details").count(), 0);
+    }, { initial: "?lat=12&lon=75&gate=osm%3Anode%3A9004&name=Shared%20gate" });
+
+    for (const action of ["untouched", "manual-gate", "navigate-away"]) await run(profile, `incoming-link-${action}-while-gates-load`, async (page, _context, state) => {
+      await visible(page.getByRole("button", { name: /Canal Road/ }));
+      if (action === "manual-gate") {
+        await page.getByRole("button", { name: /Canal Road/ }).click();
+        await settle(page);
+        await visible(page.getByRole("heading", { name: "Canal Road", exact: true }));
+      } else if (action === "navigate-away") await page.getByRole("tab", { name: "Trains", exact: true }).click();
+      const fresh = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/gates");
+      state.heldGates = false;
+      state.releases.forEach((release) => release());
+      await fresh;
+      await page.waitForTimeout(250);
+      if (action === "untouched") await visible(page.getByRole("heading", { name: "School Road", exact: true }));
+      else if (action === "manual-gate") await visible(page.getByRole("heading", { name: "Canal Road", exact: true }));
+      else {
+        assert.equal(await page.getByLabel("Crossing details").count(), 0);
+        await visible(page.getByRole("heading", { name: "Trains on this stretch", exact: true }));
+      }
+    }, { initial: "?lat=12&lon=75&gate=osm%3Anode%3A9004", heldGates: true, twoGates: true,
+      storage: { "gateahead:responses": { "/api/gates?lat=12&lon=75": { at: Date.now(), data: { gates: [gateA, gateC] } } } } });
+
+    await run(profile, "report-replace-expire-and-keyboard-tabs", async (page, _context, state) => {
+      await openGate(page);
+      for (const [choice, label] of [["The gate is open", "Gate open"], ["The gate is closed", "Gate closed"], ["The location is incorrect", "Location reported incorrect"]]) {
+        await page.getByRole("button", { name: "Report", exact: true }).click();
+        await page.getByRole("button", { name: choice, exact: true }).click();
+        await visible(page.getByText("Report saved for 10 minutes.", { exact: true }));
+        const disclosure = page.locator(".community-reports");
+        if (!await disclosure.evaluate((element) => element.open)) await disclosure.locator("summary").click();
+        await visible(disclosure.getByText(new RegExp(label)));
+        assert.equal(state.reports.length, 1);
+      }
+      await page.clock.fastForward(601000);
+      await page.clock.runFor(100);
+      await visible(page.getByText("No recent reports for this crossing."));
+      const nearby = page.getByRole("tab", { name: "Nearby", exact: true });
+      await nearby.focus();
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await page.getByRole("tab", { name: "Trains", exact: true }).getAttribute("aria-selected"), "true");
+      await page.keyboard.press("End");
+      assert.equal(await page.getByRole("tab", { name: /Saved/ }).getAttribute("aria-selected"), "true");
+    }, { initial: "?lat=12&lon=75", clock: true });
+
+    for (const allowed of [false, true]) await run(profile, `commute-automatic-checks-${allowed ? "inside" : "outside"}`, async (page, _context, state) => {
+      await visible(page.getByRole("button", { name: /School Road/ }));
+      await page.getByRole("button", { name: "Check trains", exact: true }).click();
+      await page.getByRole("button", { name: "Checking…", exact: true }).waitFor({ state: "hidden" });
+      assert.equal(state.calls.filter((call) => call.path === "/predict").length, 1);
+      await page.getByRole("button", { name: "Open settings" }).click();
+      await page.getByLabel("Check every 2 minutes while visible").check();
+      await page.getByLabel("Only during my commute").check();
+      await page.getByLabel("From", { exact: true }).fill(allowed ? "08:00" : "00:00");
+      await page.getByLabel("Until", { exact: true }).fill(allowed ? "10:00" : "01:00");
+      await page.getByRole("button", { name: "Close Settings", exact: true }).click();
+      await page.clock.fastForward(135000); await page.clock.runFor(250);
+      assert.equal(state.calls.filter((call) => call.path === "/predict").length, allowed ? 2 : 1);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.getByRole("button", { name: "Open settings" }).click();
+      assert.equal(await page.getByLabel("Check every 2 minutes while visible").isChecked(), true);
+      assert.equal(await page.getByLabel("Only during my commute").isChecked(), true);
+    }, { initial: "?lat=12&lon=75", clock: true });
+
+    await run(profile, "legacy-saved-record-does-not-crash", async (page) => {
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await visible(page.getByRole("heading", { name: "Your regular crossings, together" }));
+      await pickCity(page, "Kannur");
+      await visible(page.getByRole("button", { name: /School Road/ }));
+    }, { storage: { "gateahead:favorites": [{ label: "Broken old gate", place: { lat: 12, lon: 75 },
+      gate: { id: "missing-on-map", lat: 12, lon: 75, name: { old: "gate" } } }] } });
+  }
+} finally {
+  await browser.close();
+  await writeFile(resolve(artifacts, "results.json"), JSON.stringify({ base, results }, null, 2));
+}
+console.log(`${results.filter((result) => result.passed).length}/${results.length} user journeys passed; artifacts: ${artifacts}`);
+if (!results.length) { console.error(`No user journey matched ${JSON.stringify(filter)}.`); process.exitCode = 2; }
+if (results.some((result) => !result.passed)) process.exitCode = 1;

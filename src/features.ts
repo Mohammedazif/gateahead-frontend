@@ -19,14 +19,17 @@ export function writeStored(key: string, value: unknown): boolean {
 
 export function validPlace(value: unknown): value is Place {
   const p = value as Place | null;
-  return p != null && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
+  return p != null && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180 &&
+    (p.label == null || typeof p.label === "string");
 }
 
 export function readFavorites(): SavedGate[] {
   const raw = readStored<unknown>("favorites", []);
   if (!Array.isArray(raw)) return [];
   return raw.filter((item): item is SavedGate => validPlace(item?.gate) && validPlace(item?.place) &&
-    typeof item.gate.id === "string" && typeof item.label === "string").slice(0, 50);
+    typeof item.gate.id === "string" && typeof item.gate.name === "string" &&
+    typeof item.gate.source === "string" && Number.isFinite(item.gate.km) && item.gate.km >= 0 &&
+    typeof item.label === "string").slice(0, 50);
 }
 
 export function readLink(url: string): (Place & { gateId?: string }) | null {
@@ -72,12 +75,19 @@ export function reportLabel(state: string): string {
 export function withGateChecks(predict: Predict | null, scenes: Scene[], mappedGates: Gate[] = []): Predict | null {
   if (!predict?.gate_predictions) return predict;
   let exact = [...predict.gate_predictions];
+  let awaiting = [...(predict.awaiting_update ?? [])];
   for (const scene of scenes) {
     const gate = scene.crossing;
     if (!gate || !scene.available || (scene.cached_at ?? 0) < (predict.cached_at ?? 0)) continue;
     exact = exact.filter((row) => row.id !== gate.id);
+    awaiting = awaiting.flatMap((row) => {
+      const ids = row.ids?.filter((id) => id !== gate.id);
+      return ids?.length ? [{ ...row, ids }] : row.ids ? [] : [row];
+    });
+    awaiting.push(...(scene.awaiting_update ?? []));
     exact.push(...scene.trains.map((row) => ({ id: gate.id, train: row.number, name: row.name,
-      eta: row.eta_min, closes_in: row.closes_in_min, status: row.status, basis: row.basis, age_min: row.age_min })));
+      eta: row.eta_min, closes_in: row.closes_in_min, status: row.status, basis: row.basis, age_min: row.age_min,
+      at_station: row.movement === "stopped" })));
   }
   const approaching = predict.approaching.flatMap((row) => {
     const gates = exact.filter((gate) => gate.train === row.train && row.ids?.includes(gate.id));
@@ -91,9 +101,14 @@ export function withGateChecks(predict: Predict | null, scenes: Scene[], mappedG
     if (!gate) continue;
     approaching.push({ train: row.train, name: row.name, cluster: gate.name, count: 1, ids: [row.id],
       eta: row.eta, closes_in: row.closes_in, status: row.status, basis: row.basis, age_min: row.age_min,
-      at_station: false, current: "", from_you_km: gate.km, lat: gate.lat, lon: gate.lon });
+      at_station: row.at_station ?? false, current: "", from_you_km: gate.km, lat: gate.lat, lon: gate.lon });
   }
-  return { ...predict, gate_predictions: exact, approaching };
+  const merged = new Map<string, NonNullable<Predict["awaiting_update"]>[number]>();
+  for (const row of awaiting) {
+    const previous = merged.get(row.number);
+    merged.set(row.number, { ...row, ids: [...new Set([...(previous?.ids ?? []), ...(row.ids ?? [])])] });
+  }
+  return { ...predict, gate_predictions: exact, approaching, awaiting_update: [...merged.values()] };
 }
 
 export function markGates(gates: Gate[], predict: Predict | null, checked: Scene | Scene[] | null = null): Gate[] {
@@ -105,17 +120,21 @@ export function markGates(gates: Gate[], predict: Predict | null, checked: Scene
     if (!previous || row.eta < previous.eta) marks.set(row.id, row);
   }
   const grouped = new Set(predict?.gate_predictions == null ? predict?.approaching.flatMap((row) => row.ids ?? []) : []);
+  const uncertain = new Set(predict?.awaiting_update?.flatMap((row) => row.ids ?? []) ?? []);
   for (const scene of Array.isArray(checked) ? checked : checked ? [checked] : []) {
     const checkedGate = scene.available && (scene.cached_at ?? 0) >= (predict?.cached_at ?? 0) ? scene.crossing?.id : null;
     if (!checkedGate) continue;
     // Returning to Nearby must retain the newer result of the gate just opened.
     marks.delete(checkedGate);
     grouped.delete(checkedGate);
+    uncertain.delete(checkedGate);
+    if (scene.awaiting_update?.length) uncertain.add(checkedGate);
     const lead = scene.trains[0];
     if (lead) marks.set(checkedGate, { status: lead.status, eta: lead.eta_min, closes_in: lead.closes_in_min });
   }
   return gates.map((gate) => {
     const { status: _status, eta: _eta, closesIn: _closesIn, groupEstimate: _group, ...base } = gate;
+    if (uncertain.has(gate.id)) return { ...base, status: "uncertain" };
     const mark = marks.get(gate.id);
     return mark ? { ...base, status: mark.status, eta: mark.eta, closesIn: mark.closes_in }
       : grouped.has(gate.id) ? { ...base, status: "approaching", groupEstimate: true } : base;

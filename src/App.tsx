@@ -59,6 +59,7 @@ export function App() {
   const confirmLock = useRef(false);
 
   const closeScene = useCallback(() => {
+    wantedGate.current = null;
     sceneTicket.current += 1;
     setSceneState("closed");
     setScene(null);
@@ -73,12 +74,21 @@ export function App() {
   }, []);
 
   const choosePlace = useCallback(
-    (lat: number, lon: number, label?: string | null) => {
+    (lat: number, lon: number, label?: string | null, gateId: string | null = null) => {
       generation.current += 1;
+      wantedGate.current = gateId;
       checkingLock.current = false;
       lastAttempt.current = 0;
       sceneTicket.current += 1;
       const knownLabel = label?.trim() || undefined;
+      // A manual choice supersedes the incoming shared-link location. Keep
+      // reloads on the area the person chose instead of replaying the old link.
+      const url = new URL(window.location.href);
+      url.searchParams.set("lat", String(lat));
+      url.searchParams.set("lon", String(lon));
+      if (knownLabel) url.searchParams.set("name", knownLabel); else url.searchParams.delete("name");
+      if (gateId) url.searchParams.set("gate", gateId); else url.searchParams.delete("gate");
+      window.history.replaceState(window.history.state, "", url);
       setPending(null);
       setPlace({ lat, lon, label: knownLabel });
       setPlaceLabel(knownLabel ?? formatSpot(lat, lon));
@@ -86,6 +96,7 @@ export function App() {
       setGateChecks({});
       setCheckedAt(null);
       setChecking(false);
+      setLocating(false);
       setError(null);
       setSelected(null);
       setScene(null);
@@ -196,11 +207,11 @@ export function App() {
   useEffect(() => {
     if (sceneState === "closed") return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeScene();
+      if (event.key === "Escape" && !pending) closeScene();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [sceneState, closeScene]);
+  }, [sceneState, closeScene, pending]);
 
   function locate() {
     if (!navigator.geolocation) {
@@ -209,12 +220,15 @@ export function App() {
     }
     setLocating(true);
     setError(null);
+    const ticket = generation.current;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (ticket !== generation.current) return;
         setLocating(false);
         choosePlace(pos.coords.latitude, pos.coords.longitude);
       },
       () => {
+        if (ticket !== generation.current) return;
         setLocating(false);
         setError("Location was blocked. Tap the map to drop a pin.");
       },
@@ -269,8 +283,7 @@ export function App() {
     if (label) setFavorites((items) => [...items, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place }].slice(-50));
   }
   function openSaved(item: SavedGate) {
-    wantedGate.current = item.gate.id;
-    choosePlace(item.place.lat, item.place.lon, item.place.label || item.label);
+    choosePlace(item.place.lat, item.place.lon, item.place.label || item.label, item.gate.id);
   }
   function renameSaved(item: SavedGate) {
     const label = window.prompt("Rename this gate", item.label)?.trim().slice(0, 80);
@@ -279,6 +292,7 @@ export function App() {
 
   async function openGate(gate: Gate, refreshing = false) {
     if (!place) return;
+    wantedGate.current = null;
     const ticket = ++sceneTicket.current;
     setSelected(gate);
     setSceneState(refreshing ? "open" : "loading");
@@ -331,7 +345,7 @@ export function App() {
   const visibleTrains = run ? frameForRun(run, now).trains ?? [] : [];
   const visibleNumbers = new Set(visibleTrains.map((train) => train.number));
   const visibleTrain = sceneLead && visibleTrains.find((train) => train.number === sceneLead.number);
-  const positionNote = visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
+  const positionNote = displayScene?.awaiting_update?.length ? `${displayScene.awaiting_update.map((train) => train.number).join(" · ")} · position update needed · last reported stopped` : visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
     : sceneLead.age_min >= 8 ? `${sceneLead.number} · report ${Math.round(sceneLead.age_min)} min old · location unconfirmed`
     : sceneLead.movement === "stopped" ? `${sceneLead.number} · reported stopped · awaiting a moving report`
     : visibleTrain ? `${sceneLead.number} · ${sceneLead.motion ? "estimated train movement" : "reported position"}`
@@ -393,7 +407,15 @@ export function App() {
         onSelect={openGate}
       />
       {pending ? (
-        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="place-title">
+        <div className="modal" role="dialog" aria-modal="true" aria-labelledby="place-title"
+          onKeyDown={(event) => {
+            if (event.key !== "Tab") return;
+            const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not([disabled])");
+            const first = buttons[0], last = buttons[buttons.length - 1];
+            const target = event.shiftKey ? document.activeElement === first ? last : null
+              : document.activeElement === last ? first : null;
+            if (target) { event.preventDefault(); target.focus(); }
+          }}>
           <div className="modal-backdrop" onClick={() => setPending(null)} />
           <div className="modal-card" style={cardAnchor(pending)}>
             <p className="eyebrow">You tapped</p>

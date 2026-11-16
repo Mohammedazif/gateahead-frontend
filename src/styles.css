@@ -81,6 +81,21 @@ button {
   height: 100%;
 }
 
+.map-unavailable {
+  position: absolute;
+  top: 88px;
+  left: 16px;
+  right: 16px;
+  max-width: 390px;
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--muted);
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  line-height: 1.6;
+}
+
 .run-card {
   position: absolute;
   z-index: 2;

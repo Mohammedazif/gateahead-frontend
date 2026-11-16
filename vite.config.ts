@@ -41,15 +41,19 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
           this.emitFile({ type: "asset", fileName: "sw.js", source: `
 const CACHE = ${JSON.stringify(`gateahead-shell-${version}`)};
 const FILES = ${JSON.stringify(files)};
+// Precached files are the same public shell for every same-origin request.
+// Module/style requests can carry Origin while cache.addAll does not; a
+// hosting Vary: Origin header must not make those cached files disappear.
+const fromShell = request => caches.open(CACHE).then(cache => cache.match(request, {ignoreVary: true}));
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('gateahead-shell-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || event.request.method !== 'GET') return;
   if (event.request.mode === 'navigate') {
-    event.respondWith(fetch(event.request, {cache: 'no-store'}).catch(() => caches.match('/')));
+    event.respondWith(fetch(event.request, {cache: 'no-store'}).catch(() => fromShell('/')));
   } else if (FILES.includes(url.pathname)) {
-    event.respondWith(caches.match(event.request).then(hit => hit || fetch(event.request)));
+    event.respondWith(fromShell(event.request).then(hit => hit || fetch(event.request)));
   }
 });
 ` });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BARRIER_OFFSET_M, ROAD_GAP_M, frameAt, frameForRun, metresBetween, sceneRun, toPlane } from "./playback.ts";
+import { BARRIER_OFFSET_M, ROAD_GAP_M, frameAt, frameForRun, metresBetween, runFreshUntil, sceneRun, toPlane } from "./playback.ts";
 import type { Scene } from "../api";
 
 const crossing = { lat: 12, lon: 75 };
@@ -241,6 +241,27 @@ test("offline scenes suppress all markers and duplicate train IDs are not cloned
   assert.equal(frameForRun(sceneRun({ ...multiScene, offline: true })!, multiAt).trains!.length, 0);
   const duplicate = { ...multiScene, trains: [...multiScene.trains, multiScene.trains[0]] };
   assert.equal(frameForRun(sceneRun(duplicate)!, multiAt).trains!.length, 2);
+});
+
+test("a stopped train keeps its reported position and cannot close the barrier by timer", () => {
+  const source: Scene = { ...multiScene, trains: [{ ...multiScene.trains[0], movement: "stopped", motion: undefined,
+    status: "closing_soon", eta_min: 6, closes_in_min: 1, along_km: 0.4, position_on_segment: true }] };
+  const run = sceneRun(source)!;
+  const first = frameForRun(run, multiAt);
+  const later = frameForRun(run, multiAt + 90000);
+  assert.ok(first.train && later.train);
+  assert.ok(metresBetween(first.train, later.train) < 0.01);
+  assert.equal(later.lowered, 0);
+});
+
+test("stopped reports remain visible through their freshness window and then disappear", () => {
+  const source: Scene = { ...multiScene, trains: [{ ...multiScene.trains[0], movement: "stopped", motion: undefined,
+    status: "closing_soon", eta_min: 6, closes_in_min: 1, along_km: 0.4, position_on_segment: true }] };
+  const run = sceneRun(source)!;
+  assert.equal(runFreshUntil(run, multiAt), multiAt + 7 * 60000);
+  assert.equal(frameForRun(run, multiAt + 6 * 60000).trains!.length, 1);
+  assert.equal(frameForRun(run, multiAt + 7 * 60000).trains!.length, 0);
+  assert.equal(frameForRun(run, multiAt + 7 * 60000).lowered, 0);
 });
 
 function segmentsCross(
