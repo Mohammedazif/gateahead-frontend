@@ -1,3 +1,4 @@
+import { runKey } from "./runIdentity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cachedResponse, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, RequestError, type City, type Gate, type Predict, type Scene } from "./api";
@@ -343,8 +344,8 @@ export function App() {
   const marked = useMemo(() => markGates(gates, historical ? null : displayPredict, checkedScenes), [gates, displayPredict, historical, checkedScenes]);
   const run = useMemo(() => ready ? sceneRun(ready, sceneHistorical) : null, [ready, sceneHistorical]);
   const visibleTrains = run ? frameForRun(run, now).trains ?? [] : [];
-  const visibleNumbers = new Set(visibleTrains.map((train) => train.number));
-  const visibleTrain = sceneLead && visibleTrains.find((train) => train.number === sceneLead.number);
+  const visibleNumbers = new Set(visibleTrains.map(runKey));
+  const visibleTrain = sceneLead && visibleTrains.find((train) => runKey(train) === runKey(sceneLead));
   const positionNote = displayScene?.awaiting_update?.length ? `${displayScene.awaiting_update.map((train) => train.number).join(" · ")} · position update needed · last reported stopped` : visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
     : sceneLead.age_min >= 8 ? `${sceneLead.number} · report ${Math.round(sceneLead.age_min)} min old · location unconfirmed`
     : sceneLead.movement === "stopped" ? `${sceneLead.number} · reported stopped · awaiting a moving report`

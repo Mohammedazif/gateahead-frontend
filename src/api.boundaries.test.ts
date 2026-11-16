@@ -85,3 +85,19 @@ test("malformed community replies cannot replace report state or claim success",
     }
   } finally { globalThis.fetch = original; }
 });
+
+test("invalid journey identity and operating notices cannot enter saved predictions", async () => {
+  const original = globalThis.fetch;
+  try {
+    for (const body of [
+      { ...prediction, approaching: [{ ...approach, run_id: {} }] },
+      { ...prediction, service_updates: "unavailable" },
+      { ...prediction, service_updates: [{ number: "16512", start_date: 123, status: "cancelled" }] },
+      { ...prediction, service_updates: [{ number: "16512", status: "unknown_state" }] },
+    ]) {
+      storage.clear();
+      globalThis.fetch = async () => new Response(JSON.stringify(body));
+      await assert.rejects(fetchPredict(12, 75), RequestError);
+    }
+  } finally { globalThis.fetch = original; }
+});

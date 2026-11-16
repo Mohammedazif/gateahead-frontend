@@ -1,3 +1,5 @@
+import { OperatingUpdates } from "./OperatingUpdates";
+import { runKey, runDateLabel } from "../runIdentity";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import type { Approach, Gate, Predict, Scene } from "../api";
@@ -182,37 +184,37 @@ function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[] }) {
   if (predict.error) return <p className="warn">{friendlyError(predict.error)}</p>;
   const approaching = predict.approaching ?? [];
   const passed = predict.passed ?? [];
-  const shownNumbers = new Set([...approaching.map((row) => row.train), ...passed.map((row) => row.train)]);
+  const shownNumbers = new Set([...approaching.map(runKey), ...passed.map(runKey)]);
   const sightings = (predict.sightings ?? []).filter(
-    (row) => (row.age ?? 0) < 45 && !row.passed_local && !shownNumbers.has(row.number),
+    (row) => (row.age ?? 0) < 45 && !row.passed_local && !shownNumbers.has(runKey(row)),
   );
   const grouped = new Map<string, Approach[]>();
   for (const row of approaching) {
-    const list = grouped.get(row.train) ?? [];
+    const list = grouped.get(runKey(row)) ?? [];
     list.push(row);
-    grouped.set(row.train, list);
+    grouped.set(runKey(row), list);
   }
   if (grouped.size === 0 && sightings.length === 0 && passed.length === 0) {
-    return <><CoverageNotice coverage={predict.coverage} /><AwaitingUpdate trains={predict.awaiting_update} />{!predict.awaiting_update?.length && <p className="quiet">No train estimates available on this stretch right now.</p>}</>;
+    return <><CoverageNotice coverage={predict.coverage} /><AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />{!predict.awaiting_update?.length && <p className="quiet">No train estimates available on this stretch right now.</p>}</>;
   }
   return (
     <div className="results">
       <CoverageNotice coverage={predict.coverage} />
-      <AwaitingUpdate trains={predict.awaiting_update} />
+      <AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />
       {grouped.size === 0 && !predict.awaiting_update?.length ? (
         <p className="quiet">No approaching train was found in the available reports. Gate position is unknown.</p>
       ) : (
         [...grouped.entries()].map(([number, rows]) => {
           const ordered = [...rows].sort((a, b) => a.eta - b.eta);
           const head = ordered[0];
-          const exact = predict.gate_predictions?.filter((row) => row.train === number).sort((a, b) => a.eta - b.eta);
+          const exact = predict.gate_predictions?.filter((row) => runKey(row) === number).sort((a, b) => a.eta - b.eta);
           const timings = exact?.map((row) => ({ key: row.id, label: gates.find((gate) => gate.id === row.id)?.name || "Level crossing", eta: row.eta, closesIn: row.closes_in, status: row.status }))
             ?? ordered.map((row) => ({ key: `${row.cluster}-${row.lat}`, label: `${row.cluster}${(row.ids?.length ?? 0) > 1 ? ` · first of ${row.ids!.length} gates` : ""}`, eta: row.eta, closesIn: row.closes_in, status: row.status }));
           return (
             <article key={number} className="train">
               <header>
                 <strong>
-                  {number} {head.name}
+                  {head.train} {head.name} {runDateLabel(head)}
                 </strong>
                 <span className={`pip ${head.status}`}>{`Est. ${labelStatus(head.status)}`}</span>
               </header>
@@ -230,10 +232,10 @@ function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[] }) {
         <details className="line disclosure train-group">
           <summary>Recently passed ({passed.length})</summary>
           {passed.slice(0, 6).map((row) => (
-            <article key={`${row.train}-${row.cluster}`} className="train">
+            <article key={`${runKey(row)}-${row.cluster}`} className="train">
               <header>
                 <strong>
-                  {row.train} {row.name}
+                  {row.train} {row.name} {runDateLabel(row)}
                 </strong>
                 <span className="pip passed">{labelStatus("passed")}</span>
               </header>
@@ -248,10 +250,10 @@ function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[] }) {
         <details className="line disclosure train-group">
           <summary>Other trains on this line ({Math.min(sightings.length, 6)})</summary>
           {sightings.slice(0, 6).map((row) => (
-            <article key={row.number} className="train">
+            <article key={runKey(row)} className="train">
               <header>
                 <strong>
-                  {row.number} {row.name}
+                  {row.number} {row.name} {runDateLabel(row)}
                 </strong>
                 <span className={`pip ${delayClass(row.delay)}`}>{delayLabel(row.delay)}</span>
               </header>

@@ -1,3 +1,4 @@
+import { runKey, runDateLabel } from "../runIdentity";
 import { useEffect, useRef, useState } from "react";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import maplibregl from "maplibre-gl";
@@ -337,23 +338,23 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
       frameRef.current = frame;
       paintPlay(map, run.rail, frame);
       const trains = frame.trains ?? [];
-      const numbers = new Set(trains.map((train) => train.number));
+      const numbers = new Set(trains.map(runKey));
       for (const [number, label] of trainLabels.current) {
         if (!numbers.has(number)) { label.marker.remove(); trainLabels.current.delete(number); }
       }
       trains.forEach((train, index) => {
-        let label = trainLabels.current.get(train.number);
+        let label = trainLabels.current.get(runKey(train));
         if (!label) {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "train-marker-label";
           button.textContent = train.number;
-          button.title = `${train.number} ${train.name} · estimated position`;
-          button.setAttribute("aria-label", `Locate train ${train.number} ${train.name}`);
-          button.addEventListener("click", (event) => { event.stopPropagation(); focusRef.current(train.number); });
+          button.title = `${train.number} ${train.name} ${runDateLabel(train)} · estimated position`;
+          button.setAttribute("aria-label", `Locate train ${train.number} ${train.name} ${runDateLabel(train)}`);
+          button.addEventListener("click", (event) => { event.stopPropagation(); focusRef.current(runKey(train)); });
           const marker = new maplibregl.Marker({ element: button, anchor: "center" }).setLngLat([train.lon, train.lat]).addTo(map);
           label = { marker, button };
-          trainLabels.current.set(train.number, label);
+          trainLabels.current.set(runKey(train), label);
         }
         // Keep identifiers readable when estimates meet at the same point.
         const point = map.project([train.lon, train.lat]);
@@ -362,8 +363,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
           return Math.hypot(point.x - otherPoint.x, point.y - otherPoint.y) < 75;
         }).length;
         label.marker.setOffset([Math.floor(nearby / 2) * 58, nearby % 2 === 0 ? 23 : -23]).setLngLat([train.lon, train.lat]);
-        label.button.title = `${train.number} ${train.name} · estimated position`;
-        label.button.setAttribute("aria-pressed", String(focusedRef.current === train.number));
+        label.button.title = `${train.number} ${train.name} ${runDateLabel(train)} · estimated position`;
+        label.button.setAttribute("aria-pressed", String(focusedRef.current === runKey(train)));
       });
       if (import.meta.env.DEV) (window as GateProbe).__gateRun = {
         clearance: frame.clearance, acrossRoad: frame.acrossRoad, lowered: frame.lowered,
@@ -389,7 +390,7 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
 
   useEffect(() => {
     if (!focusedTrain) return;
-    const train = frameRef.current?.trains?.find((train) => train.number === focusedTrain);
+    const train = frameRef.current?.trains?.find((train) => runKey(train) === focusedTrain);
     const map = mapRef.current;
     if (map && train) map.easeTo({ center: [train.lon, train.lat], zoom: Math.max(14, map.getZoom()), duration: 400 });
   }, [focusedTrain, focusRequest, run?.id]);
@@ -582,7 +583,7 @@ function paintPlay(map: maplibregl.Map, rail: [number, number][], frame: RunFram
   trainSource.setData({
     type: "FeatureCollection",
     features: (frame.trains ?? (frame.train ? [{ ...frame.train, number: "", name: "" }] : [])).map((train) => ({
-      type: "Feature", id: train.number, properties: { bearing: train.bearing, number: train.number, name: train.name },
+      type: "Feature", id: runKey(train), properties: { bearing: train.bearing, number: train.number, name: train.name },
       geometry: { type: "Point", coordinates: [train.lon, train.lat] },
     })),
   });

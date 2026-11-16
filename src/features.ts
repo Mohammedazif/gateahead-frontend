@@ -1,3 +1,4 @@
+import { runKey } from "./runIdentity";
 import type { Gate, Predict, Scene } from "./api";
 
 export type Place = { lat: number; lon: number; label?: string };
@@ -76,39 +77,44 @@ export function withGateChecks(predict: Predict | null, scenes: Scene[], mappedG
   if (!predict?.gate_predictions) return predict;
   let exact = [...predict.gate_predictions];
   let awaiting = [...(predict.awaiting_update ?? [])];
+  const updates = new Map((predict.service_updates ?? []).map((row) => [runKey(row), row]));
   for (const scene of scenes) {
     const gate = scene.crossing;
     if (!gate || !scene.available || (scene.cached_at ?? 0) < (predict.cached_at ?? 0)) continue;
+    for (const row of scene.trains) updates.delete(runKey(row));
+    for (const row of scene.service_updates ?? []) updates.set(runKey(row), row);
     exact = exact.filter((row) => row.id !== gate.id);
     awaiting = awaiting.flatMap((row) => {
       const ids = row.ids?.filter((id) => id !== gate.id);
       return ids?.length ? [{ ...row, ids }] : row.ids ? [] : [row];
     });
     awaiting.push(...(scene.awaiting_update ?? []));
-    exact.push(...scene.trains.map((row) => ({ id: gate.id, train: row.number, name: row.name,
+    exact.push(...scene.trains.map((row) => ({ id: gate.id, train: row.number, run_id: row.run_id, start_date: row.start_date, name: row.name,
       eta: row.eta_min, closes_in: row.closes_in_min, status: row.status, basis: row.basis, age_min: row.age_min,
       at_station: row.movement === "stopped" })));
   }
+  exact = exact.filter((row) => !updates.has(runKey(row)));
+  awaiting = awaiting.filter((row) => !updates.has(runKey(row)));
   const approaching = predict.approaching.flatMap((row) => {
-    const gates = exact.filter((gate) => gate.train === row.train && row.ids?.includes(gate.id));
+    const gates = exact.filter((gate) => runKey(gate) === runKey(row) && row.ids?.includes(gate.id));
     if (!gates.length) return [];
     const first = gates.reduce((a, b) => a.eta < b.eta ? a : b);
     return [{ ...row, eta: first.eta, closes_in: first.closes_in, status: first.status, ids: gates.map((gate) => gate.id), count: gates.length }];
   });
   for (const row of exact) {
-    if (approaching.some((group) => group.train === row.train && group.ids?.includes(row.id))) continue;
+    if (approaching.some((group) => runKey(group) === runKey(row) && group.ids?.includes(row.id))) continue;
     const gate = mappedGates.find((gate) => gate.id === row.id);
     if (!gate) continue;
-    approaching.push({ train: row.train, name: row.name, cluster: gate.name, count: 1, ids: [row.id],
+    approaching.push({ train: row.train, run_id: row.run_id, start_date: row.start_date, name: row.name, cluster: gate.name, count: 1, ids: [row.id],
       eta: row.eta, closes_in: row.closes_in, status: row.status, basis: row.basis, age_min: row.age_min,
       at_station: row.at_station ?? false, current: "", from_you_km: gate.km, lat: gate.lat, lon: gate.lon });
   }
   const merged = new Map<string, NonNullable<Predict["awaiting_update"]>[number]>();
   for (const row of awaiting) {
-    const previous = merged.get(row.number);
-    merged.set(row.number, { ...row, ids: [...new Set([...(previous?.ids ?? []), ...(row.ids ?? [])])] });
+    const previous = merged.get(runKey(row));
+    merged.set(runKey(row), { ...row, ids: [...new Set([...(previous?.ids ?? []), ...(row.ids ?? [])])] });
   }
-  return { ...predict, gate_predictions: exact, approaching, awaiting_update: [...merged.values()] };
+  return { ...predict, gate_predictions: exact, approaching, awaiting_update: [...merged.values()], service_updates: [...updates.values()] };
 }
 
 export function markGates(gates: Gate[], predict: Predict | null, checked: Scene | Scene[] | null = null): Gate[] {

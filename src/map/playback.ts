@@ -1,3 +1,4 @@
+import { runKey } from "../runIdentity";
 import type { Scene } from "../api";
 import { snapshotTime } from "../snapshotClock";
 
@@ -14,10 +15,10 @@ export type MapRun = {
     etaMin?: number; closesInMin?: number; snapshotAt?: number;
     motion?: { direction: number; speed_kmh: number; valid_for_sec: number };
   } | null;
-  trains?: (NonNullable<MapRun["train"]> & { number: string; name: string; rail?: [number, number][] })[];
+  trains?: (NonNullable<MapRun["train"]> & { run_id?: string; start_date?: string; number: string; name: string; rail?: [number, number][] })[];
 };
 
-export type TrainFrame = { number: string; name: string; lat: number; lon: number; bearing: number };
+export type TrainFrame = { run_id?: string; start_date?: string; number: string; name: string; lat: number; lon: number; bearing: number };
 
 export type RunFrame = {
   train: { lat: number; lon: number; bearing: number } | null;
@@ -38,13 +39,13 @@ export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
   const seen = new Set<string>();
   let lowered = false;
   for (const train of run.trains) {
-    if (seen.has(train.number)) continue;
-    seen.add(train.number);
+    if (seen.has(runKey(train))) continue;
+    seen.add(runKey(train));
     const elapsed = Math.max(0, (now - (train.snapshotAt ?? now)) / 1000);
     const frame = frameAt(train.rail ?? run.rail, run.crossing, train, elapsed, hold);
     lowered ||= frame.lowered > 0;
     if (frame.train) {
-      visible.push({ ...frame.train, number: train.number, name: train.name });
+      visible.push({ ...frame.train, number: train.number, run_id: train.run_id, start_date: train.start_date, name: train.name });
       if (train.rail) paths.push(train.rail);
     }
   }
@@ -55,7 +56,7 @@ export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
 export function sceneRun(scene: Scene, historical = false): MapRun | null {
   if (!scene.available || !scene.crossing || scene.rail.length < 2) return null;
   return { id: scene.crossing.id, rail: scene.rail, crossing: scene.crossing, train: null,
-    trains: historical || scene.offline ? [] : scene.trains.map((row) => ({ number: row.number, name: row.name,
+    trains: historical || scene.offline ? [] : scene.trains.map((row) => ({ number: row.number, run_id: row.run_id, start_date: row.start_date, name: row.name,
       rail: row.track?.rail, alongKm: row.track?.along_km ?? row.along_km,
       onSegment: row.track?.position_on_segment ?? row.position_on_segment === true,
       movement: row.movement, motion: row.movement === "stopped" ? undefined : row.track?.motion ?? row.motion, status: row.status, etaMin: row.eta_min,

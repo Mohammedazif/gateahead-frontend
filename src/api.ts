@@ -1,3 +1,4 @@
+import type { RunIdentity } from "./runIdentity";
 import { installationId, readStored, writeStored } from "./features";
 
 export type SnapshotInfo = { cached_at?: number; offline?: boolean };
@@ -11,7 +12,7 @@ export type TrainCoverage = {
   unavailable_discovery?: number;
 };
 
-export type AwaitingTrain = {
+export type AwaitingTrain = RunIdentity & {
   number: string;
   name: string;
   current: string;
@@ -34,7 +35,7 @@ export type Gate = {
   groupEstimate?: boolean;
 };
 
-export type Approach = {
+export type Approach = RunIdentity & {
   age_min?: number;
   basis?: string;
   train: string;
@@ -65,7 +66,7 @@ export type Approach = {
   delay?: number;
 };
 
-export type Sighting = {
+export type Sighting = RunIdentity & {
   number: string;
   name: string;
   current: string;
@@ -86,7 +87,7 @@ export type Sighting = {
 };
 
 /** A train that went over a crossing near you in the last few minutes. */
-export type Passed = {
+export type Passed = RunIdentity & {
   train: string;
   name: string;
   cluster: string;
@@ -97,9 +98,12 @@ export type Passed = {
   ids?: string[];
 };
 
-export type GatePrediction = { id: string; train: string; name: string; eta: number; closes_in?: number; status: string; basis?: string; age_min?: number; at_station?: boolean };
+export type GatePrediction = RunIdentity & { id: string; train: string; name: string; eta: number; closes_in?: number; status: string; basis?: string; age_min?: number; at_station?: boolean };
+
+export type ServiceUpdate = RunIdentity & { number: string; status: "cancelled" | "diverted" | "partially_cancelled"; notice: string };
 
 export type Predict = SnapshotInfo & {
+  service_updates?: ServiceUpdate[];
   awaiting_update?: AwaitingTrain[];
   coverage?: TrainCoverage;
   gate_predictions?: GatePrediction[];
@@ -115,7 +119,7 @@ export type Predict = SnapshotInfo & {
   sightings: Sighting[];
 };
 
-export type SceneTrain = {
+export type SceneTrain = RunIdentity & {
   current?: string;
   last_station?: string;
   track?: { estimated: boolean; rail: [number, number][]; along_km: number; position_on_segment: boolean; motion?: { direction: number; speed_kmh: number; valid_for_sec: number } };
@@ -135,6 +139,7 @@ export type SceneTrain = {
 };
 
 export type Scene = SnapshotInfo & {
+  service_updates?: ServiceUpdate[];
   awaiting_update?: AwaitingTrain[];
   coverage?: TrainCoverage;
   available: boolean;
@@ -142,7 +147,7 @@ export type Scene = SnapshotInfo & {
   crossing?: { id: string; name: string; lat: number; lon: number };
   rail: [number, number][];
   trains: SceneTrain[];
-  passed?: { number: string; name: string; ago_min: number }[];
+  passed?: (RunIdentity & { number: string; name: string; ago_min: number })[];
 };
 
 export class RequestError extends Error {
@@ -170,13 +175,15 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
   const place = (row: Record<string, unknown>) => finite(row.lat) && finite(row.lon) && Math.abs(row.lat as number) <= 90 && Math.abs(row.lon as number) <= 180;
   const motion = (item: unknown) => item == null || (isRecord(item) && (item.direction === 1 || item.direction === -1) &&
     finite(item.speed_kmh) && (item.speed_kmh as number) > 0 && finite(item.valid_for_sec) && (item.valid_for_sec as number) >= 0);
-  const common = (row: Record<string, unknown>) => text(row, ["name", "current", "last_station", "cluster", "basis", "bracket", "origin", "dest", "next", "next_in", "departed_at", "scheduled_at", "platform", "run"])
+  const common = (row: Record<string, unknown>) => text(row, ["run_id", "start_date", "name", "current", "last_station", "cluster", "basis", "bracket", "origin", "dest", "next", "next_in", "departed_at", "scheduled_at", "platform", "run"])
     && numbers(row, ["age_min", "age", "delay", "count", "from_you_km", "lat", "lon", "left_km", "closes_in", "closes_in_min"])
     && ids(row.ids) && (row.at_station == null || typeof row.at_station === "boolean");
   const estimated = (row: Record<string, unknown>, identity: string, eta: string) => common(row) && typeof row[identity] === "string" &&
     typeof row.status === "string" && finite(row[eta]);
   const awaiting = (row: Record<string, unknown>) => common(row) && typeof row.number === "string" && typeof row.current === "string" && finite(row.age_min);
   const coverage = value.coverage;
+  if (!optionalRows(value.service_updates, (row) => typeof row.number === "string" &&
+    text(row, ["run_id", "start_date", "notice"]) && ["cancelled", "diverted", "partially_cancelled"].includes(row.status as string))) return false;
   if (coverage != null && (!isRecord(coverage) || !numbers(coverage, ["live_checked", "live_candidates", "pending_live", "missing_or_stale_routes", "unavailable_live", "unavailable_discovery"]))) return false;
   if (path.startsWith("/api/gates?")) return rows(value.gates, (gate) =>
     typeof gate.id === "string" && typeof gate.name === "string" && place(gate) && finite(gate.km));
