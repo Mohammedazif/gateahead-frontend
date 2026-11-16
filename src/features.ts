@@ -1,0 +1,123 @@
+import type { Gate, Predict, Scene } from "./api";
+
+export type Place = { lat: number; lon: number; label?: string };
+export type SavedGate = { gate: Gate; label: string; place: Place };
+export type RefreshSettings = { enabled: boolean; commute: boolean; start: string; end: string; weekdays: boolean };
+export const defaultRefresh: RefreshSettings = { enabled: false, commute: false, start: "08:00", end: "10:00", weekdays: true };
+
+export function readStored<T>(key: string, fallback: T): T {
+  try {
+    const value = localStorage.getItem(`gateahead:${key}`);
+    return value == null ? fallback : JSON.parse(value) as T;
+  } catch { return fallback; }
+}
+
+export function writeStored(key: string, value: unknown): boolean {
+  try { localStorage.setItem(`gateahead:${key}`, JSON.stringify(value)); return true; }
+  catch { return false; }
+}
+
+export function validPlace(value: unknown): value is Place {
+  const p = value as Place | null;
+  return p != null && Number.isFinite(p.lat) && Number.isFinite(p.lon) && Math.abs(p.lat) <= 90 && Math.abs(p.lon) <= 180;
+}
+
+export function readFavorites(): SavedGate[] {
+  const raw = readStored<unknown>("favorites", []);
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((item): item is SavedGate => validPlace(item?.gate) && validPlace(item?.place) &&
+    typeof item.gate.id === "string" && typeof item.label === "string").slice(0, 50);
+}
+
+export function readLink(url: string): (Place & { gateId?: string }) | null {
+  try {
+    const params = new URL(url).searchParams;
+    if (!params.get("lat")?.trim() || !params.get("lon")?.trim()) return null;
+    const place = { lat: Number(params.get("lat")), lon: Number(params.get("lon")), label: params.get("name")?.slice(0, 120) || undefined };
+    if (!validPlace(place)) return null;
+    return { ...place, gateId: params.get("gate") || undefined };
+  } catch { return null; }
+}
+
+export function gateLink(gate: Gate): string {
+  const url = new URL(window.location.pathname, window.location.origin);
+  url.search = new URLSearchParams({ lat: String(gate.lat), lon: String(gate.lon), gate: gate.id, name: gate.name }).toString();
+  return url.toString();
+}
+
+export function inRefreshWindow(settings: RefreshSettings, now: Date): boolean {
+  if (!settings.commute) return true;
+  const parse = (clock: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(clock) ? Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3)) : NaN;
+  const start = parse(settings.start), end = parse(settings.end);
+  if (!Number.isFinite(start + end) || start === end) return false;
+  const minute = now.getHours() * 60 + now.getMinutes();
+  const overnight = start > end;
+  const day = overnight && minute < end ? (now.getDay() + 6) % 7 : now.getDay();
+  if (settings.weekdays && (day === 0 || day === 6)) return false;
+  return overnight ? minute >= start || minute < end : minute >= start && minute < end;
+}
+
+export function installationId(): string {
+  const old = readStored<string>("installation", "");
+  if (old) return old;
+  const id = crypto.randomUUID();
+  writeStored("installation", id);
+  return id;
+}
+
+export function reportLabel(state: string): string {
+  return state === "open" ? "Gate open" : state === "closed" ? "Gate closed" : "Location reported incorrect";
+}
+
+export function withGateChecks(predict: Predict | null, scenes: Scene[], mappedGates: Gate[] = []): Predict | null {
+  if (!predict?.gate_predictions) return predict;
+  let exact = [...predict.gate_predictions];
+  for (const scene of scenes) {
+    const gate = scene.crossing;
+    if (!gate || !scene.available || (scene.cached_at ?? 0) < (predict.cached_at ?? 0)) continue;
+    exact = exact.filter((row) => row.id !== gate.id);
+    exact.push(...scene.trains.map((row) => ({ id: gate.id, train: row.number, name: row.name,
+      eta: row.eta_min, closes_in: row.closes_in_min, status: row.status, basis: row.basis, age_min: row.age_min })));
+  }
+  const approaching = predict.approaching.flatMap((row) => {
+    const gates = exact.filter((gate) => gate.train === row.train && row.ids?.includes(gate.id));
+    if (!gates.length) return [];
+    const first = gates.reduce((a, b) => a.eta < b.eta ? a : b);
+    return [{ ...row, eta: first.eta, closes_in: first.closes_in, status: first.status, ids: gates.map((gate) => gate.id), count: gates.length }];
+  });
+  for (const row of exact) {
+    if (approaching.some((group) => group.train === row.train && group.ids?.includes(row.id))) continue;
+    const gate = mappedGates.find((gate) => gate.id === row.id);
+    if (!gate) continue;
+    approaching.push({ train: row.train, name: row.name, cluster: gate.name, count: 1, ids: [row.id],
+      eta: row.eta, closes_in: row.closes_in, status: row.status, basis: row.basis, age_min: row.age_min,
+      at_station: false, current: "", from_you_km: gate.km, lat: gate.lat, lon: gate.lon });
+  }
+  return { ...predict, gate_predictions: exact, approaching };
+}
+
+export function markGates(gates: Gate[], predict: Predict | null, checked: Scene | Scene[] | null = null): Gate[] {
+  const marks = new Map<string, { status: string; eta: number; closes_in?: number }>();
+  const rows = predict?.gate_predictions ?? (predict?.approaching ?? [])
+    .filter((row) => row.ids?.length === 1).map((row) => ({ ...row, id: row.ids![0] }));
+  for (const row of rows) {
+    const previous = marks.get(row.id);
+    if (!previous || row.eta < previous.eta) marks.set(row.id, row);
+  }
+  const grouped = new Set(predict?.gate_predictions == null ? predict?.approaching.flatMap((row) => row.ids ?? []) : []);
+  for (const scene of Array.isArray(checked) ? checked : checked ? [checked] : []) {
+    const checkedGate = scene.available && (scene.cached_at ?? 0) >= (predict?.cached_at ?? 0) ? scene.crossing?.id : null;
+    if (!checkedGate) continue;
+    // Returning to Nearby must retain the newer result of the gate just opened.
+    marks.delete(checkedGate);
+    grouped.delete(checkedGate);
+    const lead = scene.trains[0];
+    if (lead) marks.set(checkedGate, { status: lead.status, eta: lead.eta_min, closes_in: lead.closes_in_min });
+  }
+  return gates.map((gate) => {
+    const { status: _status, eta: _eta, closesIn: _closesIn, groupEstimate: _group, ...base } = gate;
+    const mark = marks.get(gate.id);
+    return mark ? { ...base, status: mark.status, eta: mark.eta, closesIn: mark.closes_in }
+      : grouped.has(gate.id) ? { ...base, status: "approaching", groupEstimate: true } : base;
+  });
+}

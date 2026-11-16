@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import type { Gate } from "../api";
 import indiaOutline from "./india_outline.geojson";
 import railNetwork from "./india_rail.geojson";
-import { frameAt, metresBetween, PLAY_SECONDS, type LngLat, type MapRun, type RunFrame } from "./playback";
+import { frameForRun, type LngLat, type MapRun, type RunFrame } from "./playback";
 import { trainImage } from "./trainSprite";
 import { MAP_STYLE, type Theme } from "../theme";
 
@@ -88,7 +88,7 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
               7.5,
               5.5,
             ],
-            "circle-color": ["match", ["get", "status"], "closed", "#c4382f", "closing_soon", "#e07a2f", "#e7a23a"],
+            "circle-color": ["match", ["get", "status"], "closed", "#c4382f", "closing_soon", "#e07a2f", "approaching", "#e7a23a", "#77736b"],
             "circle-stroke-width": [
               "case",
               ["==", ["get", "selected"], 1],
@@ -301,45 +301,39 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
       };
     }
     railRef.current = run.rail;
-    const hold = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const started = performance.now();
     let raf = 0;
-    let follow = true;
-    const stopFollow = () => {
-      follow = false;
-    };
+    const hold = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const snapshotAt = run.train?.snapshotAt ?? Date.now();
+    const validFor = run.train?.motion?.valid_for_sec ?? 120;
+    let lastPaint = -Infinity;
     const tick = () => {
-      const elapsed = (performance.now() - started) / 1000;
-      const frame = frameAt(run.rail, run.crossing, run.train, elapsed, hold);
+      const elapsed = Math.max(0, (Date.now() - snapshotAt) / 1000);
+      if (performance.now() - lastPaint < (hold ? 1000 : 50) && elapsed <= validFor) {
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      lastPaint = performance.now();
+      const frame = frameForRun(run, Date.now(), hold);
       frameRef.current = frame;
       paintPlay(map, run.rail, frame);
-      const spot = frame.train && metresBetween(frame.train, run.crossing) > 280 ? frame.train : run.crossing;
-      if (follow) map.jumpTo({ center: [spot.lon, spot.lat], zoom: 17.15 });
-      if (import.meta.env.DEV) {
-        (window as GateProbe).__gateRun = {
-          clearance: frame.clearance,
-          acrossRoad: frame.acrossRoad,
-          lowered: frame.lowered,
-          train: frame.train ? { lat: frame.train.lat, lon: frame.train.lon } : null,
-        };
-      }
-      if (!hold && elapsed < PLAY_SECONDS) raf = requestAnimationFrame(tick);
+      if (import.meta.env.DEV) (window as GateProbe).__gateRun = {
+        clearance: frame.clearance, acrossRoad: frame.acrossRoad, lowered: frame.lowered,
+        train: frame.train ? { lat: frame.train.lat, lon: frame.train.lon } : null,
+      };
+      // Use wall time, including when a cached scene is reopened or the tab resumes.
+      if (elapsed <= validFor) raf = requestAnimationFrame(tick);
     };
     const start = () => {
       if (!map.getSource("play-rail")) return;
-      map.setPadding({ top: 56, bottom: 28, left: 40, right: 48 });
       tick();
+      const bounds = new maplibregl.LngLatBounds();
+      for (const [lat, lon] of run.rail) bounds.extend([lon, lat]);
+      map.fitBounds(bounds, { padding: { top: 90, bottom: 60, left: 44, right: 48 }, maxZoom: 16.4, duration: 500 });
+
     };
-    map.on("dragstart", stopFollow);
-    map.on("wheel", stopFollow);
     if (map.getSource("play-rail")) start();
     else map.once("load", start);
-    return () => {
-      cancelAnimationFrame(raf);
-      map.off("dragstart", stopFollow);
-      map.off("wheel", stopFollow);
-      map.off("load", start);
-    };
+    return () => { cancelAnimationFrame(raf); map.off("load", start); };
   }, [run]);
 
   useEffect(() => {

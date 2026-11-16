@@ -4,9 +4,10 @@ import { fetchCities, type City } from "../api";
 
 type Props = {
   onPick: (city: City) => void;
+  autoFocus?: boolean;
 };
 
-export function CitySearch({ onPick }: Props) {
+export function CitySearch({ onPick, autoFocus = false }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<City[]>([]);
   const [active, setActive] = useState(0);
@@ -75,6 +76,7 @@ export function CitySearch({ onPick }: Props) {
     <div className="city-search">
       <input
         type="search"
+        autoFocus={autoFocus}
         role="combobox"
         aria-label="Search an Indian city"
         aria-expanded={results.length > 0}

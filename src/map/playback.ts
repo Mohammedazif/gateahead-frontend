@@ -5,7 +5,11 @@ export type MapRun = {
   id: string;
   rail: [number, number][];
   crossing: LngLat;
-  train: { alongKm: number; status: string } | null;
+  train: {
+    alongKm: number; status: string; onSegment?: boolean; ageMin?: number;
+    etaMin?: number; closesInMin?: number; snapshotAt?: number;
+    motion?: { direction: number; speed_kmh: number; valid_for_sec: number };
+  } | null;
 };
 
 export type RunFrame = {
@@ -18,13 +22,15 @@ export type RunFrame = {
   lowered: number;
 };
 
+export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
+  return frameAt(run.rail, run.crossing, run.train, Math.max(0, (now - (run.train?.snapshotAt ?? now)) / 1000), hold);
+}
+
 const LAT_M = 110570;
-export const PLAY_SECONDS = 14;
 export const ROAD_HALF_M = 70;
 export const ROAD_GAP_M = 16;
 export const BARRIER_OFFSET_M = 28;
 export const BARRIER_HALF_M = 13;
-const PAST_M = 160;
 
 function eastScale(lat: number): number {
   return 111320 * Math.cos((lat * Math.PI) / 180);
@@ -75,9 +81,6 @@ function dot(a: Plane, b: Plane): number {
   return a.x * b.x + a.y * b.y;
 }
 
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
 
 function polyline(rail: [number, number][], origin: LngLat): Plane[] {
   return rail.map(([lat, lon]) => toPlane({ lat, lon }, origin));
@@ -127,24 +130,13 @@ function bearing(dir: Plane): number {
   return (Math.atan2(dir.x, dir.y) * 180) / Math.PI;
 }
 
-function loweredAmount(status: string, elapsed: number, progress: number, hold: boolean): number {
-  if (status === "closed" || status === "closing_soon") {
-    return hold ? 1 : clamp01(elapsed / 2.4);
-  }
-  if (status === "approaching") {
-    if (hold) return progress > 0.65 ? 1 : 0;
-    return clamp01((progress - 0.4) / 0.3);
-  }
-  return 0;
-}
-
 /** Booms lie along the rail and sit out on the road, so traffic stops and the track stays open. */
 export function frameAt(
   rail: [number, number][],
   crossing: LngLat,
-  train: { alongKm: number; status: string } | null,
+  train: MapRun["train"],
   elapsedSec: number,
-  hold: boolean,
+  hold = false,
 ): RunFrame {
   const empty: RunFrame = {
     train: null,
@@ -164,9 +156,13 @@ export function frameAt(
   const roadLine: [LngLat, LngLat][] = [1, -1].map((side) => [deck(side, ROAD_GAP_M), deck(side, ROAD_HALF_M)]);
   const posts = [1, -1].map((side) => deck(side, BARRIER_OFFSET_M));
 
-  const progress = hold ? 0 : clamp01(elapsedSec / PLAY_SECONDS);
-  const eased = 1 - (1 - progress) ** 2;
-  const lowered = train ? loweredAmount(train.status, elapsedSec, progress, hold) : 0;
+  const current = train;
+  const elapsed = Math.max(0, hold ? Math.floor(elapsedSec) : elapsedSec);
+  const fresh = current != null && (current.ageMin ?? 0) + elapsed / 60 < 8 && elapsed <= (current.motion?.valid_for_sec ?? 120);
+  const remaining = current?.etaMin == null ? null : current.etaMin - elapsed / 60;
+  const downIn = current?.closesInMin == null ? null : current.closesInMin - elapsed / 60;
+  const lowered = fresh && (remaining == null || remaining >= -2) &&
+    (current.status === "closed" || (current.status === "closing_soon" && downIn != null && downIn <= 0)) ? 1 : 0;
   const reach = BARRIER_HALF_M * lowered;
   const barriers: [LngLat, LngLat][] = [];
   if (reach > 0.4) {
@@ -180,11 +176,12 @@ export function frameAt(
   }
 
   let marker: RunFrame["train"] = null;
-  if (train) {
-    const start = train.alongKm * 1000;
-    const sign = Math.sign(gate.metres - start) || 1;
-    const end = gate.metres + sign * PAST_M;
-    const metres = hold ? start : start + (end - start) * eased;
+  const motion = current?.motion;
+  const moving = motion && Math.abs(motion.direction) === 1 && Number.isFinite(motion.speed_kmh) && motion.speed_kmh > 0 && remaining != null;
+  const total = points.slice(1).reduce((sum, point, i) => sum + len(sub(point, points[i])), 0);
+  const metres = moving ? gate.metres - motion.direction * motion.speed_kmh * remaining * 1000 / 60 : (current?.alongKm ?? 0) * 1000;
+  if (current && fresh && (moving || current.onSegment === true) && Number.isFinite(metres) && metres >= 0 && metres <= total) {
+    const sign = moving ? motion.direction : Math.sign(gate.metres - metres) || 1;
     const at = pointAt(points, metres);
     const ahead = pointAt(points, metres + sign * 25);
     const step = sub(ahead, at);
