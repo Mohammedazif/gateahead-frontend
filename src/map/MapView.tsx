@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import type { Gate } from "../api";
 import indiaOutline from "./india_outline.geojson";
 import railNetwork from "./india_rail.geojson";
-import { frameForRun, type LngLat, type MapRun, type RunFrame } from "./playback";
+import { frameForRun, runFreshUntil, type LngLat, type MapRun, type RunFrame, type TrainFrame } from "./playback";
 import { trainImage } from "./trainSprite";
 import { MAP_STYLE, type Theme } from "../theme";
 
@@ -22,16 +22,19 @@ type Props = {
   gates: Gate[];
   selectedId: string | null;
   run: MapRun | null;
+  focusedTrain: string | null;
+  focusRequest: number;
+  onFocusTrain: (number: string) => void;
   theme: Theme;
   onPlace: (lat: number, lon: number, point: { x: number; y: number }) => void;
   onSelect: (gate: Gate) => void;
 };
 
 type GateProbe = Window & {
-  __gateRun?: { clearance: number; acrossRoad: number; lowered: number; train: { lat: number; lon: number } | null };
+  __gateRun?: { clearance: number; acrossRoad: number; lowered: number; train: { lat: number; lon: number } | null; trains: TrainFrame[] };
 };
 
-export function MapView({ place, pending, gates, selectedId, run, theme, onPlace, onSelect }: Props) {
+export function MapView({ place, pending, gates, selectedId, run, focusedTrain, focusRequest, onFocusTrain, theme, onPlace, onSelect }: Props) {
   const holder = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const gatesRef = useRef(gates);
@@ -42,6 +45,11 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
   const onSelectRef = useRef(onSelect);
   const railRef = useRef<[number, number][] | null>(null);
   const frameRef = useRef<RunFrame | null>(null);
+  const trainLabels = useRef(new Map<string, { marker: maplibregl.Marker; button: HTMLButtonElement }>());
+  const focusRef = useRef(onFocusTrain);
+  const focusedRef = useRef(focusedTrain);
+  focusRef.current = onFocusTrain;
+  focusedRef.current = focusedTrain;
   const themeRef = useRef(theme);
   const styleRef = useRef(MAP_STYLE[theme]);
   themeRef.current = theme;
@@ -233,6 +241,8 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     mapRef.current = map;
     return () => {
       resizeObserver.disconnect();
+      for (const { marker } of trainLabels.current.values()) marker.remove();
+      trainLabels.current.clear();
       map.remove();
       mapRef.current = null;
     };
@@ -288,6 +298,8 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     const map = mapRef.current;
     if (!map) return;
     if (!run) {
+      for (const { marker } of trainLabels.current.values()) marker.remove();
+      trainLabels.current.clear();
       railRef.current = null;
       frameRef.current = null;
       const clear = () => {
@@ -303,12 +315,10 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     railRef.current = run.rail;
     let raf = 0;
     const hold = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const snapshotAt = run.train?.snapshotAt ?? Date.now();
-    const validFor = run.train?.motion?.valid_for_sec ?? 120;
+    const freshUntil = runFreshUntil(run, Date.now());
     let lastPaint = -Infinity;
     const tick = () => {
-      const elapsed = Math.max(0, (Date.now() - snapshotAt) / 1000);
-      if (performance.now() - lastPaint < (hold ? 1000 : 50) && elapsed <= validFor) {
+      if (performance.now() - lastPaint < (hold ? 1000 : 50) && Date.now() <= freshUntil) {
         raf = requestAnimationFrame(tick);
         return;
       }
@@ -316,18 +326,49 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
       const frame = frameForRun(run, Date.now(), hold);
       frameRef.current = frame;
       paintPlay(map, run.rail, frame);
+      const trains = frame.trains ?? [];
+      const numbers = new Set(trains.map((train) => train.number));
+      for (const [number, label] of trainLabels.current) {
+        if (!numbers.has(number)) { label.marker.remove(); trainLabels.current.delete(number); }
+      }
+      trains.forEach((train, index) => {
+        let label = trainLabels.current.get(train.number);
+        if (!label) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "train-marker-label";
+          button.textContent = train.number;
+          button.title = `${train.number} ${train.name} · estimated position`;
+          button.setAttribute("aria-label", `Locate train ${train.number} ${train.name}`);
+          button.addEventListener("click", (event) => { event.stopPropagation(); focusRef.current(train.number); });
+          const marker = new maplibregl.Marker({ element: button, anchor: "center" }).setLngLat([train.lon, train.lat]).addTo(map);
+          label = { marker, button };
+          trainLabels.current.set(train.number, label);
+        }
+        // Keep identifiers readable when estimates meet at the same point.
+        const point = map.project([train.lon, train.lat]);
+        const nearby = trains.slice(0, index).filter((other) => {
+          const otherPoint = map.project([other.lon, other.lat]);
+          return Math.hypot(point.x - otherPoint.x, point.y - otherPoint.y) < 75;
+        }).length;
+        label.marker.setOffset([Math.floor(nearby / 2) * 58, nearby % 2 === 0 ? 23 : -23]).setLngLat([train.lon, train.lat]);
+        label.button.title = `${train.number} ${train.name} · estimated position`;
+        label.button.setAttribute("aria-pressed", String(focusedRef.current === train.number));
+      });
       if (import.meta.env.DEV) (window as GateProbe).__gateRun = {
         clearance: frame.clearance, acrossRoad: frame.acrossRoad, lowered: frame.lowered,
         train: frame.train ? { lat: frame.train.lat, lon: frame.train.lon } : null,
+        trains,
       };
       // Use wall time, including when a cached scene is reopened or the tab resumes.
-      if (elapsed <= validFor) raf = requestAnimationFrame(tick);
+      if (Date.now() <= freshUntil) raf = requestAnimationFrame(tick);
     };
     const start = () => {
       if (!map.getSource("play-rail")) return;
       tick();
       const bounds = new maplibregl.LngLatBounds();
       for (const [lat, lon] of run.rail) bounds.extend([lon, lat]);
+      for (const train of run.trains ?? []) for (const [lat, lon] of train.rail ?? []) bounds.extend([lon, lat]);
       map.fitBounds(bounds, { padding: { top: 90, bottom: 60, left: 44, right: 48 }, maxZoom: 16.4, duration: 500 });
 
     };
@@ -335,6 +376,13 @@ export function MapView({ place, pending, gates, selectedId, run, theme, onPlace
     else map.once("load", start);
     return () => { cancelAnimationFrame(raf); map.off("load", start); };
   }, [run]);
+
+  useEffect(() => {
+    if (!focusedTrain) return;
+    const train = frameRef.current?.trains?.find((train) => train.number === focusedTrain);
+    const map = mapRef.current;
+    if (map && train) map.easeTo({ center: [train.lon, train.lat], zoom: Math.max(14, map.getZoom()), duration: 400 });
+  }, [focusedTrain, focusRequest, run?.id]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -505,13 +553,11 @@ function paintPlay(map: maplibregl.Map, rail: [number, number][], frame: RunFram
   if (!railSource || !roadSource || !barSource || !postSource || !trainSource) return;
   railSource.setData({
     type: "FeatureCollection",
-    features: [
-      {
+    features: [rail, ...(frame.paths ?? [])].map((path) => ({
         type: "Feature",
         properties: {},
-        geometry: { type: "LineString", coordinates: rail.map(([lat, lon]) => [lon, lat]) },
-      },
-    ],
+        geometry: { type: "LineString", coordinates: path.map(([lat, lon]) => [lon, lat]) },
+    })),
   });
   roadSource.setData(frame.road.length ? lineCollection(frame.road) : emptyCollection());
   barSource.setData(lineCollection(frame.barriers));
@@ -525,15 +571,10 @@ function paintPlay(map: maplibregl.Map, rail: [number, number][], frame: RunFram
   });
   trainSource.setData({
     type: "FeatureCollection",
-    features: frame.train
-      ? [
-          {
-            type: "Feature",
-            properties: { bearing: frame.train.bearing },
-            geometry: { type: "Point", coordinates: [frame.train.lon, frame.train.lat] },
-          },
-        ]
-      : [],
+    features: (frame.trains ?? (frame.train ? [{ ...frame.train, number: "", name: "" }] : [])).map((train) => ({
+      type: "Feature", id: train.number, properties: { bearing: train.bearing, number: train.number, name: train.name },
+      geometry: { type: "Point", coordinates: [train.lon, train.lat] },
+    })),
   });
 }
 

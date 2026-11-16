@@ -95,6 +95,7 @@ export type Predict = SnapshotInfo & {
 };
 
 export type SceneTrain = {
+  track?: { estimated: boolean; rail: [number, number][]; along_km: number; position_on_segment: boolean; motion?: { direction: number; speed_kmh: number; valid_for_sec: number } };
   movement?: "moving" | "stopped";
   snapshot_at?: number;
   motion?: { direction: number; speed_kmh: number; valid_for_sec: number };

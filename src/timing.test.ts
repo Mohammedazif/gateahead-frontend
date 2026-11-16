@@ -50,3 +50,14 @@ test("a fresh closed-gate train keeps moving through its ETA beyond the area che
   assert.equal(currentScene(moving, at + 270000)!.trains[0].eta_min, -0.5);
   assert.equal(currentScene({ ...moving, offline: true }, at + 240000)!.trains[0].eta_min, 4);
 });
+
+test("a second fresh train remains current after the first scene report expires", () => {
+  const mixed = { ...scene, trains: [
+    { ...scene.trains[0], number: "16512" },
+    { ...scene.trains[0], number: "16511", motion: { direction: -1, speed_kmh: 60, valid_for_sec: 420 } },
+  ] };
+  assert.equal(sceneFreshUntil(mixed), at + 420000);
+  const result = currentScene(mixed, at + 180000)!;
+  assert.deepEqual(result.trains.map((train) => train.number), ["16511"]);
+  assert.equal(result.trains[0].eta_min, 1);
+});

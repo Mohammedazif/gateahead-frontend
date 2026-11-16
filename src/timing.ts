@@ -10,9 +10,11 @@ function minutesSince(at: number | undefined, now: number, validMs = ESTIMATE_WI
 }
 
 export function sceneFreshUntil(snapshot: Scene): number {
-  const lead = snapshot.trains[0];
-  const at = lead?.snapshot_at == null ? snapshot.cached_at ?? 0 : lead.snapshot_at * 1000;
-  return at + (lead?.motion?.valid_for_sec == null ? ESTIMATE_WINDOW_MS : lead.motion.valid_for_sec * 1000);
+  if (!snapshot.trains.length) return (snapshot.cached_at ?? 0) + ESTIMATE_WINDOW_MS;
+  return Math.max(...snapshot.trains.map((row) => {
+    const at = row.snapshot_at == null ? snapshot.cached_at ?? 0 : row.snapshot_at * 1000;
+    return at + (row.motion?.valid_for_sec == null ? ESTIMATE_WINDOW_MS : row.motion.valid_for_sec * 1000);
+  }));
 }
 
 function statusAt(status: string, closesIn: number | undefined): string {
@@ -44,7 +46,9 @@ export function currentPrediction(snapshot: Predict | null, now: number): Predic
 export function currentScene(snapshot: Scene | null, now: number): Scene | null {
   if (!snapshot || snapshot.offline) return snapshot;
   const passed = [...(snapshot.passed ?? [])];
-  const trains = snapshot.trains.flatMap((row) => {
+  const fresh = snapshot.trains.filter((row) => now <= (row.snapshot_at == null ? snapshot.cached_at ?? 0 : row.snapshot_at * 1000) +
+    (row.motion == null ? ESTIMATE_WINDOW_MS : row.motion.valid_for_sec * 1000));
+  const trains = (fresh.length ? fresh : snapshot.trains).flatMap((row) => {
     const elapsed = minutesSince(row.snapshot_at == null ? snapshot.cached_at : row.snapshot_at * 1000, now,
       row.motion == null ? ESTIMATE_WINDOW_MS : row.motion.valid_for_sec * 1000);
     const eta_min = row.eta_min - elapsed;

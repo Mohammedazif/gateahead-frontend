@@ -7,7 +7,7 @@ GateAhead already has nearby crossings, train predictions, map views, and Telegr
 Implemented locally in the web and Flutter clients:
 
 - Separate Nearby, Trains, and Saved views, map search, focused crossing details, and dedicated settings and report sheets.
-- Automatic estimated train movement on the web map, aligned with the gate ETA and travel direction. Cached views continue from their snapshot time; distant, old, and uncertain positions are not replayed through the gate.
+- Simultaneous estimated train animations on the web map, with individual IDs, number labels, direction, freshness, and estimated track paths. Choose a train to locate it while the others remain visible; expired reports do not suppress fresh services.
 
 - Save, rename, reopen, and remove gates on the current device.
 - Share crossing links using `https://gateahead.vercel.app/`; the phone app can also open pasted crossing links.

@@ -1,3 +1,5 @@
+import type { Scene } from "../api";
+
 export type LngLat = { lat: number; lon: number };
 export type Plane = { x: number; y: number };
 
@@ -10,10 +12,15 @@ export type MapRun = {
     etaMin?: number; closesInMin?: number; snapshotAt?: number;
     motion?: { direction: number; speed_kmh: number; valid_for_sec: number };
   } | null;
+  trains?: (NonNullable<MapRun["train"]> & { number: string; name: string; rail?: [number, number][] })[];
 };
+
+export type TrainFrame = { number: string; name: string; lat: number; lon: number; bearing: number };
 
 export type RunFrame = {
   train: { lat: number; lon: number; bearing: number } | null;
+  trains?: TrainFrame[];
+  paths?: [number, number][][];
   road: [LngLat, LngLat][];
   barriers: [LngLat, LngLat][];
   posts: LngLat[];
@@ -23,7 +30,40 @@ export type RunFrame = {
 };
 
 export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
-  return frameAt(run.rail, run.crossing, run.train, Math.max(0, (now - (run.train?.snapshotAt ?? now)) / 1000), hold);
+  if (run.trains == null) return frameAt(run.rail, run.crossing, run.train, Math.max(0, (now - (run.train?.snapshotAt ?? now)) / 1000), hold);
+  const visible: TrainFrame[] = [];
+  const paths: [number, number][][] = [];
+  const seen = new Set<string>();
+  let lowered = false;
+  for (const train of run.trains) {
+    if (seen.has(train.number)) continue;
+    seen.add(train.number);
+    const elapsed = Math.max(0, (now - (train.snapshotAt ?? now)) / 1000);
+    const frame = frameAt(train.rail ?? run.rail, run.crossing, train, elapsed, hold);
+    lowered ||= frame.lowered > 0;
+    if (frame.train) {
+      visible.push({ ...frame.train, number: train.number, name: train.name });
+      if (train.rail) paths.push(train.rail);
+    }
+  }
+  const base = frameAt(run.rail, run.crossing, { alongKm: 0, status: lowered ? "closed" : "open", onSegment: false }, 0, hold);
+  return { ...base, train: visible[0] ?? null, trains: visible, paths };
+}
+
+export function sceneRun(scene: Scene, historical = false): MapRun | null {
+  if (!scene.available || !scene.crossing || scene.rail.length < 2) return null;
+  return { id: scene.crossing.id, rail: scene.rail, crossing: scene.crossing, train: null,
+    trains: historical || scene.offline ? [] : scene.trains.map((row) => ({ number: row.number, name: row.name,
+      rail: row.track?.rail, alongKm: row.track?.along_km ?? row.along_km,
+      onSegment: row.track?.position_on_segment ?? row.position_on_segment === true,
+      motion: row.track?.motion ?? row.motion, status: row.status, etaMin: row.eta_min,
+      closesInMin: row.closes_in_min, ageMin: row.age_min,
+      snapshotAt: row.snapshot_at == null ? scene.cached_at : row.snapshot_at * 1000 })) };
+}
+
+export function runFreshUntil(run: MapRun, now: number): number {
+  const trains = run.trains ?? (run.train ? [run.train] : []);
+  return Math.max(now, ...trains.map((train) => (train.snapshotAt ?? now) + (train.motion?.valid_for_sec ?? 120) * 1000));
 }
 
 const LAT_M = 110570;
@@ -180,7 +220,7 @@ export function frameAt(
   const moving = motion && Math.abs(motion.direction) === 1 && Number.isFinite(motion.speed_kmh) && motion.speed_kmh > 0 && remaining != null;
   const total = points.slice(1).reduce((sum, point, i) => sum + len(sub(point, points[i])), 0);
   const metres = moving ? gate.metres - motion.direction * motion.speed_kmh * remaining * 1000 / 60 : (current?.alongKm ?? 0) * 1000;
-  if (current && fresh && (moving || current.onSegment === true) && Number.isFinite(metres) && metres >= 0 && metres <= total) {
+  if (current && fresh && (remaining == null || remaining >= -2) && (moving || current.onSegment === true) && Number.isFinite(metres) && metres >= 0 && metres <= total) {
     const sign = moving ? motion.direction : Math.sign(gate.metres - metres) || 1;
     const at = pointAt(points, metres);
     const ahead = pointAt(points, metres + sign * 25);

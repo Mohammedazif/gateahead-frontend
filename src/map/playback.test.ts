@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BARRIER_OFFSET_M, ROAD_GAP_M, frameAt, frameForRun, metresBetween, toPlane } from "./playback.ts";
+import { BARRIER_OFFSET_M, ROAD_GAP_M, frameAt, frameForRun, metresBetween, sceneRun, toPlane } from "./playback.ts";
+import type { Scene } from "../api";
 
 const crossing = { lat: 12, lon: 75 };
 
@@ -192,6 +193,54 @@ test("barriers follow closure time and the estimated clearance window", () => {
   assert.equal(frameAt(localRail, crossing, train, 0).lowered, 0);
   assert.equal(frameAt(localRail, crossing, train, 31).lowered, 1);
   assert.equal(frameAt(localRail, crossing, { ...moving, etaMin: -1.5 }, 31).lowered, 0);
+});
+
+const multiAt = Date.parse("2026-11-16T16:56:00+05:30");
+const multiScene: Scene = { available: true, crossing: { id: "g", name: "Gate", ...crossing }, rail: localRail, cached_at: multiAt,
+  trains: [
+    { number: "16512", name: "North", along_km: 0, age_min: 1, status: "closed", eta_min: 0.5, closes_in_min: -4.5, snapshot_at: multiAt / 1000, motion: { direction: 1, speed_kmh: 60, valid_for_sec: 120 } },
+    { number: "16511", name: "South", along_km: 0, age_min: 1, status: "closed", eta_min: 0.5, closes_in_min: -4.5, snapshot_at: multiAt / 1000, motion: { direction: -1, speed_kmh: 60, valid_for_sec: 360 } },
+  ] };
+
+test("two identified trains animate simultaneously in opposite directions", () => {
+  const run = sceneRun(multiScene)!;
+  const first = frameForRun(run, multiAt).trains!;
+  const later = frameForRun(run, multiAt + 15000).trains!;
+  assert.deepEqual(first.map((train) => train.number), ["16512", "16511"]);
+  assert.ok(later[0].lat > first[0].lat && later[1].lat < first[1].lat);
+  assert.ok(Math.abs(later[0].bearing) < 1 && Math.abs(later[1].bearing) > 179);
+});
+
+test("one train expiring does not remove the second marker or reopen the barrier", () => {
+  const source = { ...multiScene, trains: multiScene.trains.map((train) => ({ ...train, eta_min: 2.5 })) };
+  const frame = frameForRun(sceneRun(source)!, multiAt + 121000);
+  assert.deepEqual(frame.trains!.map((train) => train.number), ["16511"]);
+  assert.equal(frame.lowered, 1);
+});
+
+test("a passed first train does not hide the second approaching service", () => {
+  const source = { ...multiScene, trains: [{ ...multiScene.trains[0], eta_min: -1.8 }, multiScene.trains[1]] };
+  const frame = frameForRun(sceneRun(source)!, multiAt + 20000);
+  assert.deepEqual(frame.trains!.map((train) => train.number), ["16511"]);
+  assert.equal(frame.lowered, 1);
+});
+
+test("each train retains its own snapshot time and estimated parallel track", () => {
+  const trackRail: [number, number][] = localRail.map(([lat, lon]) => [lat, lon + 0.00015]);
+  const source = { ...multiScene, trains: [multiScene.trains[0], { ...multiScene.trains[1], snapshot_at: multiAt / 1000 - 15,
+    track: { estimated: true, rail: trackRail, along_km: 0, position_on_segment: false, motion: multiScene.trains[1].motion } }] };
+  const frame = frameForRun(sceneRun(source)!, multiAt);
+  assert.equal(frame.trains!.length, 2);
+  assert.ok(frame.trains![0].lat < crossing.lat);
+  assert.ok(frame.trains![1].lat > crossing.lat);
+  assert.ok(Math.abs(frame.trains![1].lon - crossing.lon - 0.00015) < 0.00001);
+  assert.equal(frame.paths!.length, 1);
+});
+
+test("offline scenes suppress all markers and duplicate train IDs are not cloned", () => {
+  assert.equal(frameForRun(sceneRun({ ...multiScene, offline: true })!, multiAt).trains!.length, 0);
+  const duplicate = { ...multiScene, trains: [...multiScene.trains, multiScene.trains[0]] };
+  assert.equal(frameForRun(sceneRun(duplicate)!, multiAt).trains!.length, 2);
 });
 
 function segmentsCross(

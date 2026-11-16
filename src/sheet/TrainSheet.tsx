@@ -35,6 +35,9 @@ type Props = {
   sceneLoading: boolean;
   sceneMessage: string | null;
   sceneHistorical: boolean;
+  focusedTrain: string | null;
+  visibleTrains: Set<string>;
+  onFocusTrain: (number: string) => void;
   onCloseGate: () => void;
   onSaveGate: (gate: Gate) => void;
   gateCount: number;
@@ -104,7 +107,7 @@ export function TrainSheet(props: Props) {
       </div>
       <div ref={scroll} className="sheet-body" id="train-sheet-content" role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
         {selected ? <GateDetails gate={selected} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
-          historical={props.sceneHistorical} saved={favorites.some((item) => item.gate.id === selected.id)}
+          historical={props.sceneHistorical} focusedTrain={props.focusedTrain} visibleTrains={props.visibleTrains} onFocusTrain={props.onFocusTrain} saved={favorites.some((item) => item.gate.id === selected.id)}
           onSave={() => props.onSaveGate(selected)} onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
           {tab === "nearby" && <>
             <div className="content-heading"><h2>Nearby crossings</h2>{place && <button type="button" className="text-button" disabled={busy} onClick={() => { setTab("trains"); onCheck(); }}>{busy ? "Checking…" : "Check trains"}</button>}</div>

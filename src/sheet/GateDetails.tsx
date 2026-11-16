@@ -3,8 +3,9 @@ import { gateLabel, passedLabel } from "../labels";
 import { GateActions } from "./FeatureControls";
 import { Icon } from "../ui/Icon";
 
-export function GateDetails({ gate, scene, loading, message, historical, saved, onSave, onBack }: {
+export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack }: {
   gate: Gate; scene: Scene | null; loading: boolean; message: string | null; historical: boolean;
+  focusedTrain: string | null; visibleTrains: Set<string>; onFocusTrain: (number: string) => void;
   saved: boolean; onSave: () => void; onBack: () => void;
 }) {
   const lead = scene?.trains[0];
@@ -26,17 +27,26 @@ export function GateDetails({ gate, scene, loading, message, historical, saved, 
       </div> : scene ? <div className="gate-status"><h3>No approaching train in the latest check</h3><p className="quiet">The barrier’s position is unknown.</p></div> : null}
       {gone && <p className="quiet">Recently passed (estimated): {gone.number} {gone.name} · {passedLabel(gone.ago_min)}</p>}
     </>}
+    {visibleTrains.size > 0 && <section className="trains-on-map" aria-label="Trains on map">
+      <p className="eyebrow">{visibleTrains.size} {visibleTrains.size === 1 ? "train" : "trains"} on map</p>
+      <div className="train-focus-list">{scene?.trains.filter((train) => visibleTrains.has(train.number)).map((train) =>
+        <button key={train.number} type="button" className="ghost" aria-pressed={focusedTrain === train.number}
+          onClick={() => onFocusTrain(train.number)} title={`${train.number} ${train.name}`}>
+          {train.number}<span className="quiet">{train.eta_min <= 0 ? "passing" : `in ${Math.max(1, Math.round(train.eta_min))} min`}</span>
+        </button>)}</div>
+      <p className="quiet">Positions and track assignments are estimated. Choose a train to locate it.</p>
+    </section>}
     <GateActions key={gate.id} gate={gate} saved={saved} onSave={onSave} />
-    {scene && <CrossingTimeline scene={scene} historical={historical} />}
+    {scene && <CrossingTimeline scene={scene} historical={historical} focusedTrain={focusedTrain} visibleTrains={visibleTrains} onFocusTrain={onFocusTrain} />}
   </section>;
 }
 
-function CrossingTimeline({ scene, historical }: { scene: Scene; historical: boolean }) {
+function CrossingTimeline({ scene, historical, focusedTrain, visibleTrains, onFocusTrain }: { scene: Scene; historical: boolean; focusedTrain: string | null; visibleTrains: Set<string>; onFocusTrain: (number: string) => void }) {
   const rows = [...scene.trains].sort((a, b) => a.eta_min - b.eta_min);
   if (rows.length < 2) return null;
   return <section className="crossing-timeline">
     <p className="eyebrow">{historical ? "Trains at this saved check" : "Next trains at this crossing"}</p>
-    <ol>{rows.map((row) => <li key={row.number}><strong>{row.number} {row.name}</strong><span>{row.eta_min <= 0 ? "Estimated to be passing" : `Train arrival in about ${Math.round(row.eta_min)} min`}</span></li>)}</ol>
+    <ol>{rows.map((row) => <li key={row.number}><strong>{row.number} {row.name}</strong><span>{row.eta_min <= 0 ? "Estimated to be passing" : `Train arrival in about ${Math.round(row.eta_min)} min`}</span>{visibleTrains.has(row.number) && <button type="button" className="text-button" aria-pressed={focusedTrain === row.number} onClick={() => onFocusTrain(row.number)}>Show on map</button>}</li>)}</ol>
     <p className="quiet">Uses the same crossing check as the timing above. Reopening time is unknown.</p>
   </section>;
 }

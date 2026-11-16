@@ -750,3 +750,11 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 }
 
 .map-position-note { position: absolute; left: 16px; bottom: 12px; z-index: 2; max-width: calc(100% - 32px); margin: 0; padding: 8px 12px; color: var(--muted); background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; font-size: .78rem; line-height: 1.5; }
+
+.trains-on-map { margin: 18px 0; }
+.train-focus-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.train-focus-list button { display: flex; gap: 8px; align-items: center; }
+.train-focus-list button[aria-pressed="true"] { border-color: var(--accent); }
+.train-marker-label { border: 1px solid #e7a23a; border-radius: 8px; padding: 3px 7px; background: #15191c; color: #f7f1e6; font: 600 12px/1.4 sans-serif; box-shadow: 0 1px 5px #0008; cursor: pointer; }
+.train-marker-label[aria-pressed="true"] { background: #e7a23a; color: #15191c; z-index: 2; }
+.train-marker-label:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cachedResponse, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, RequestError, type City, type Gate, type Predict, type Scene } from "./api";
 import { MapView } from "./map/MapView";
-import { frameForRun, type MapRun } from "./map/playback";
+import { frameForRun, sceneRun } from "./map/playback";
 import { currentPrediction, currentScene, sceneFreshUntil, ESTIMATE_WINDOW_MS } from "./timing";
 import { TrainSheet } from "./sheet/TrainSheet";
 import { applyTheme, readTheme, type Theme } from "./theme";
@@ -38,6 +38,10 @@ export function App() {
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Gate | null>(null);
+  const [focusedTrain, setFocusedTrain] = useState<string | null>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
+  const focusTrain = useCallback((number: string) => { setFocusedTrain(number); setFocusRequest((value) => value + 1); }, []);
+  useEffect(() => { setFocusedTrain(null); }, [selected?.id]);
   const [scene, setScene] = useState<Scene | null>(null);
   const [gateChecks, setGateChecks] = useState<Record<string, Scene>>({});
   const [sceneState, setSceneState] = useState<"closed" | "loading" | "open">("closed");
@@ -321,22 +325,13 @@ export function App() {
   const displayPredict = useMemo(() => withGateChecks(currentPrediction(predict, now), checkedScenes, gates), [predict, now, checkedScenes, gates]);
   const displayScene = useMemo(() => currentScene(scene, now), [scene, now]);
   const sceneLead = displayScene?.trains[0];
-  const sceneLeadNumber = sceneLead?.number;
   const ready = isReady(scene) ? scene : null;
   const marked = useMemo(() => markGates(gates, historical ? null : displayPredict, checkedScenes), [gates, displayPredict, historical, checkedScenes]);
-  const run = useMemo<MapRun | null>(() => {
-    if (!ready) return null;
-    const lead = sceneHistorical ? null : ready.trains.find((train) => train.number === sceneLeadNumber) ?? null;
-    return {
-      id: ready.crossing.id,
-      rail: ready.rail,
-      crossing: { lat: ready.crossing.lat, lon: ready.crossing.lon },
-      train: lead ? { alongKm: lead.along_km, status: lead.status, onSegment: lead.position_on_segment === true, ageMin: lead.age_min, etaMin: lead.eta_min, closesInMin: lead.closes_in_min, snapshotAt: lead.snapshot_at == null ? ready.cached_at : lead.snapshot_at * 1000, motion: lead.motion } : null,
-    };
-  }, [ready, sceneHistorical, sceneLeadNumber]);
-
-  const visibleTrain = run && frameForRun(run, now).train;
-  const positionNote = !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
+  const run = useMemo(() => ready ? sceneRun(ready, sceneHistorical) : null, [ready, sceneHistorical]);
+  const visibleTrains = run ? frameForRun(run, now).trains ?? [] : [];
+  const visibleNumbers = new Set(visibleTrains.map((train) => train.number));
+  const visibleTrain = sceneLead && visibleTrains.find((train) => train.number === sceneLead.number);
+  const positionNote = visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
     : sceneLead.age_min >= 8 ? `${sceneLead.number} · report ${Math.round(sceneLead.age_min)} min old · location unconfirmed`
     : sceneLead.movement === "stopped" ? `${sceneLead.number} · reported stopped · awaiting a moving report`
     : visibleTrain ? `${sceneLead.number} · ${sceneLead.motion ? "estimated train movement" : "reported position"}`
@@ -352,6 +347,9 @@ export function App() {
           gates={marked}
           selectedId={selected?.id ?? null}
           run={run}
+          focusedTrain={focusedTrain}
+          focusRequest={focusRequest}
+          onFocusTrain={focusTrain}
           theme={theme}
           onPlace={askPlace}
           onSelect={openGate}
@@ -367,6 +365,9 @@ export function App() {
         sceneLoading={sceneState === "loading"}
         sceneMessage={sceneMessage}
         sceneHistorical={sceneHistorical}
+        focusedTrain={focusedTrain}
+        visibleTrains={visibleNumbers}
+        onFocusTrain={focusTrain}
         onCloseGate={closeScene}
         onSaveGate={saveGate}
         gateCount={gates.length}
