@@ -18,6 +18,7 @@ const suites = [
   ["crossings", "browser-check.mjs"],
   ["journeys", "browser-journeys-check.mjs"],
   ["conditions", "browser-state-matrix.mjs"],
+  ["gate-groups", "browser-gate-groups-check.mjs"],
 ];
 const results = await Promise.all(suites.map(([name, script]) => new Promise((done) => {
   const folder = resolve(artifacts, name);

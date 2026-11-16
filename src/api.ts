@@ -33,6 +33,12 @@ export type Gate = {
   eta?: number;
   closesIn?: number;
   groupEstimate?: boolean;
+  /** Shared only by mapped points on the same physical public-road crossing. */
+  group_id?: string;
+  group_name?: string;
+  group_size?: number;
+  road?: string;
+  area?: string;
 };
 
 export type Approach = RunIdentity & {
@@ -186,7 +192,9 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
     text(row, ["run_id", "start_date", "notice"]) && ["cancelled", "diverted", "partially_cancelled"].includes(row.status as string))) return false;
   if (coverage != null && (!isRecord(coverage) || !numbers(coverage, ["live_checked", "live_candidates", "pending_live", "missing_or_stale_routes", "unavailable_live", "unavailable_discovery"]))) return false;
   if (path.startsWith("/api/gates?")) return rows(value.gates, (gate) =>
-    typeof gate.id === "string" && typeof gate.name === "string" && place(gate) && finite(gate.km));
+    typeof gate.id === "string" && typeof gate.name === "string" && place(gate) && finite(gate.km) &&
+    text(gate, ["group_id", "group_name", "road", "area"]) && (gate.group_size == null ||
+      (Number.isInteger(gate.group_size) && (gate.group_size as number) > 0)));
   if (path.startsWith("/api/predict?")) return (value.generated_at == null ||
     (typeof value.generated_at === "string" && Number.isFinite(Date.parse(value.generated_at)))) && rows(value.approaching, (row) => estimated(row, "train", "eta")) &&
     rows(value.sightings, (row) => common(row) && typeof row.number === "string" && (row.eta == null || finite(row.eta))) &&

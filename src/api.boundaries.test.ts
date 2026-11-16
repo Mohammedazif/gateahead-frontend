@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchPredict, fetchReports, fetchScene, RequestError, submitReport, type Gate } from "./api";
+import { fetchGates, fetchPredict, fetchReports, fetchScene, RequestError, submitReport, type Gate } from "./api";
 
 const storage = new Map<string, string>();
 Object.defineProperty(globalThis, "localStorage", { value: {
@@ -13,6 +13,23 @@ const approach = { train: "16603", name: "Maveli Express", cluster: gate.name, i
 const prediction = { approaching: [approach], sightings: [], gate_predictions: [{ id: gate.id, train: "16603", name: "Maveli Express", eta: 6, status: "closing_soon" }] };
 const scene = { available: true, crossing: gate, rail: [[11.9, 75], [12.1, 75]],
   trains: [{ number: "16603", name: "Maveli Express", eta_min: 6, status: "closing_soon", age_min: 0, along_km: 1 }] };
+
+test("invalid topology metadata cannot replace saved crossing locations", async () => {
+  const original = globalThis.fetch;
+  try {
+    storage.clear();
+    const grouped = { ...gate, group_id: "road:1", group_name: "School Road", group_size: 2, road: "School Road" };
+    globalThis.fetch = async () => new Response(JSON.stringify({ gates: [grouped] }));
+    const saved = await fetchGates(12, 75);
+    for (const change of [{ group_id: {} }, { group_name: [] }, { road: {} }, { group_size: 0 }, { group_size: 1.5 }]) {
+      globalThis.fetch = async () => new Response(JSON.stringify({ gates: [{ ...grouped, ...change }] }));
+      const failed = await fetchGates(12, 75);
+      assert.equal(failed.offline, true);
+      assert.equal(failed.cached_at, saved.cached_at);
+      assert.equal(failed.gates[0].group_id, grouped.group_id);
+    }
+  } finally { globalThis.fetch = original; }
+});
 
 test("bad nested prediction fields preserve the saved check and original timestamp", async () => {
   const original = globalThis.fetch;

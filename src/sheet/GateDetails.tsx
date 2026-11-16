@@ -17,7 +17,7 @@ export function GateDetails({ gate, scene, loading, message, historical, focused
   const awaiting = scene?.awaiting_update ?? [];
   return <section className="gate-detail" aria-label="Crossing details">
     <button type="button" className="back-link" onClick={onBack}><Icon name="back" size={18} />Back to crossings</button>
-    <div className="detail-heading"><p className="eyebrow">Selected crossing</p><h2>{scene?.crossing?.name || gate.name || "Level crossing"}</h2><p className="quiet">{gate.km.toFixed(1)} km from your search point</p></div>
+    <div className="detail-heading"><p className="eyebrow">Selected crossing</p><h2>{scene?.crossing?.name || gate.name || "Level crossing"}</h2><p className="quiet">{gate.km.toFixed(1)} km from your search point</p><p className="quiet">{gate.road ? `${gate.road} · ` : ""}Gate {gate.id}</p></div>
     {loading ? <p className="quiet" role="status">Checking this crossing…</p> : message ? <p className="notice">{message}</p> : <>
       {historical && <p className="notice">Saved view · {scene?.cached_at ? new Date(scene.cached_at).toLocaleString() : "last check"}. Timings describe that check.</p>}
       <CoverageNotice coverage={scene?.coverage} />

@@ -11,6 +11,8 @@ test("malformed legacy saved gates cannot reach crossing details or React labels
     { ...valid, gate: { ...gate, id: "object-name", name: { old: "name" } } },
     { ...valid, gate: { ...gate, id: "bad-distance", km: -1 } },
     { ...valid, gate: { ...gate, id: "missing-source", source: undefined } },
+    { ...valid, gate: { ...gate, id: "object-road", road: { name: "Old road" } } },
+    { ...valid, gate: { ...gate, id: "object-group", group_id: {} } },
     { ...valid, place: { ...place, label: { old: "city" } } },
   ];
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "localStorage");

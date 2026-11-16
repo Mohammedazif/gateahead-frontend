@@ -1,9 +1,10 @@
 import { runKey, runDateLabel } from "../runIdentity";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import maplibregl from "maplibre-gl";
 
 import type { Gate } from "../api";
+import { gateHoverLines } from "../gateGroups";
 import indiaOutline from "./india_outline.geojson";
 import railNetwork from "./india_rail.geojson";
 import { frameForRun, runFreshUntil, type LngLat, type MapRun, type RunFrame, type TrainFrame } from "./playback";
@@ -39,6 +40,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
   const [unavailable, setUnavailable] = useState(false);
   const holder = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const tooltipId = useId();
+  const clearHoverRef = useRef<() => void>(() => {});
   const gatesRef = useRef(gates);
   const placeRef = useRef(place);
   const pendingRef = useRef(pending);
@@ -85,6 +88,40 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     const resizeObserver = new ResizeObserver(() => map.resize());
     resizeObserver.observe(node);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    const hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12,
+      className: "gate-hover-popup", maxWidth: "280px" });
+    let hoveredId: string | null = null;
+    const canvas = map.getCanvas();
+    const clearHover = () => {
+      hoveredId = null;
+      hoverPopup.remove();
+      canvas.style.cursor = "";
+      canvas.removeAttribute("aria-describedby");
+    };
+    clearHoverRef.current = clearHover;
+    const showHover = (event: maplibregl.MapLayerMouseEvent) => {
+      const id = String(event.features?.[0]?.properties?.id ?? "");
+      const gate = gatesRef.current.find((item) => item.id === id);
+      if (!gate) return clearHover();
+      canvas.style.cursor = "pointer";
+      if (hoveredId === id) return;
+      hoveredId = id;
+      const content = document.createElement("div");
+      content.id = tooltipId;
+      content.setAttribute("role", "tooltip");
+      gateHoverLines(gate, gatesRef.current).forEach((line, index) => {
+        const child = document.createElement(index === 0 ? "strong" : "span");
+        child.textContent = line;
+        content.appendChild(child);
+      });
+      hoverPopup.setLngLat([gate.lon, gate.lat]).setDOMContent(content).addTo(map);
+      canvas.setAttribute("aria-describedby", tooltipId);
+    };
+    const dismissWithEscape = (event: globalThis.KeyboardEvent) => { if (event.key === "Escape") clearHover(); };
+    document.addEventListener("keydown", dismissWithEscape);
+    map.on("mousemove", "gates", showHover);
+    map.on("mouseleave", "gates", clearHover);
+    map.on("movestart", clearHover);
     map.on("styleimagemissing", (event) => {
       if (map.hasImage(event.id)) return;
       map.addImage(event.id, fallbackSprite(event.id));
@@ -118,12 +155,6 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
             ],
             "circle-stroke-color": "#f7f1e6",
           },
-        });
-        map.on("mouseenter", "gates", () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", "gates", () => {
-          map.getCanvas().style.cursor = "";
         });
       }
       if (!map.getSource("you")) {
@@ -231,6 +262,7 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     map.on("style.load", installOverlays);
     map.on("webglcontextrestored", installOverlays);
     map.on("click", (event) => {
+      clearHover();
       const layers = ["gates", "play-train", "play-bars", "play-road"].filter((id) => map.getLayer(id));
       if (layers.length > 0) {
         const hits = map.queryRenderedFeatures(event.point, { layers });
@@ -251,6 +283,9 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     });
     mapRef.current = map;
     return () => {
+      clearHover();
+      clearHoverRef.current = () => {};
+      document.removeEventListener("keydown", dismissWithEscape);
       resizeObserver.disconnect();
       for (const { marker } of trainLabels.current.values()) marker.remove();
       trainLabels.current.clear();
@@ -268,16 +303,21 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
       return;
     }
     styleRef.current = next;
+    clearHoverRef.current();
     map.setStyle(next, { diff: false });
   }, [theme]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const apply = () => applyGates(map, gates, selectedId);
+    clearHoverRef.current();
+    const apply = () => applyGates(map, gatesRef.current, selectedRef.current);
     if (map.getSource("gates")) apply();
     else map.once("load", apply);
+    return () => { map.off("load", apply); };
   }, [gates, selectedId]);
+
+  useEffect(() => { clearHoverRef.current(); }, [place?.lat, place?.lon]);
 
   useEffect(() => {
     const map = mapRef.current;

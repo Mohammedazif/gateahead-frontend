@@ -30,6 +30,8 @@ export function readFavorites(): SavedGate[] {
   return raw.filter((item): item is SavedGate => validPlace(item?.gate) && validPlace(item?.place) &&
     typeof item.gate.id === "string" && typeof item.gate.name === "string" &&
     typeof item.gate.source === "string" && Number.isFinite(item.gate.km) && item.gate.km >= 0 &&
+    ["group_id", "group_name", "road", "area"].every((key) => item.gate[key] == null || typeof item.gate[key] === "string") &&
+    (item.gate.group_size == null || (Number.isInteger(item.gate.group_size) && item.gate.group_size > 0)) &&
     typeof item.label === "string").slice(0, 50);
 }
 

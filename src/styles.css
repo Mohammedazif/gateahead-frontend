@@ -689,6 +689,30 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 .crossing-copy strong { display: block; font-weight: 500; font-size: .95rem; line-height: 1.4; overflow-wrap: anywhere; }
 .crossing-copy small { display: block; margin-top: 5px; color: var(--muted); font-size: .8rem; line-height: 1.4; }
 .crossing-row > svg { flex: none; color: var(--muted); }
+.crossing-members { margin: -3px 12px 12px 32px; color: var(--muted); font-size: .8rem; }
+.crossing-members summary, .track-checks summary { cursor: pointer; padding: 8px 0; }
+.gates .crossing-members li { border: 0; }
+.gates .crossing-member { display: block; width: 100%; text-align: left; padding: 10px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); overflow-wrap: anywhere; }
+.gates .crossing-member > span:first-child { display: block; white-space: normal; overflow: visible; text-overflow: clip; }
+.crossing-member:hover { background: var(--line); }
+.crossing-member small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.5; }
+.train li.timing-group { display: block; }
+.timing-summary { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.timing-summary > span:first-child { overflow-wrap: anywhere; }
+.results .timing-summary > span:last-child { text-align: right; flex: 0 1 55%; min-width: 0; }
+.track-checks { color: var(--muted); font-size: .8rem; margin-top: 4px; }
+.track-checks li { gap: 12px; overflow-wrap: anywhere; }
+.results .track-checks li > span:last-child { text-align: right; flex: 0 1 65%; min-width: 0; }
+.track-first-estimate { display: block; margin-top: 5px; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.gate-hover-popup { pointer-events: none; }
+.gate-hover-popup .maplibregl-popup-content { background: var(--sheet); color: var(--ink); padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.18); font-family: inherit; }
+.gate-hover-popup strong, .gate-hover-popup span { display: block; overflow-wrap: anywhere; }
+.gate-hover-popup strong { font-size: .92rem; margin-bottom: 5px; }
+.gate-hover-popup span { color: var(--muted); font-size: .77rem; line-height: 1.6; }
+.gate-hover-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--sheet); }
+.gate-hover-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--sheet); }
+.gate-hover-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--sheet); }
+.gate-hover-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--sheet); }
 .map-location { position: absolute; z-index: 3; top: max(14px, env(safe-area-inset-top)); left: 14px; width: min(390px, calc(100% - 86px)); display: flex; align-items: center; gap: 4px; padding: 4px; background: var(--sheet); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.15); }
 .location-open { flex: 1; display: flex; gap: 10px; align-items: center; min-width: 0; min-height: 42px; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 12px; }
 .location-open span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
