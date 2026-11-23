@@ -33,7 +33,7 @@ type Props = {
 };
 
 type GateProbe = Window & {
-  __gateRun?: { clearance: number; acrossRoad: number; lowered: number; train: { lat: number; lon: number } | null; trains: TrainFrame[] };
+  __gateRun?: { clearance: number; acrossRoad: number; lowered: number; unconfirmed?: boolean; train: { lat: number; lon: number } | null; trains: TrainFrame[] };
 };
 
 export function MapView({ place, pending, gates, selectedId, run, focusedTrain, focusRequest, onFocusTrain, theme, onPlace, onSelect }: Props) {
@@ -42,6 +42,11 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
   const mapRef = useRef<maplibregl.Map | null>(null);
   const tooltipId = useId();
   const clearHoverRef = useRef<() => void>(() => {});
+  const refreshHoverRef = useRef<() => void>(() => {});
+  const styleTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const fitSceneId = useRef<string | null>(null);
+  const [barrierUnconfirmed, setBarrierUnconfirmed] = useState(false);
+  const inventory = gates.map(({ id, lat, lon }) => `${id}:${lat}:${lon}`).sort().join("|");
   const gatesRef = useRef(gates);
   const placeRef = useRef(place);
   const pendingRef = useRef(pending);
@@ -88,6 +93,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     const resizeObserver = new ResizeObserver(() => map.resize());
     resizeObserver.observe(node);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), "top-right");
+    styleTimeout.current = setTimeout(() => setUnavailable(true), 15000);
     const hoverPopup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 12,
       className: "gate-hover-popup", maxWidth: "280px" });
     let hoveredId: string | null = null;
@@ -99,12 +106,10 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
       canvas.removeAttribute("aria-describedby");
     };
     clearHoverRef.current = clearHover;
-    const showHover = (event: maplibregl.MapLayerMouseEvent) => {
-      const id = String(event.features?.[0]?.properties?.id ?? "");
+    const renderHover = (id: string) => {
       const gate = gatesRef.current.find((item) => item.id === id);
       if (!gate) return clearHover();
       canvas.style.cursor = "pointer";
-      if (hoveredId === id) return;
       hoveredId = id;
       const content = document.createElement("div");
       content.id = tooltipId;
@@ -117,6 +122,11 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
       hoverPopup.setLngLat([gate.lon, gate.lat]).setDOMContent(content).addTo(map);
       canvas.setAttribute("aria-describedby", tooltipId);
     };
+    refreshHoverRef.current = () => { if (hoveredId !== null) renderHover(hoveredId); };
+    const showHover = (event: maplibregl.MapLayerMouseEvent) => {
+      const id = String(event.features?.[0]?.properties?.id ?? "");
+      if (hoveredId !== id) renderHover(id);
+    };
     const dismissWithEscape = (event: globalThis.KeyboardEvent) => { if (event.key === "Escape") clearHover(); };
     document.addEventListener("keydown", dismissWithEscape);
     map.on("mousemove", "gates", showHover);
@@ -128,6 +138,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     });
     let booted = false;
     const installOverlays = () => {
+      clearTimeout(styleTimeout.current);
+      setUnavailable(false);
       installNetwork(map);
       if (!map.getSource("gates")) {
         map.addSource("gates", { type: "geojson", data: emptyCollection() });
@@ -285,6 +297,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     return () => {
       clearHover();
       clearHoverRef.current = () => {};
+      refreshHoverRef.current = () => {};
+      clearTimeout(styleTimeout.current);
       document.removeEventListener("keydown", dismissWithEscape);
       resizeObserver.disconnect();
       for (const { marker } of trainLabels.current.values()) marker.remove();
@@ -304,20 +318,22 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     }
     styleRef.current = next;
     clearHoverRef.current();
+    clearTimeout(styleTimeout.current);
+    styleTimeout.current = setTimeout(() => setUnavailable(true), 15000);
     map.setStyle(next, { diff: false });
   }, [theme]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    clearHoverRef.current();
+    refreshHoverRef.current();
     const apply = () => applyGates(map, gatesRef.current, selectedRef.current);
     if (map.getSource("gates")) apply();
     else map.once("load", apply);
     return () => { map.off("load", apply); };
   }, [gates, selectedId]);
 
-  useEffect(() => { clearHoverRef.current(); }, [place?.lat, place?.lon]);
+  useEffect(() => { clearHoverRef.current(); }, [place?.lat, place?.lon, selectedId, inventory]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -333,22 +349,24 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
   useEffect(() => {
     const map = mapRef.current;
     const placeNow = placeRef.current;
-    if (!map || !placeNow || gates.length === 0) return;
+    if (!map || !placeNow || gatesRef.current.length === 0) return;
     const fit = () => {
       if (!map.getSource("gates") || railRef.current) return;
-      fitCrossings(map, placeNow, gates);
+      fitCrossings(map, placeNow, gatesRef.current);
     };
     if (map.isStyleLoaded() && map.getSource("gates")) fit();
     else map.once("load", fit);
     return () => {
       map.off("load", fit);
     };
-  }, [gates]);
+  }, [inventory]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     if (!run) {
+      fitSceneId.current = null;
+      setBarrierUnconfirmed(false);
       for (const { marker } of trainLabels.current.values()) marker.remove();
       trainLabels.current.clear();
       railRef.current = null;
@@ -375,6 +393,7 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
       }
       lastPaint = performance.now();
       const frame = frameForRun(run, Date.now(), hold);
+      setBarrierUnconfirmed(Boolean(frame.unconfirmed && !frame.lowered));
       frameRef.current = frame;
       paintPlay(map, run.rail, frame);
       const trains = frame.trains ?? [];
@@ -407,7 +426,7 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
         label.button.setAttribute("aria-pressed", String(focusedRef.current === runKey(train)));
       });
       if (import.meta.env.DEV) (window as GateProbe).__gateRun = {
-        clearance: frame.clearance, acrossRoad: frame.acrossRoad, lowered: frame.lowered,
+        clearance: frame.clearance, acrossRoad: frame.acrossRoad, lowered: frame.lowered, unconfirmed: frame.unconfirmed,
         train: frame.train ? { lat: frame.train.lat, lon: frame.train.lon } : null,
         trains,
       };
@@ -417,6 +436,8 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     const start = () => {
       if (!map.getSource("play-rail")) return;
       tick();
+      if (fitSceneId.current === run.id) return;
+      fitSceneId.current = run.id;
       const bounds = new maplibregl.LngLatBounds();
       for (const [lat, lon] of run.rail) bounds.extend([lon, lat]);
       for (const train of run.trains ?? []) for (const [lat, lon] of train.rail ?? []) bounds.extend([lon, lat]);
@@ -454,7 +475,21 @@ export function MapView({ place, pending, gates, selectedId, run, focusedTrain, 
     };
   }, [place]);
 
-  return <><div ref={holder} className="map" />{unavailable && <p className="map-unavailable" role="status">Map unavailable in this browser. Search a place to use the crossing list.</p>}</>;
+  function retryMap() {
+    const map = mapRef.current;
+    if (!map) return;
+    clearTimeout(styleTimeout.current);
+    styleTimeout.current = setTimeout(() => setUnavailable(true), 15000);
+    map.setStyle(styleRef.current, { diff: false });
+  }
+
+  return <><div ref={holder} className="map" />
+    {unavailable ? <div className="map-unavailable">
+      <span role="status">Map unavailable. Search a place to use the crossing list.</span>
+      {mapRef.current && <button type="button" className="text-button" onClick={retryMap}>Retry map</button>}
+    </div> :
+      barrierUnconfirmed && <p className="map-barrier-note" role="status">Barrier position unknown</p>}
+  </>;
 }
 
 function applyThemePaint(map: maplibregl.Map, theme: Theme) {

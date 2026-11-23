@@ -23,18 +23,20 @@ test("nearby, train list, and details count down from the same check", () => {
   assert.equal(prediction.approaching[0].eta, -1); // immutable source snapshot
 });
 
-test("offline and expired snapshots retain their original timing", () => {
+test("offline snapshots retain original timing and expired live scenes show uncertainty", () => {
   assert.equal(currentPrediction({ ...prediction, offline: true }, at + 60000)?.approaching[0].eta, -1);
   assert.equal(currentPrediction(prediction, at + 180000)?.approaching[0].eta, -1);
   assert.equal(currentScene({ ...scene, offline: true }, at + 60000)?.trains[0].eta_min, 4);
-  assert.equal(currentScene(scene, at + 180000)?.trains[0].eta_min, 4);
+  const expired = currentScene(scene, at + 180000)!;
+  assert.equal(expired.trains.length, 0);
+  assert.equal(expired.awaiting_update?.[0].reason, "estimate_elapsed");
 });
 
-test("an estimate becomes recently passed after its clearance window", () => {
-  const result = currentScene({ ...scene, trains: [{ ...scene.trains[0], eta_min: -1 }] }, at + 90000)!;
+test("counting down a timetable estimate cannot create a passed report", () => {
+  const result = currentScene({ ...scene, trains: [{ ...scene.trains[0], eta_min: -1, basis: "timetable", observed: false }] }, at + 90000)!;
   assert.equal(result.trains.length, 0);
-  assert.equal(result.passed![0].number, "16606");
-  assert.equal(result.passed![0].ago_min, 2.5);
+  assert.deepEqual(result.passed, []);
+  assert.equal(result.awaiting_update?.[0].reason, "estimate_elapsed");
 });
 
 test("uncertain approaching estimates are not promoted to a closed gate", () => {
@@ -60,6 +62,7 @@ test("a second fresh train remains current after the first scene report expires"
   const result = currentScene(mixed, at + 180000)!;
   assert.deepEqual(result.trains.map((train) => train.number), ["16511"]);
   assert.equal(result.trains[0].eta_min, 1);
+  assert.equal(result.awaiting_update?.[0].number, "16512");
 });
 
 test("a stopped train does not cross or pass a gate on the client timer", () => {
@@ -94,4 +97,19 @@ test("nearby and train lists hold stopped estimates and mark expired reports unr
   assert.equal(expired.gate_predictions!.length, 0);
   assert.equal(expired.approaching.length, 0);
   assert.equal(expired.awaiting_update![0].current, "Pazhayangadi");
+});
+
+test("moving estimates stay unresolved after their source age boundary without inventing passage", () => {
+  const reported = { ...scene, crossing: { id: "school", name: "School Road", lat: 12, lon: 75 }, trains: [
+    { ...scene.trains[0], eta_min: 0, observed: true, age_min: 7.5, movement: "moving" as const,
+      motion: { direction: 1, speed_kmh: 60, valid_for_sec: 30 } },
+  ] };
+  assert.equal(currentScene(reported, at + 29000)!.trains.length, 1);
+  for (const offset of [30000, 120000, 180000]) {
+    const expired = currentScene(reported, at + offset)!;
+    assert.equal(expired.trains.length, 0);
+    assert.deepEqual(expired.passed, []);
+    assert.equal(expired.awaiting_update?.[0].reason, "stale_report");
+    assert.deepEqual(expired.awaiting_update?.[0].ids, ["school"]);
+  }
 });

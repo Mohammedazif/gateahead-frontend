@@ -2,14 +2,17 @@ import type { RunIdentity } from "./runIdentity";
 import { installationId, readStored, writeStored } from "./features";
 
 export type SnapshotInfo = { cached_at?: number; offline?: boolean };
+export type MapAvailability = { map_warning?: string; map_age_seconds?: number };
 
 export type TrainCoverage = {
+  status?: "partial" | "complete" | "unknown";
   live_checked: number;
   live_candidates: number;
   pending_live: number;
   unavailable_live?: number;
   missing_or_stale_routes: number;
   unavailable_discovery?: number;
+  limited?: boolean;
 };
 
 export type AwaitingTrain = RunIdentity & {
@@ -18,7 +21,7 @@ export type AwaitingTrain = RunIdentity & {
   current: string;
   last_station?: string;
   age_min: number;
-  reason: "stopped_report";
+  reason: "stopped_report" | "stale_report" | "unknown_report_age" | "estimate_elapsed";
   ids?: string[];
 };
 
@@ -32,6 +35,7 @@ export type Gate = {
   status?: string;
   eta?: number;
   closesIn?: number;
+  positionUncertain?: boolean;
   groupEstimate?: boolean;
   /** Shared only by mapped points on the same physical public-road crossing. */
   group_id?: string;
@@ -44,6 +48,7 @@ export type Gate = {
 };
 
 export type Approach = RunIdentity & {
+  observed?: boolean;
   age_min?: number;
   basis?: string;
   train: string;
@@ -75,6 +80,7 @@ export type Approach = RunIdentity & {
 };
 
 export type Sighting = RunIdentity & {
+  observed?: boolean;
   number: string;
   name: string;
   current: string;
@@ -106,11 +112,11 @@ export type Passed = RunIdentity & {
   ids?: string[];
 };
 
-export type GatePrediction = RunIdentity & { id: string; train: string; name: string; eta: number; closes_in?: number; status: string; basis?: string; age_min?: number; at_station?: boolean };
+export type GatePrediction = RunIdentity & { id: string; train: string; name: string; eta: number; closes_in?: number; status: string; basis?: string; age_min?: number; at_station?: boolean; observed?: boolean };
 
 export type ServiceUpdate = RunIdentity & { number: string; status: "cancelled" | "diverted" | "partially_cancelled"; notice: string };
 
-export type Predict = SnapshotInfo & {
+export type Predict = SnapshotInfo & MapAvailability & {
   service_updates?: ServiceUpdate[];
   awaiting_update?: AwaitingTrain[];
   coverage?: TrainCoverage;
@@ -128,6 +134,7 @@ export type Predict = SnapshotInfo & {
 };
 
 export type SceneTrain = RunIdentity & {
+  observed?: boolean;
   current?: string;
   last_station?: string;
   track?: { estimated: boolean; rail: [number, number][]; along_km: number; position_on_segment: boolean; motion?: { direction: number; speed_kmh: number; valid_for_sec: number } };
@@ -146,12 +153,14 @@ export type SceneTrain = RunIdentity & {
   bracket?: string;
 };
 
-export type Scene = SnapshotInfo & {
+export type Scene = SnapshotInfo & MapAvailability & {
   service_updates?: ServiceUpdate[];
   awaiting_update?: AwaitingTrain[];
   coverage?: TrainCoverage;
   available: boolean;
   error?: string;
+  legacy_alias_resolved?: boolean;
+  active_at_check?: string[];
   crossing?: { id: string; name: string; lat: number; lon: number };
   rail: [number, number][];
   trains: SceneTrain[];
@@ -165,10 +174,13 @@ export class RequestError extends Error {
 type CachedResponse = { at: number; data: Record<string, unknown> };
 type PendingCache = { count: number; storedVersion: number };
 const pendingCache = new Map<string, PendingCache>();
+const sessionResponses = new Map<string, CachedResponse>();
 let requestVersion = 0;
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
+
+export function isLegacyCrossingId(id: string): boolean { return /^user:\d+:\d+$/.test(id); }
 
 function hasResponseShape(path: string, value: unknown): value is Record<string, unknown> {
   if (!isRecord(value)) return false;
@@ -185,11 +197,13 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
     finite(item.speed_kmh) && (item.speed_kmh as number) > 0 && finite(item.valid_for_sec) && (item.valid_for_sec as number) >= 0);
   const common = (row: Record<string, unknown>) => text(row, ["run_id", "start_date", "name", "current", "last_station", "cluster", "basis", "bracket", "origin", "dest", "next", "next_in", "departed_at", "scheduled_at", "platform", "run"])
     && numbers(row, ["age_min", "age", "delay", "count", "from_you_km", "lat", "lon", "left_km", "closes_in", "closes_in_min"])
-    && ids(row.ids) && (row.at_station == null || typeof row.at_station === "boolean");
+    && ids(row.ids) && (row.at_station == null || typeof row.at_station === "boolean") &&
+    (row.observed == null || typeof row.observed === "boolean");
   const estimated = (row: Record<string, unknown>, identity: string, eta: string) => common(row) && typeof row[identity] === "string" &&
     typeof row.status === "string" && finite(row[eta]);
   const awaiting = (row: Record<string, unknown>) => common(row) && typeof row.number === "string" && typeof row.current === "string" && finite(row.age_min);
   const coverage = value.coverage;
+  if (!text(value, ["map_warning"]) || !numbers(value, ["map_age_seconds"])) return false;
   if (!optionalRows(value.service_updates, (row) => typeof row.number === "string" &&
     text(row, ["run_id", "start_date", "notice"]) && ["cancelled", "diverted", "partially_cancelled"].includes(row.status as string))) return false;
   if (coverage != null && (!isRecord(coverage) || !numbers(coverage, ["live_checked", "live_candidates", "pending_live", "missing_or_stale_routes", "unavailable_live", "unavailable_discovery"]))) return false;
@@ -204,7 +218,15 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
     optionalRows(value.passed, (row) => common(row) && typeof row.train === "string" && finite(row.ago)) &&
     optionalRows(value.awaiting_update, awaiting);
   if (path.startsWith("/api/scene?")) {
-    if (value.crossing != null && (!isRecord(value.crossing) || typeof value.crossing.id !== "string" || !text(value.crossing, ["name"]) || !place(value.crossing))) return false;
+    if (value.crossing != null && (!isRecord(value.crossing) || typeof value.crossing.id !== "string" || typeof value.crossing.name !== "string" || !place(value.crossing))) return false;
+    const crossingId = new URLSearchParams(path.slice(path.indexOf("?") + 1)).get("crossing_id");
+    if (value.available === true && !isRecord(value.crossing)) return false;
+    if (isRecord(value.crossing)) {
+      if (!crossingId) return false;
+      if (isLegacyCrossingId(crossingId)) {
+        if (value.legacy_alias_resolved !== true || !/^pin:[a-f\d]{12}4[a-f\d]{3}[89ab][a-f\d]{15}$/i.test(String(value.crossing.id))) return false;
+      } else if (value.crossing.id !== crossingId) return false;
+    }
     return typeof value.available === "boolean" && rail(value.rail) && rows(value.trains, (row) => {
       if (!estimated(row, "number", "eta_min") || !finite(row.age_min) || !finite(row.along_km) || !numbers(row, ["snapshot_at"]) || !motion(row.motion)) return false;
       if (row.snapshot_at != null && Math.abs(row.snapshot_at as number) > 8.64e12) return false;
@@ -215,7 +237,7 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
     }) && optionalRows(value.passed, (row) => common(row) && typeof row.number === "string" && finite(row.ago_min)) &&
       optionalRows(value.awaiting_update, awaiting);
   }
-  if (path.startsWith("/api/reports")) return (value.verified == null || value.verified === false) && rows(value.reports, (row) =>
+  if (path.startsWith("/api/reports")) return !value.error && (value.verified == null || value.verified === false) && rows(value.reports, (row) =>
     ["open", "closed", "wrong_location"].includes(row.state as string) && finite(row.at) && finite(row.expires_at));
   if (path.startsWith("/api/cities?")) return rows(value.cities, (row) => typeof row.name === "string" && typeof row.state === "string" && place(row));
   if (path.startsWith("/api/place?")) return value.name == null || typeof value.name === "string";
@@ -246,30 +268,46 @@ function responseCache(): Record<string, CachedResponse> {
   }));
 }
 
-export function cachedResponse(path: string): CachedResponse | null {
-  const hit = responseCache()[path];
+export function cachedResponse(path: string, privateLocation = false): CachedResponse | null {
+  const hit = privateLocation ? sessionResponses.get(path) : responseCache()[path];
   return hit ? { ...hit, data: publicGateResponse(path, hit.data) } : null;
 }
 
-async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0): Promise<T> {
+export function clearPrivateResponses() { sessionResponses.clear(); }
+
+export function discardPersistedArea(lat: number, lon: number) {
+  const all = responseCache();
+  const remove = Object.keys(all).filter((path) => {
+    const query = new URLSearchParams(path.slice(path.indexOf("?") + 1));
+    return query.get("lat") === String(lat) && query.get("lon") === String(lon);
+  });
+  if (!remove.length) return;
+  for (const key of remove) delete all[key];
+  writeStored("responses", all);
+}
+
+async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false): Promise<T> {
   signal?.throwIfAborted();
   const cacheable = /^\/api\/(gates|predict|scene)\?/.test(path);
-  const pending = cacheable ? pendingCache.get(path) ?? { count: 0, storedVersion: 0 } : null;
+  const cacheKey = privateLocation ? `private:${path}` : path;
+  const pending = cacheable ? pendingCache.get(cacheKey) ?? { count: 0, storedVersion: 0 } : null;
   const version = ++requestVersion;
-  if (pending) { pending.count++; pendingCache.set(path, pending); }
+  if (pending) { pending.count++; pendingCache.set(cacheKey, pending); }
   try {
-    const saved = cacheable ? cachedResponse(path) : null;
+    const saved = cacheable ? cachedResponse(path, privateLocation) : null;
+    const disconnected = typeof navigator !== "undefined" && navigator.onLine === false;
     if (path.startsWith("/api/scene?") && saved && Date.now() >= saved.at && Date.now() - saved.at < 90000 && saved.at >= freshAfter) {
-      return { ...saved.data, cached_at: saved.at, offline: false } as T;
+      return { ...saved.data, cached_at: saved.at, offline: disconnected } as T;
     }
+    const trainCheck = /^\/api\/(predict|scene)\?/.test(path);
     const pausedUntil = readStored<number>("paused-until", 0);
-    if (/^\/api\/(predict|scene)\?/.test(path) && pausedUntil > Date.now()) {
+    if (trainCheck && Number.isFinite(pausedUntil) && pausedUntil > Date.now()) {
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
       throw new RequestError("Checks are paused. Try again in a few minutes.", pausedUntil);
     }
     let response: Response;
     try {
-      response = await fetch(path, { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(90000)]) : AbortSignal.timeout(90000) });
+      response = await fetch(path, { cache: "no-store", signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(90000)]) : AbortSignal.timeout(90000) });
     } catch (err) {
       if (signal?.aborted) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
@@ -282,8 +320,9 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0): P
       const seconds = /^\d+(?:\.\d+)?$/.test(header) ? Number(header) : NaN;
       const date = /[a-z]/i.test(header) ? Date.parse(header) : NaN;
       const retryAt = Number.isFinite(seconds) ? now + seconds * 1000 : Number.isFinite(date) ? Math.max(now, date) : now + 600000;
-      writeStored("paused-until", retryAt);
-      throw new RequestError("Too many checks. Automatic checks are paused; try again in a few minutes.", retryAt);
+      if (trainCheck) writeStored("paused-until", retryAt);
+      throw new RequestError(trainCheck ? "Too many checks. Automatic checks are paused; try again in a few minutes." :
+        "Too many requests for this feature. Try again in a few minutes.", retryAt);
     }
     if (!response.ok) {
       if (saved && response.status >= 500) return { ...saved.data, cached_at: saved.at, offline: true } as T;
@@ -303,23 +342,53 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0): P
       throw new RequestError("The service returned an unreadable response. Try again in a moment.");
     }
     const fetchedAt = Date.now();
-    if (cacheable && data.error && saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
+    if (data.error === "crossing_not_found" && path.startsWith("/api/scene?")) {
+      if (privateLocation) sessionResponses.delete(path);
+      else if (saved) {
+        const all = responseCache();
+        delete all[path];
+        writeStored("responses", all);
+      }
+      return data as T;
+    }
+    if (cacheable && data.error && saved) {
+      return { ...saved.data, cached_at: saved.at, offline: true,
+        ...(typeof data.map_warning === "string" ? { map_warning: data.map_warning, map_age_seconds: data.map_age_seconds } : {}) } as T;
+    }
     if (cacheable && !data.error && pending && version >= pending.storedVersion) {
-      const all = responseCache();
-      all[path] = { at: fetchedAt, data };
-      const recent = Object.entries(all).sort((a, b) => b[1].at - a[1].at).slice(0, 24);
-      writeStored("responses", Object.fromEntries(recent));
+      const crossing = isRecord(data.crossing) ? data.crossing : null;
+      const key = data.legacy_alias_resolved === true && typeof crossing?.id === "string"
+        ? path.replace(/([?&]crossing_id=)[^&]*/, `$1${encodeURIComponent(crossing.id)}`)
+        : path;
+      if (privateLocation) {
+        sessionResponses.delete(path);
+        sessionResponses.set(key, { at: fetchedAt, data });
+        if (sessionResponses.size > 24) sessionResponses.delete(sessionResponses.keys().next().value!);
+      } else {
+        const all = responseCache();
+        if (path !== key) delete all[path];
+        all[key] = { at: fetchedAt, data };
+        const recent = Object.entries(all).sort((a, b) => b[1].at - a[1].at).slice(0, 24);
+        writeStored("responses", Object.fromEntries(recent));
+      }
       pending.storedVersion = version;
     }
+    if (path.startsWith("/api/reports?")) return timedReportResponse(data, response) as T;
     return (cacheable && !data.error ? { ...data, cached_at: fetchedAt, offline: false } : data) as T;
   } finally {
-    if (pending && --pending.count === 0) pendingCache.delete(path);
+    if (pending && --pending.count === 0) pendingCache.delete(cacheKey);
   }
 }
 
-export type GateReports = { verified: false; reports: { state: string; at: number; expires_at: number }[] };
-export function fetchReports(id: string): Promise<GateReports> {
-  return getJson(`/api/reports?crossing_id=${encodeURIComponent(id)}`);
+export type GateReports = { verified: false; reports: { state: string; at: number; expires_at: number }[]; clockOffsetMs: number };
+function timedReportResponse(data: Record<string, unknown>, response: Response): GateReports {
+  const serverAt = typeof data.server_time === "number" && Number.isFinite(data.server_time)
+    ? data.server_time * 1000 : Date.parse(response.headers.get("Date") ?? "");
+  return { ...data, clockOffsetMs: Number.isFinite(serverAt) ? serverAt - Date.now() : 0 } as GateReports;
+}
+
+export function fetchReports(id: string, signal?: AbortSignal): Promise<GateReports> {
+  return getJson(`/api/reports?crossing_id=${encodeURIComponent(id)}`, signal);
 }
 export async function submitReport(gate: Gate, state: string): Promise<GateReports> {
   const response = await fetch("/api/reports", {
@@ -329,8 +398,8 @@ export async function submitReport(gate: Gate, state: string): Promise<GateRepor
   if (!response.ok) throw new Error(response.status === 429 ? "Too many reports. Try again in a few minutes." : "Could not send your report. Try again later.");
   try {
     const body: unknown = await response.json();
-    if (!hasResponseShape("/api/reports", body)) throw new Error("Invalid report response");
-    return body as GateReports;
+    if (!hasResponseShape("/api/reports", body) || body.error) throw new Error("Invalid report response");
+    return timedReportResponse(body, response);
   } catch { throw new RequestError("The service returned an unreadable report. Try again in a moment."); }
 }
 
@@ -359,17 +428,18 @@ export function fetchGates(
   lat: number,
   lon: number,
   signal?: AbortSignal,
-): Promise<SnapshotInfo & { gates: Gate[]; error?: string }> {
-  return getJson(`/api/gates?lat=${lat}&lon=${lon}`, signal);
+  privateLocation = false,
+): Promise<SnapshotInfo & MapAvailability & { gates: Gate[]; error?: string }> {
+  return getJson(`/api/gates?lat=${lat}&lon=${lon}`, signal, 0, privateLocation);
 }
 
-export function fetchPredict(lat: number, lon: number, signal?: AbortSignal): Promise<Predict> {
-  return getJson(`/api/predict?lat=${lat}&lon=${lon}`, signal);
+export function fetchPredict(lat: number, lon: number, signal?: AbortSignal, privateLocation = false): Promise<Predict> {
+  return getJson(`/api/predict?lat=${lat}&lon=${lon}`, signal, 0, privateLocation);
 }
 
-export function fetchScene(lat: number, lon: number, crossingId: string, signal?: AbortSignal, freshAfter = 0): Promise<Scene> {
+export function fetchScene(lat: number, lon: number, crossingId: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false): Promise<Scene> {
   const id = encodeURIComponent(crossingId);
-  return getJson(`/api/scene?lat=${lat}&lon=${lon}&crossing_id=${id}`, signal, freshAfter);
+  return getJson(`/api/scene?lat=${lat}&lon=${lon}&crossing_id=${id}`, signal, freshAfter, privateLocation);
 }
 
 export function friendlyError(message: string | undefined): string {

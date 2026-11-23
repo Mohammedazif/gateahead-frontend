@@ -502,7 +502,7 @@ button.close {
 
 .pip.approaching,
 .pip.ontime {
-  color: var(--amber);
+  color: var(--accent);
   border: 1px solid var(--amber);
 }
 
@@ -789,6 +789,7 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 }
 
 .map-position-note { position: absolute; left: 16px; bottom: 12px; z-index: 2; max-width: calc(100% - 32px); margin: 0; padding: 8px 12px; color: var(--muted); background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; font-size: .78rem; line-height: 1.5; }
+.map-barrier-note { position: absolute; top: 88px; left: 16px; margin: 0; padding: 8px 12px; color: var(--ink); background: var(--sheet); border: 1px solid var(--line); border-radius: 10px; font-size: .78rem; }
 
 .trains-on-map { margin: 18px 0; }
 .train-focus-list { display: flex; flex-wrap: wrap; gap: 8px; }

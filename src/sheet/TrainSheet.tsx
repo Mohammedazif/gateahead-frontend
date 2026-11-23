@@ -14,7 +14,7 @@ import { CoverageNotice } from "./CoverageNotice";
 import { AwaitingUpdate } from "./AwaitingUpdate";
 import { Dialog } from "../ui/Dialog";
 import { Icon, type IconName } from "../ui/Icon";
-import type { RefreshSettings, SavedGate } from "../features";
+import { incompleteCheck, type RefreshSettings, type SavedGate } from "../features";
 
 type Tab = "nearby" | "trains" | "saved";
 const tabs: { id: Tab; label: string; icon: IconName }[] = [
@@ -54,6 +54,9 @@ type Props = {
   busy: boolean;
   error: string | null;
   note: string | null;
+  gateSelectionNote: string | null;
+  onRetryGates: () => void;
+  gateVerified: boolean;
   predict: Predict | null;
   checkedAt: number | null;
   theme: Theme;
@@ -69,8 +72,9 @@ export function TrainSheet(props: Props) {
   const [expanded, setExpanded] = useState(false);
   const [tab, setTab] = useState<Tab>("nearby");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   useEffect(() => { if (selected) setTab("nearby"); }, [selected?.id]);
-  useEffect(() => { setTab("nearby"); }, [place?.lat, place?.lon]);
+  useEffect(() => { setTab("nearby"); setShowAll(false); }, [place?.lat, place?.lon]);
   const scroll = useRef<HTMLDivElement>(null);
   const nav = useRef<HTMLElement>(null);
   useEffect(() => { if (scroll.current) scroll.current.scrollTop = 0; }, [tab, selected?.id, place]);
@@ -82,7 +86,7 @@ export function TrainSheet(props: Props) {
     const bEta = Math.min(...b.members.map((gate) => gate.eta ?? Infinity));
     return hot || (Number.isFinite(aEta) && Number.isFinite(bEta) ? aEta - bEta : a.km - b.km);
   });
-  const shown = [...ranked.filter(activeGroup), ...ranked.filter((group) => !activeGroup(group)).slice(0, 12)];
+  const shown = showAll ? ranked : [...ranked.filter(activeGroup), ...ranked.filter((group) => !activeGroup(group)).slice(0, 12)];
 
   function changeTab(next: Tab) {
     props.onCloseGate();
@@ -119,14 +123,16 @@ export function TrainSheet(props: Props) {
         </nav>
       </div>
       <div ref={scroll} className="sheet-body" id="train-sheet-content" role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
-        {selected ? <GateDetails gate={selected} track={trackCrossingLabel(selected.id, gates) || (selected.group_size && selected.group_size > 1 ? `Part of ${selected.group_size} track crossings` : "")} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
+        {selected ? <GateDetails gate={selected} verifiedGate={props.gateVerified} track={trackCrossingLabel(selected.id, gates) || (selected.group_size && selected.group_size > 1 ? `Part of ${selected.group_size} track crossings` : "")} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
           historical={props.sceneHistorical} focusedTrain={props.focusedTrain} visibleTrains={props.visibleTrains} onFocusTrain={props.onFocusTrain} saved={favorites.some((item) => item.gate.id === selected.id)}
           onSave={() => props.onSaveGate(selected)} onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
           {tab === "nearby" && <>
             <div className="content-heading"><h2>Nearby crossings</h2>{place && <button type="button" className="text-button" disabled={busy} onClick={() => { setTab("trains"); onCheck(); }}>{busy ? "Checking…" : "Check trains"}</button>}</div>
             <p className="section-caption">{lede(place, loading, note, groups.length, props.placeLabel)}</p>
-            {gatesCached && <p className="notice">Saved crossing locations · map tiles need a connection.</p>}
-            {note && <p className="notice">{friendlyError(note)}</p>}
+            {gatesCached && <p className="notice">Saved crossing locations · retry for an updated list.</p>}
+            {note && <p className="notice" role="status">{friendlyError(note)}</p>}
+            {props.gateSelectionNote && <p className="notice" role="status">{props.gateSelectionNote}</p>}
+            {place && (gatesCached || note) && <button type="button" className="text-button" onClick={props.onRetryGates} disabled={loading}>Retry crossing lookup</button>}
             {!place && <div className="empty-state"><Icon name="pin" size={30} /><h3>Start with a place</h3><p>Use the search above the map, share your location, or tap a point on the railway.</p></div>}
             {shown.length > 0 && <div className="gates"><ul>{shown.map((group) => <li key={group.key}>
               <button type="button" className={activeGroup(group) ? "hot crossing-row" : "crossing-row"} onClick={() => { setExpanded(false); onSelect(group.primary); }}>
@@ -136,7 +142,7 @@ export function TrainSheet(props: Props) {
                 <button type="button" className="crossing-member" onClick={() => { setExpanded(false); onSelect(gate); }}><span>{trackCrossingLabel(gate.id, group.members) || gate.name}</span><small>{gate.km.toFixed(1)} km away · {gateCheckLabel(gate)}</small></button>
               </li>)}</ul></details>}
               </li>)}</ul>
-              {groups.length > shown.length && <p className="quiet">{groups.length - shown.length} more crossings are marked on the map.</p>}
+              {groups.length > shown.length && <button type="button" className="text-button" onClick={() => setShowAll(true)}>Show {groups.length - shown.length} more crossings</button>}
             </div>}
           </>}
           {tab === "trains" && <>
@@ -204,6 +210,8 @@ function lede(
 export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[] }) {
   if (predict.error) return <p className="warn">{friendlyError(predict.error)}</p>;
   const approaching = predict.approaching ?? [];
+  const incomplete = incompleteCheck(predict);
+  const notice = <CoverageNotice coverage={predict.coverage} map_warning={predict.map_warning} map_age_seconds={predict.map_age_seconds} />;
   const passed = predict.passed ?? [];
   const shownNumbers = new Set([...approaching.map(runKey), ...passed.map(runKey)]);
   const sightings = (predict.sightings ?? []).filter(
@@ -216,14 +224,14 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
     grouped.set(runKey(row), list);
   }
   if (grouped.size === 0 && sightings.length === 0 && passed.length === 0) {
-    return <><CoverageNotice coverage={predict.coverage} /><AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />{!predict.awaiting_update?.length && <p className="quiet">No train estimates available on this stretch right now.</p>}</>;
+    return <>{notice}<AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />{!predict.awaiting_update?.length && <p className="quiet">{incomplete ? "The available data did not establish train timing on this stretch." : "No train estimates available on this stretch right now."}</p>}</>;
   }
   return (
     <div className="results">
-      <CoverageNotice coverage={predict.coverage} />
+      {notice}
       <AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />
       {grouped.size === 0 && !predict.awaiting_update?.length ? (
-        <p className="quiet">No approaching train was found in the available reports. Gate position is unknown.</p>
+        <p className="quiet">{incomplete ? "The latest check did not establish train timing." : "No approaching train was found in the available reports."} Gate position is unknown.</p>
       ) : (
         [...grouped.entries()].map(([number, rows]) => {
           const ordered = [...rows].sort((a, b) => a.eta - b.eta);
@@ -243,7 +251,8 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
                 </strong>
                 <span className={`pip ${head.status}`}>{`Est. ${labelStatus(head.status)}`}</span>
               </header>
-              <p className="quiet">{head.basis === "timetable" ? "Timetable estimate" : "Train report"}{head.age_min != null ? ` · ${Math.round(head.age_min)} min old at check` : ""}</p>
+              <p className="quiet">{head.observed === false ? "Timetable estimate · current position unavailable" :
+                `${head.basis === "timetable" ? "Timetable estimate from a train report" : "Train report"}${head.age_min != null ? ` · ${Math.round(head.age_min)} min old at check` : ""}`}</p>
               <ul>
                 {timings.slice(0, 2).map((row) => <CrossingTimingRow key={row.key} group={row} gates={gates} />)}
               </ul>
@@ -262,7 +271,7 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
                 <strong>
                   {row.train} {row.name} {runDateLabel(row)}
                 </strong>
-                <span className="pip passed">{labelStatus("passed")}</span>
+                <span className="pip passed">Est. {labelStatus("passed")}</span>
               </header>
               <p>
                 {passedLabel(row.ago)} at {row.cluster || "a crossing near you"}
@@ -280,10 +289,10 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
                 <strong>
                   {row.number} {row.name} {runDateLabel(row)}
                 </strong>
-                <span className={`pip ${delayClass(row.delay)}`}>{delayLabel(row.delay)}</span>
+                <span className={`pip ${row.observed === false ? "later" : delayClass(row.delay)}`}>{row.observed === false ? "Scheduled" : delayLabel(row.delay)}</span>
               </header>
-              <RunLines row={row} />
-              {(row.age ?? 0) >= 8 ? <p className="quiet">Reported {Math.round(row.age)} min ago</p> : null}
+              {row.observed === false ? <p className="quiet">Current position unavailable</p> : <RunLines row={row} />}
+              {row.observed !== false && (row.age ?? 0) >= 8 ? <p className="quiet">Reported {Math.round(row.age)} min ago</p> : null}
             </article>
           ))}
         </details>

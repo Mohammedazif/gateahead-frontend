@@ -30,7 +30,6 @@ try {
   await page.goto(base, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "GateAhead", exact: true }).waitFor();
   pass("production application renders");
-  await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => navigator.serviceWorker.controller != null);
   const cached = await page.evaluate(async () => {
     const names = (await caches.keys()).filter((name) => name.startsWith("gateahead-shell-"));

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { cachedResponse, fetchGates, fetchPredict, fetchScene, RequestError } from "./api";
+import { cachedResponse, clearPrivateResponses, discardPersistedArea, fetchCities, fetchGates, fetchPredict, fetchReports, fetchScene, RequestError } from "./api";
 import { currentPrediction, currentScene } from "./timing";
 
 const storage = new Map<string, string>();
@@ -8,6 +8,8 @@ Object.defineProperty(globalThis, "localStorage", { value: {
   getItem: (key: string) => storage.get(key) ?? null,
   setItem: (key: string, value: string) => storage.set(key, value),
 } });
+
+const crossing = { id: "osm:1", name: "School Road", lat: 12, lon: 75 };
 
 test("offline predictions preserve the original fetch timestamp", async () => {
   const original = globalThis.fetch;
@@ -40,7 +42,7 @@ test("opening the same scene within 90 seconds reuses its response", async () =>
   const original = globalThis.fetch;
   try {
     storage.clear(); let calls = 0;
-    globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ available: true, rail: [], trains: [] })); };
+    globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ available: true, crossing, rail: [], trains: [] })); };
     await fetchScene(12, 75, "osm:1");
     await fetchScene(12, 75, "osm:1");
     assert.equal(calls, 1);
@@ -62,7 +64,7 @@ test("a newer nearby check invalidates an older scene inside the 90-second cache
   const original = globalThis.fetch;
   try {
     storage.clear(); let calls = 0;
-    globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ available: true, rail: [], trains: [] })); };
+    globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ available: true, crossing, rail: [], trains: [] })); };
     const first = await fetchScene(12, 75, "osm:1");
     await fetchScene(12, 75, "osm:1", undefined, first.cached_at! + 1);
     assert.equal(calls, 2);
@@ -105,7 +107,7 @@ test("wrong response object shapes cannot reach crossing and scene consumers", a
       globalThis.fetch = async () => new Response(JSON.stringify(body));
       await assert.rejects(fetchGates(12, 75), RequestError);
     }
-    for (const body of [{}, { available: true, rail: [], trains: "unavailable" }, { available: true, rail: [], trains: [null] }]) {
+    for (const body of [{}, { available: true, crossing, rail: [], trains: "unavailable" }, { available: true, crossing, rail: [], trains: [null] }]) {
       globalThis.fetch = async () => new Response(JSON.stringify(body));
       await assert.rejects(fetchScene(12, 75, "osm:1"), RequestError);
     }
@@ -177,7 +179,7 @@ test("an aborted scene request cannot return a cached scene", async () => {
   const original = globalThis.fetch;
   try {
     storage.clear();
-    globalThis.fetch = async () => new Response(JSON.stringify({ available: true, rail: [], trains: [] }));
+    globalThis.fetch = async () => new Response(JSON.stringify({ available: true, crossing, rail: [], trains: [] }));
     await fetchScene(12, 75, "osm:1");
     const controller = new AbortController();
     controller.abort();
@@ -237,11 +239,90 @@ test("a slower earlier scene response cannot replace a newer completed check in 
     const oldRequest = fetchScene(12, 75, "osm:1");
     const newRequest = fetchScene(12, 75, "osm:1");
     const row = { name: "Express", status: "approaching", eta_min: 12, age_min: 0, along_km: 0 };
-    complete[1](new Response(JSON.stringify({ available: true, rail: [], trains: [{ ...row, number: "16603" }] })));
+    complete[1](new Response(JSON.stringify({ available: true, crossing, rail: [], trains: [{ ...row, number: "16603" }] })));
     await newRequest;
-    complete[0](new Response(JSON.stringify({ available: true, rail: [], trains: [{ ...row, number: "16650" }] })));
+    complete[0](new Response(JSON.stringify({ available: true, crossing, rail: [], trains: [{ ...row, number: "16650" }] })));
     await oldRequest;
     const reopened = await fetchScene(12, 75, "osm:1");
     assert.equal(reopened.trains[0].number, "16603");
   } finally { globalThis.fetch = original; }
+});
+
+test("a scene may not put the identity or timing of a different crossing into the cache", async () => {
+  const original = globalThis.fetch;
+  const path = "/api/scene?lat=12&lon=75&crossing_id=osm%3A1";
+  try {
+    storage.clear();
+    globalThis.fetch = async () => Response.json({ available: true, crossing: { ...crossing, id: "osm:2" }, rail: [], trains: [] });
+    await assert.rejects(fetchScene(12, 75, crossing.id), RequestError);
+    assert.equal(cachedResponse(path), null);
+    globalThis.fetch = async () => Response.json({ available: true, rail: [], trains: [] });
+    await assert.rejects(fetchScene(12, 75, crossing.id), RequestError);
+    globalThis.fetch = async () => Response.json({ available: true, crossing, rail: [], trains: [] });
+    const good = await fetchScene(12, 75, crossing.id);
+    globalThis.fetch = async () => Response.json({ available: true, crossing: { ...crossing, id: "osm:2" }, rail: [], trains: [] });
+    const fallback = await fetchScene(12, 75, crossing.id, undefined, good.cached_at! + 1);
+    assert.equal(fallback.crossing?.id, crossing.id);
+    assert.equal(fallback.cached_at, good.cached_at);
+    assert.equal(fallback.offline, true);
+    globalThis.fetch = async () => Response.json({ error: "crossing_not_found" });
+    const removed = await fetchScene(12, 75, crossing.id, undefined, good.cached_at! + 1);
+    assert.equal(removed.error, "crossing_not_found");
+    assert.equal(cachedResponse(path), null);
+  } finally { globalThis.fetch = original; }
+});
+
+test("only an explicitly resolved legacy alias can cache a canonical pin", async () => {
+  const original = globalThis.fetch;
+  const canonicalId = "pin:fa150a601ecb4bd889ab4565f19bf71a";
+  const alias = "user:100:200";
+  const reply = { available: true, crossing: { ...crossing, id: canonicalId }, rail: [], trains: [] };
+  try {
+    storage.clear();
+    globalThis.fetch = async () => Response.json(reply);
+    await assert.rejects(fetchScene(12, 75, alias), RequestError);
+    globalThis.fetch = async () => Response.json({ ...reply, legacy_alias_resolved: true });
+    await assert.rejects(fetchScene(12, 75, crossing.id), RequestError);
+    assert.equal((await fetchScene(12, 75, alias)).crossing?.id, canonicalId);
+    assert.equal(cachedResponse(`/api/scene?lat=12&lon=75&crossing_id=${encodeURIComponent(alias)}`), null);
+    assert.notEqual(cachedResponse(`/api/scene?lat=12&lon=75&crossing_id=${encodeURIComponent(canonicalId)}`), null);
+    globalThis.fetch = async () => Response.json({ ...reply, available: false, legacy_alias_resolved: true });
+    const withoutGeometry = await fetchScene(12, 75, alias);
+    assert.equal(withoutGeometry.crossing?.id, canonicalId);
+    assert.equal(withoutGeometry.available, false);
+  } finally { globalThis.fetch = original; }
+});
+
+test("a city or report rate limit leaves the independent train bucket alone", async () => {
+  const original = globalThis.fetch;
+  try {
+    storage.clear();
+    globalThis.fetch = async (path) => String(path).startsWith("/api/predict")
+      ? Response.json({ approaching: [], sightings: [] })
+      : Response.json({}, { status: 429, headers: { "Retry-After": "45" } });
+    await assert.rejects(fetchCities("Kochi"), RequestError);
+    await assert.rejects(fetchReports(crossing.id), RequestError);
+    assert.equal(storage.get("gateahead:paused-until"), undefined);
+    assert.equal((await fetchPredict(12, 75)).offline, false);
+  } finally { globalThis.fetch = original; }
+});
+
+test("private location results support fallback during the session without saving coordinates", async () => {
+  const original = globalThis.fetch;
+  const path = "/api/gates?lat=12.123456&lon=75.654321";
+  try {
+    storage.clear();
+    globalThis.fetch = async () => Response.json({ gates: [] });
+    await fetchGates(12.123456, 75.654321);
+    assert.notEqual(cachedResponse(path), null);
+    discardPersistedArea(12.123456, 75.654321);
+    await fetchGates(12.123456, 75.654321, undefined, true);
+    assert.equal(storage.get("gateahead:responses"), "{}");
+    assert.equal(cachedResponse(path), null);
+    assert.notEqual(cachedResponse(path, true), null);
+    globalThis.fetch = async () => { throw new TypeError("offline"); };
+    assert.equal((await fetchGates(12.123456, 75.654321, undefined, true)).offline, true);
+    clearPrivateResponses();
+    assert.equal(cachedResponse(path, true), null);
+  } finally { globalThis.fetch = original; clearPrivateResponses(); }
 });

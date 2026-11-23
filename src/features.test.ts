@@ -69,13 +69,14 @@ test("checked gates retain their latest train when switching between details and
   assert.equal(predict.approaching[0].train, "16323");
 });
 
-test("an unresolved train suppresses a later train's gate countdown", () => {
+test("an unresolved train remains visible beside a separate closure estimate", () => {
   const gate = { id: "elimala", name: "Near Elimala", lat: 12.06, lon: 75.23, km: 2.6, source: "osm" };
-  const predict = { approaching: [], gate_predictions: [{ id: "elimala", train: "16603", eta: 12, status: "approaching" }],
+  const predict = { approaching: [], gate_predictions: [{ id: "elimala", train: "16603", eta: 2, closes_in: -3, status: "closed" }],
     awaiting_update: [{ number: "16650", ids: ["elimala"] }] } as unknown as Predict;
   const marked = markGates([gate], predict)[0];
-  assert.equal(marked.status, "uncertain");
-  assert.equal(marked.eta, undefined);
+  assert.equal(marked.status, "closed");
+  assert.equal(marked.eta, 2);
+  assert.equal(marked.positionUncertain, true);
 });
 
 test("a fresh gate check resolves only that gate's waiting report", () => {
@@ -86,4 +87,44 @@ test("a fresh gate check resolves only that gate's waiting report", () => {
   const updated = withGateChecks(predict, [scene])!;
   assert.deepEqual(updated.awaiting_update![0].ids, ["further-north"]);
   assert.deepEqual(predict.awaiting_update![0].ids, ["elimala", "further-north"]);
+});
+
+test("an incomplete empty scene preserves earlier estimates until it accounts for that run", () => {
+  const gate = { id: "a", name: "School Road", lat: 12, lon: 75, km: .4, source: "osm" };
+  const row = { id: gate.id, train: "16323", name: "Express", eta: 2, closes_in: -3, status: "closed" };
+  const predict: Predict = { cached_at: 10, crossings: 1, stations: [], checked: 1, running: 1,
+    approaching: [], sightings: [], gate_predictions: [row] };
+  const empty: Scene = { cached_at: 20, available: true, crossing: gate, rail: [], trains: [],
+    coverage: { status: "partial", live_checked: 0, live_candidates: 0, pending_live: 0, missing_or_stale_routes: 0 } };
+  assert.deepEqual(withGateChecks(predict, [empty], [gate])?.gate_predictions, [row]);
+  assert.equal(markGates([gate], predict, empty)[0].eta, 2);
+  const complete = { ...empty, coverage: { ...empty.coverage!, status: "complete" as const } };
+  assert.deepEqual(withGateChecks(predict, [complete], [gate])?.gate_predictions, []);
+  const passed = withGateChecks(predict, [{ ...empty, passed: [{ number: "16323", name: "Express", ago_min: 3 }] }], [gate])!;
+  assert.deepEqual(passed.gate_predictions, []);
+  assert.equal(passed.passed?.[0].train, "16323");
+  assert.deepEqual(passed.passed?.[0].ids, ["a"]);
+  assert.equal(passed.passed?.[0].from_you_km, .4);
+});
+
+test("newer dated journey information wins across crossing checks regardless of iteration order", () => {
+  const a = { id: "a", name: "School Road", lat: 12, lon: 75, km: .4, source: "osm" };
+  const b = { ...a, id: "b" };
+  const run = { number: "16323", name: "Express", run_id: "16323:2026-11-23" };
+  const active = { ...run, eta_min: 1, status: "closed", age_min: 1, along_km: 0 };
+  const cancellation = { ...run, status: "cancelled" as const, notice: "" };
+  const base: Predict = { cached_at: 10, crossings: 2, stations: [], checked: 1, running: 0,
+    approaching: [], sightings: [], gate_predictions: [] };
+  const runningScene: Scene = { crossing: a, available: true, cached_at: 20, rail: [], trains: [active] };
+  const cancelledScene: Scene = { crossing: b, available: true, cached_at: 30, rail: [], trains: [], service_updates: [cancellation] };
+  for (const scenes of [[cancelledScene, runningScene], [runningScene, cancelledScene]]) {
+    const result = withGateChecks(base, scenes, [a, b])!;
+    assert.deepEqual(result.gate_predictions, []);
+    assert.deepEqual(result.service_updates, [cancellation]);
+  }
+  const staleKnownActive = { ...runningScene, cached_at: 50, trains: [], active_at_check: [run.run_id] };
+  const restored = withGateChecks(base, [staleKnownActive, cancelledScene], [a, b])!;
+  assert.deepEqual(restored.service_updates, []);
+  const timetableOnly = { ...runningScene, cached_at: 60, trains: [{ ...active, observed: false }] };
+  assert.deepEqual(withGateChecks(base, [timetableOnly, cancelledScene], [a, b])?.service_updates, [cancellation]);
 });

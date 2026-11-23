@@ -1,6 +1,6 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useState, type KeyboardEvent } from "react";
 
-import { fetchCities, type City } from "../api";
+import { fetchCities, RequestError, type City } from "../api";
 
 type Props = {
   onPick: (city: City) => void;
@@ -9,39 +9,42 @@ type Props = {
 
 export function CitySearch({ onPick, autoFocus = false }: Props) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<City[]>([]);
-  const [active, setActive] = useState(0);
+  const [response, setResponse] = useState<{ query: string; cities: City[] } | null>(null);
+  const [active, setActive] = useState(-1);
+  const listId = useId();
+  const results = response?.query === query.trim() ? response.cities : [];
   const [note, setNote] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const trimmed = query.trim();
     if (trimmed.length < 2) {
-      setResults([]);
+      setResponse(null);
       setNote(null);
       setFailed(false);
       return;
     }
     // Results belong to the query that produced them. Enter must not select
     // an old city while the replacement query is still waiting to load.
-    setResults([]);
-    setActive(0);
+    setResponse(null);
+    setActive(-1);
     setNote(null);
     setFailed(false);
     const ctrl = new AbortController();
     const timer = window.setTimeout(() => {
       fetchCities(trimmed, ctrl.signal)
         .then((cities) => {
-          setResults(cities);
-          setActive(0);
+          if (ctrl.signal.aborted) return;
+          setResponse({ query: trimmed, cities });
+          setActive(-1);
           setFailed(false);
           setNote(cities.length === 0 ? "No Indian city matches that." : null);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           if (ctrl.signal.aborted) return;
-          setResults([]);
+          setResponse(null);
           setFailed(true);
-          setNote("City search did not load.");
+          setNote(error instanceof RequestError && error.retryAt ? error.message : "City search did not load. Try again.");
         });
     }, 160);
     return () => {
@@ -52,15 +55,19 @@ export function CitySearch({ onPick, autoFocus = false }: Props) {
 
   function pick(city: City) {
     setQuery("");
-    setResults([]);
+    setResponse(null);
     setNote(null);
     onPick(city);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
     if (event.key === "Escape") {
+      if (!query) return;
+      event.preventDefault();
+      event.stopPropagation();
       setQuery("");
-      setResults([]);
+      setResponse(null);
       setNote(null);
       return;
     }
@@ -70,7 +77,7 @@ export function CitySearch({ onPick, autoFocus = false }: Props) {
       setActive((index) => (index + 1) % results.length);
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActive((index) => (index - 1 + results.length) % results.length);
+      setActive((index) => index < 0 ? results.length - 1 : (index - 1 + results.length) % results.length);
     } else if (event.key === "Enter") {
       event.preventDefault();
       const city = results[active] ?? results[0];
@@ -86,22 +93,24 @@ export function CitySearch({ onPick, autoFocus = false }: Props) {
         role="combobox"
         aria-label="Search an Indian city"
         aria-expanded={results.length > 0}
-        aria-controls="city-results"
+        aria-controls={results.length ? listId : undefined}
+        aria-activedescendant={active >= 0 && active < results.length ? `${listId}-${active}` : undefined}
         aria-autocomplete="list"
         placeholder="Search an Indian city"
         value={query}
         autoComplete="off"
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => { setQuery(event.target.value); setNote(null); setActive(-1); }}
         onKeyDown={onKeyDown}
       />
       {results.length > 0 ? (
-        <ul id="city-results" role="listbox">
+        <ul id={listId} role="listbox" aria-label="Matching cities">
           {results.map((city, index) => (
-            <li key={`${city.name}-${city.state}`}>
+            <li key={`${city.name}-${city.state}-${city.lat}-${city.lon}`} role="presentation">
               <button
                 type="button"
                 role="option"
-                id={`city-${index}`}
+                id={`${listId}-${index}`}
+                tabIndex={-1}
                 aria-selected={index === active}
                 onMouseDown={(event) => event.preventDefault()}
                 onMouseEnter={() => setActive(index)}
@@ -114,7 +123,7 @@ export function CitySearch({ onPick, autoFocus = false }: Props) {
           ))}
         </ul>
       ) : null}
-      {note ? <p className={failed ? "warn" : "quiet"}>{note}</p> : null}
+      <p className={failed ? "warn" : "quiet"} role="status">{note}</p>
     </div>
   );
 }

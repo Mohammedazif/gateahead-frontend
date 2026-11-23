@@ -23,14 +23,14 @@ export function groupGates(gates: Gate[]): GateGroup[] {
 
 export function gateCheckLabel(gate: Gate): string {
   if (gate.status === "uncertain") return "Position update needed";
-  if (gate.eta != null) return `Est. ${gateLabel(gate.eta, gate.closesIn, gate.status)}`;
+  if (gate.eta != null) return `Est. ${gateLabel(gate.eta, gate.closesIn, gate.status)}${gate.positionUncertain ? " · Position update needed for another train" : ""}`;
   if (gate.groupEstimate) return "Train near this group · open for gate timing";
   return "Gate position unknown";
 }
 
 export function groupCheckLabel(group: GateGroup): string {
   const estimated = group.members.filter((gate) => gate.eta != null).sort((a, b) => a.eta! - b.eta!);
-  if (group.members.some((gate) => gate.status === "uncertain")) return `Position update needed${estimated.length ? " · other track estimates below" : ""}`;
+  if (group.members.some((gate) => gate.status === "uncertain")) return `Position update needed${estimated.length ? ` · ${gateCheckLabel(estimated[0])}` : ""}`;
   if (estimated.length) {
     const unknown = group.members.filter((gate) => gate.eta == null).length;
     return `${group.members.length > 1 ? "First track · " : ""}${gateCheckLabel(estimated[0])}${unknown ? ` · ${unknown} track timing${unknown > 1 ? "s" : ""} unknown` : ""}`;

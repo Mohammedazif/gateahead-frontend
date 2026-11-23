@@ -1,38 +1,59 @@
 import { runKey } from "./runIdentity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { cachedResponse, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, RequestError, type City, type Gate, type Predict, type Scene } from "./api";
+import { cachedResponse, clearPrivateResponses, discardPersistedArea, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, isLegacyCrossingId, RequestError, type City, type Gate, type Predict, type Scene } from "./api";
 import { MapView } from "./map/MapView";
 import { frameForRun, sceneRun } from "./map/playback";
 import { currentPrediction, currentScene, sceneFreshUntil, ESTIMATE_WINDOW_MS } from "./timing";
 import { TrainSheet } from "./sheet/TrainSheet";
 import { applyTheme, readTheme, type Theme } from "./theme";
 
-import { defaultRefresh, inRefreshWindow, markGates, withGateChecks, readFavorites, readLink, readStored, validPlace, writeStored, type Place, type RefreshSettings, type SavedGate } from "./features";
+import { initialPlace, inRefreshWindow, markGates, withGateChecks, readFavorites, readRefresh, readStored, writeStored, type Place, type SavedGate } from "./features";
 import { LocationControl } from "./map/LocationControl";
 type Press = Place & { x: number; y: number };
 
 export function App() {
-  const [initial] = useState(() => readLink(window.location.href) || readStored<Place | null>("last-place", null));
-  const [place, setPlace] = useState<Place | null>(() => validPlace(initial) ? initial : null);
+  const [initial] = useState(() => initialPlace(window.location.href));
+  const [place, setPlace] = useState<Place | null>(initial);
   const [favorites, setFavorites] = useState(readFavorites);
-  const [refresh, setRefresh] = useState<RefreshSettings>(() => ({ ...defaultRefresh, ...readStored("refresh", defaultRefresh) }));
+  const [refresh, setRefresh] = useState(readRefresh);
   const [now, setNow] = useState(Date.now());
-  const [pausedUntil, setPausedUntil] = useState(() => readStored<number>("paused-until", 0));
+  const [pausedUntil, setPausedUntil] = useState(() => {
+    const value = readStored<number>("paused-until", 0);
+    return Number.isFinite(value) ? value : 0;
+  });
   const [gatesCached, setGatesCached] = useState(false);
   const generation = useRef(0);
+  const locationTicket = useRef(0);
+  const predictRequest = useRef<AbortController | null>(null);
+  const sceneRequest = useRef<AbortController | null>(null);
   const checkingLock = useRef(false);
   const lastAttempt = useRef(0);
   const refreshScene = useRef<() => void>(() => {});
-  const wantedGate = useRef(initial && "gateId" in initial ? initial.gateId as string : null);
+  const wantedGate = useRef(initial?.gateId ?? null);
+  useEffect(() => {
+    if (!initial?.privateLocation && (!initial?.gateId || !isLegacyCrossingId(initial.gateId))) return;
+    const url = new URL(window.location.href);
+    for (const key of initial.privateLocation ? ["lat", "lon", "name", "gate"] : ["gate"]) url.searchParams.delete(key);
+    window.history.replaceState(window.history.state, "", url);
+  }, [initial]);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 15000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { writeStored("favorites", favorites); }, [favorites]);
   useEffect(() => { writeStored("refresh", refresh); }, [refresh]);
   useEffect(() => { writeStored("paused-until", pausedUntil); }, [pausedUntil]);
-  useEffect(() => { if (place) writeStored("last-place", place); }, [place]);
+  useEffect(() => {
+    if (!place) return;
+    if (place.privateLocation) discardPersistedArea(place.lat, place.lon);
+    writeStored("last-place", place.privateLocation ? null : { lat: place.lat, lon: place.lon, label: place.label });
+  }, [place]);
   const [gates, setGates] = useState<Gate[]>([]);
   const [gatesNote, setGatesNote] = useState<string | null>(null);
-  const [loadingGates, setLoadingGates] = useState(false);
+  const [gateSelectionNote, setGateSelectionNote] = useState<string | null>(null);
+  const [loadingGates, setLoadingGates] = useState(Boolean(place));
+  const [gatesAuthoritative, setGatesAuthoritative] = useState(false);
+  const [gatesCheckedAt, setGatesCheckedAt] = useState(0);
+  const [gateRetry, setGateRetry] = useState(0);
+  const retryGates = useCallback(() => setGateRetry((attempt) => attempt + 1), []);
   const [predict, setPredict] = useState<Predict | null>(null);
   const [checkedAt, setCheckedAt] = useState<number | null>(null);
   const [checking, setChecking] = useState(false);
@@ -62,6 +83,7 @@ export function App() {
   const closeScene = useCallback(() => {
     wantedGate.current = null;
     sceneTicket.current += 1;
+    sceneRequest.current?.abort();
     setSceneState("closed");
     setScene(null);
     setSceneMessage(null);
@@ -69,14 +91,20 @@ export function App() {
   }, []);
 
   const askPlace = useCallback((lat: number, lon: number, point: { x: number; y: number }) => {
+    locationTicket.current += 1;
+    setLocating(false);
     setSpotName(null);
     setNaming(true);
     setPending({ lat, lon, x: point.x, y: point.y });
   }, []);
 
   const choosePlace = useCallback(
-    (lat: number, lon: number, label?: string | null, gateId: string | null = null) => {
+    (lat: number, lon: number, label?: string | null, gateId: string | null = null, privateLocation = false) => {
       generation.current += 1;
+      locationTicket.current += 1;
+      predictRequest.current?.abort();
+      sceneRequest.current?.abort();
+      clearPrivateResponses();
       wantedGate.current = gateId;
       checkingLock.current = false;
       lastAttempt.current = 0;
@@ -85,13 +113,10 @@ export function App() {
       // A manual choice supersedes the incoming shared-link location. Keep
       // reloads on the area the person chose instead of replaying the old link.
       const url = new URL(window.location.href);
-      url.searchParams.set("lat", String(lat));
-      url.searchParams.set("lon", String(lon));
-      if (knownLabel) url.searchParams.set("name", knownLabel); else url.searchParams.delete("name");
-      if (gateId) url.searchParams.set("gate", gateId); else url.searchParams.delete("gate");
+      for (const key of ["lat", "lon", "name", "gate"]) url.searchParams.delete(key);
       window.history.replaceState(window.history.state, "", url);
       setPending(null);
-      setPlace({ lat, lon, label: knownLabel });
+      setPlace({ lat, lon, label: knownLabel, privateLocation });
       setPlaceLabel(knownLabel ?? formatSpot(lat, lon));
       setPredict(null);
       setGateChecks({});
@@ -99,6 +124,13 @@ export function App() {
       setChecking(false);
       setLocating(false);
       setError(null);
+      setGates([]);
+      setGatesCached(false);
+      setGatesNote(null);
+      setGateSelectionNote(null);
+      setGatesAuthoritative(false);
+      setGatesCheckedAt(0);
+      setLoadingGates(true);
       setSelected(null);
       setScene(null);
       setSceneState("closed");
@@ -136,36 +168,52 @@ export function App() {
   }, [place]);
 
   useEffect(() => {
-    if (!place) {
-      setGates([]);
-      setGatesNote(null);
-      return;
-    }
-    const ctrl = new AbortController();
-    const oldGates = cachedResponse(`/api/gates?lat=${place.lat}&lon=${place.lon}`);
+    if (!place) return;
+    const oldGates = cachedResponse(`/api/gates?lat=${place.lat}&lon=${place.lon}`, place.privateLocation);
     setGates((oldGates?.data.gates as Gate[] | undefined) || []);
     setGatesCached(Boolean(oldGates));
-    const oldPredict = cachedResponse(`/api/predict?lat=${place.lat}&lon=${place.lon}`);
+    const oldPredict = cachedResponse(`/api/predict?lat=${place.lat}&lon=${place.lon}`, place.privateLocation);
     setPredict(oldPredict ? { ...oldPredict.data, cached_at: oldPredict.at, offline: true } as Predict : null);
     setCheckedAt(oldPredict?.at || null);
+  }, [place]);
+
+  useEffect(() => {
+    if (!place) return;
+    const ctrl = new AbortController();
+    const ticket = generation.current;
     setLoadingGates(true);
-    setGatesNote(null);
-    fetchGates(place.lat, place.lon, ctrl.signal)
+    fetchGates(place.lat, place.lon, ctrl.signal, place.privateLocation)
       .then((body) => {
-        setGates(body.gates ?? []);
-        setGatesCached(Boolean(body.offline));
-        setGatesNote(body.error ? friendlyError(body.error) : null);
+        if (ctrl.signal.aborted || ticket !== generation.current) return;
+        if (!body.error) setGates(body.gates);
+        const warning = body.error ?? body.map_warning;
+        const authority = !body.offline && !warning;
+        if (authority) setGatesCheckedAt(body.cached_at ?? Date.now());
+        setGatesCached(Boolean(body.offline || body.map_warning));
+        setGatesAuthoritative(authority);
+        setGatesNote(warning ? friendlyError(warning) : null);
       })
       .catch((err: unknown) => {
-        if (ctrl.signal.aborted) return;
-        if (!oldGates) setGates([]);
+        if (ctrl.signal.aborted || ticket !== generation.current) return;
+        setGatesAuthoritative(false);
         setGatesNote(err instanceof Error ? err.message : "Could not load crossings.");
       })
       .finally(() => {
-        if (!ctrl.signal.aborted) setLoadingGates(false);
+        if (!ctrl.signal.aborted && ticket === generation.current) setLoadingGates(false);
       });
     return () => ctrl.abort();
-  }, [place]);
+  }, [place, gateRetry]);
+
+  useEffect(() => {
+    if (!place || loadingGates || gatesAuthoritative) return;
+    const retryVisible = () => { if (document.visibilityState === "visible" && navigator.onLine) retryGates(); };
+    window.addEventListener("online", retryVisible);
+    document.addEventListener("visibilitychange", retryVisible);
+    return () => {
+      window.removeEventListener("online", retryVisible);
+      document.removeEventListener("visibilitychange", retryVisible);
+    };
+  }, [place, loadingGates, gatesAuthoritative, retryGates]);
 
   useEffect(() => {
     confirmLock.current = false;
@@ -221,17 +269,19 @@ export function App() {
     }
     setLocating(true);
     setError(null);
-    const ticket = generation.current;
+    const ticket = ++locationTicket.current;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        if (ticket !== generation.current) return;
+        if (ticket !== locationTicket.current) return;
         setLocating(false);
-        choosePlace(pos.coords.latitude, pos.coords.longitude);
+        choosePlace(pos.coords.latitude, pos.coords.longitude, null, null, true);
       },
-      () => {
-        if (ticket !== generation.current) return;
+      (error) => {
+        if (ticket !== locationTicket.current) return;
         setLocating(false);
-        setError("Location was blocked. Tap the map to drop a pin.");
+        setError(error.code === 1 ? "Location was blocked. Tap the map to drop a pin." : error.code === 3
+          ? "Finding your location timed out. Try again or tap the map to drop a pin."
+          : "Your location is unavailable. Search a city or tap the map to drop a pin.");
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
     );
@@ -249,10 +299,12 @@ export function App() {
     }
     const ticket = generation.current;
     checkingLock.current = true;
+    const ctrl = new AbortController();
+    predictRequest.current = ctrl;
     lastAttempt.current = Date.now();
     setChecking(true); setError(null);
     try {
-      const body = await fetchPredict(place.lat, place.lon);
+      const body = await fetchPredict(place.lat, place.lon, ctrl.signal, place.privateLocation);
       if (ticket !== generation.current) return;
       if (body.error) throw new Error(friendlyError(body.error));
       setPredict(body); setCheckedAt(body.cached_at || Date.now());
@@ -281,7 +333,8 @@ export function App() {
       setFavorites((items) => items.filter((item) => item.gate.id !== gate.id)); return;
     }
     const label = window.prompt("Name this saved gate", gate.name || "My gate")?.trim().slice(0, 80);
-    if (label) setFavorites((items) => [...items, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place }].slice(-50));
+    const savedPlace = place.privateLocation ? { lat: gate.lat, lon: gate.lon, label: gate.name } : place;
+    if (label) setFavorites((items) => [...items, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place: savedPlace }].slice(-50));
   }
   function openSaved(item: SavedGate) {
     choosePlace(item.place.lat, item.place.lon, item.place.label || item.label, item.gate.id);
@@ -294,26 +347,39 @@ export function App() {
   async function openGate(gate: Gate, refreshing = false) {
     if (!place) return;
     wantedGate.current = null;
+    setGateSelectionNote(null);
     const ticket = ++sceneTicket.current;
+    sceneRequest.current?.abort();
+    const ctrl = new AbortController();
+    sceneRequest.current = ctrl;
     setSelected(gate);
     setSceneState(refreshing ? "open" : "loading");
     if (!refreshing) setScene(null);
     setSceneMessage(null);
     try {
-      const body = await fetchScene(place.lat, place.lon, gate.id, undefined, refreshing ? Date.now() : predict?.cached_at ?? checkedAt ?? 0);
+      const body = await fetchScene(place.lat, place.lon, gate.id, ctrl.signal,
+        refreshing ? Date.now() : predict?.cached_at ?? checkedAt ?? 0, place.privateLocation);
       if (ticket !== sceneTicket.current) return;
+      const canonical = body.crossing && body.crossing.id !== gate.id ? body.crossing : null;
+      if (canonical) {
+        const resolved = gates.find((item) => item.id === canonical.id) ?? { ...gate, ...canonical };
+        setSelected(resolved);
+        setFavorites((items) => items.some((item) => item.gate.id === resolved.id)
+          ? items.filter((item) => item.gate.id !== gate.id)
+          : items.map((item) => item.gate.id === gate.id ? { ...item, gate: resolved } : item));
+      }
       if (!body.available || (body.rail?.length ?? 0) < 2) {
         setScene(body);
         setSceneMessage(
           body.error
             ? friendlyError(body.error)
-            : "This crossing has no rail line on the map, so the train stays off it.",
+            : "A rail map is unavailable for this crossing.",
         );
         setSceneState("open");
         return;
       }
       setScene(body);
-      setGateChecks((checks) => ({ ...checks, [gate.id]: body }));
+      if (!body.offline) setGateChecks((checks) => ({ ...checks, [canonical?.id ?? gate.id]: body }));
       setSceneState("open");
     } catch (err) {
       if (ticket !== sceneTicket.current) return;
@@ -326,27 +392,44 @@ export function App() {
   refreshScene.current = () => { if (selected) void openGate(selected, true); };
 
   useEffect(() => {
-    if (loadingGates || !wantedGate.current) return;
-    const gate = gates.find((item) => item.id === wantedGate.current) || favorites.find((item) => item.gate.id === wantedGate.current)?.gate;
-    if (gate) { wantedGate.current = null; void openGate(gate); }
+    const wanted = wantedGate.current;
+    if (loadingGates || !wanted || !place) return;
+    wantedGate.current = null;
+    const gate = gates.find((item) => item.id === wanted);
+    const favorite = favorites.find((item) => item.gate.id === wanted)?.gate;
+    if (gate || (!gatesAuthoritative && favorite && !isLegacyCrossingId(wanted))) {
+      void openGate(gate ?? favorite!);
+    } else if (gatesAuthoritative && isLegacyCrossingId(wanted)) {
+      void openGate(favorite ?? { id: wanted, name: place.label ?? "Saved crossing", lat: place.lat, lon: place.lon, km: 0, source: "saved" });
+    } else {
+      setGateSelectionNote(gatesAuthoritative ? "That crossing is no longer on the map." : "This crossing could not be checked. Try the crossing lookup again when online.");
+    }
     // Opening a link waits for the crossing lookup to finish.
-  }, [gates, loadingGates]);
+  }, [gates, loadingGates, gatesAuthoritative]);
+
+  useEffect(() => {
+    if (!selected || !gatesAuthoritative || loadingGates || sceneState !== "open" ||
+        gatesCheckedAt < (scene?.cached_at ?? 0) || isLegacyCrossingId(selected.id) || gates.some((gate) => gate.id === selected.id)) return;
+    closeScene();
+    setGateSelectionNote("That crossing is no longer on the map.");
+  }, [selected, gatesAuthoritative, loadingGates, sceneState, gatesCheckedAt, scene, gates, closeScene]);
 
   const historical = Boolean(predict?.offline || (checkedAt && now - checkedAt > ESTIMATE_WINDOW_MS));
   const sceneHistorical = Boolean(scene && (scene.offline || now > sceneFreshUntil(scene)));
   const checkedScenes = useMemo(() => Object.values(gateChecks)
-    .filter((check) => !check.offline && now <= sceneFreshUntil(check))
     .map((check) => currentScene(check, now)!), [gateChecks, now]);
   const displayPredict = useMemo(() => withGateChecks(currentPrediction(predict, now), checkedScenes, gates), [predict, now, checkedScenes, gates]);
   const displayScene = useMemo(() => currentScene(scene, now), [scene, now]);
   const sceneLead = displayScene?.trains[0];
   const ready = isReady(scene) ? scene : null;
-  const marked = useMemo(() => markGates(gates, historical ? null : displayPredict, checkedScenes), [gates, displayPredict, historical, checkedScenes]);
+  const marked = useMemo(() => markGates(gates, historical ? null : displayPredict,
+    historical || !displayPredict?.gate_predictions ? checkedScenes : null), [gates, displayPredict, historical, checkedScenes]);
   const run = useMemo(() => ready ? sceneRun(ready, sceneHistorical) : null, [ready, sceneHistorical]);
   const visibleTrains = run ? frameForRun(run, now).trains ?? [] : [];
   const visibleNumbers = new Set(visibleTrains.map(runKey));
   const visibleTrain = sceneLead && visibleTrains.find((train) => runKey(train) === runKey(sceneLead));
-  const positionNote = displayScene?.awaiting_update?.length ? `${displayScene.awaiting_update.map((train) => train.number).join(" · ")} · position update needed · last reported stopped` : visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
+  const positionNote = displayScene?.awaiting_update?.length ? `${displayScene.awaiting_update.map((train) => train.number).join(" · ")} · position update needed` : visibleTrains.length > 1 ? `${visibleTrains.map((train) => train.number).join(" · ")} · estimated train positions and tracks` : !sceneLead ? null : sceneHistorical ? `${sceneLead.number} · saved crossing estimate · check trains to update`
+    : sceneLead.observed === false ? `${sceneLead.number} · timetable only · current location unavailable`
     : sceneLead.age_min >= 8 ? `${sceneLead.number} · report ${Math.round(sceneLead.age_min)} min old · location unconfirmed`
     : sceneLead.movement === "stopped" ? `${sceneLead.number} · reported stopped · awaiting a moving report`
     : visibleTrain ? `${sceneLead.number} · ${sceneLead.motion ? "estimated train movement" : "reported position"}`
@@ -390,6 +473,9 @@ export function App() {
         busy={checking}
         error={error}
         note={gatesNote}
+        gateSelectionNote={gateSelectionNote}
+        gateVerified={Boolean(selected && gatesAuthoritative && gates.some((gate) => gate.id === selected.id))}
+        onRetryGates={retryGates}
         predict={displayPredict}
         checkedAt={checkedAt}
         theme={theme}

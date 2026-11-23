@@ -55,7 +55,8 @@ async function run(profile, name, test, options = {}) {
   page.setDefaultTimeout(10000);
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
-  const state = { calls: [], releases: [], heldGates: options.heldGates === true, reports: [], reportDevice: null, delayedCities: false };
+  const state = { calls: [], releases: [], heldGates: options.heldGates === true, reports: [], reportDevice: null,
+    delayedCities: false, delayReport: options.delayReport, gatesUnavailable: options.gatesUnavailable };
   if (options.clock) await page.clock.install({ time: new Date("2026-11-16T08:30:00+05:30") });
   if (options.gpsDelayed) await page.addInitScript(() => {
     navigator.geolocation.getCurrentPosition = (success, error) => { window.__gpsSuccess = success; window.__gpsError = error; };
@@ -78,6 +79,7 @@ async function run(profile, name, test, options = {}) {
     const gate = lat >= 12.5 ? gateB : gateA;
     if (path === "/gates") {
       if (state.heldGates && lat < 12.5) await new Promise((release) => state.releases.push(release));
+      if (state.gatesUnavailable) return reply({ gates: [], error: "map_busy" });
       return reply({ gates: options.twoGates && lat < 12.5 ? [gateA, gateC] : [gate] });
     }
     if (path === "/cities") {
@@ -102,7 +104,9 @@ async function run(profile, name, test, options = {}) {
         const now = await page.evaluate(() => Date.now() / 1000);
         state.reports = [{ state: report.state, at: now, expires_at: now + 600 }];
       }
-      return reply({ verified: false, reports: state.reports });
+      const reports = state.reports;
+      if (state.delayReport && route.request().method() === "GET") await new Promise((release) => state.releases.push(release));
+      return reply({ verified: false, reports });
     }
     throw new Error(`Unhandled fixture ${path}`);
   });
@@ -141,6 +145,7 @@ try {
       await input.fill("Kannur");
       await page.getByRole("option").first().waitFor();
       await input.press("ArrowDown");
+      assert.equal(await input.getAttribute("aria-activedescendant"), await page.getByRole("option").first().getAttribute("id"));
       await input.press("Enter");
       await visible(page.getByRole("button", { name: /School Road/ }));
       assert.match(await page.locator(".location-open").innerText(), /Kannur/);
@@ -149,11 +154,14 @@ try {
 
     await run(profile, "gps-permission-granted", async (page, context) => {
       await context.grantPermissions(["geolocation"]);
-      await context.setGeolocation({ latitude: 12, longitude: 75 });
+      await context.setGeolocation({ latitude: 12.001234, longitude: 75.007654 });
       await page.getByRole("button", { name: "Use my location", exact: true }).click();
       await visible(page.getByRole("button", { name: /School Road/ }));
       await visible(page.getByRole("button", { name: "Use my location", exact: true }));
       assert.match(await page.locator(".location-open").innerText(), /Test map point/);
+      assert.equal(await page.evaluate(() => location.search), "");
+      assert.equal(await page.evaluate(() => localStorage.getItem("gateahead:last-place")), "null");
+      assert.doesNotMatch(await page.evaluate(() => localStorage.getItem("gateahead:responses") || ""), /12\.001234|75\.007654/);
     });
 
     await run(profile, "gps-denied-recovers-with-search", async (page) => {
@@ -359,6 +367,43 @@ try {
       await visible(page.getByRole("button", { name: /School Road/ }));
     }, { storage: { "gateahead:favorites": [{ label: "Broken old gate", place: { lat: 12, lon: 75 },
       gate: { id: "missing-on-map", lat: 12, lon: 75, name: { old: "gate" } } }] } });
+
+    await run(profile, "invalid-last-place-does-not-crash", async (page) => {
+      await visible(page.getByRole("heading", { name: "Start with a place" }));
+      await pickCity(page, "Kannur");
+      await visible(page.getByRole("button", { name: /School Road/ }));
+    }, { storage: { "gateahead:last-place": true } });
+
+    await run(profile, "older-report-request-cannot-overwrite-a-submission", async (page, _context, state) => {
+      const firstPoll = page.waitForRequest((request) => request.method() === "GET" && new URL(request.url()).pathname === "/api/reports");
+      await openGate(page);
+      await firstPoll;
+      await page.getByRole("button", { name: "Report", exact: true }).click();
+      await page.getByRole("button", { name: "The gate is closed", exact: true }).click();
+      await visible(page.getByText("Report saved for 10 minutes.", { exact: true }));
+      state.delayReport = false;
+      state.releases.forEach((release) => release());
+      const reports = page.locator(".community-reports");
+      await reports.locator("summary").click();
+      await visible(reports.getByText(/Gate closed/));
+    }, { initial: "?lat=12&lon=75", delayReport: true });
+
+    await run(profile, "crossing-list-can-retry-in-place", async (page, _context, state) => {
+      const retry = page.getByRole("button", { name: "Retry crossing lookup" });
+      await visible(retry);
+      state.gatesUnavailable = false;
+      await retry.click();
+      await visible(page.getByRole("button", { name: /School Road/ }));
+      assert.equal(state.calls.filter((call) => call.path === "/gates").length, 2);
+    }, { initial: "?lat=12&lon=75", gatesUnavailable: true });
+
+    await run(profile, "removed-pre-upgrade-favorite-cannot-open", async (page) => {
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.getByRole("button", { name: /Retired gate/ }).click();
+      await visible(page.getByText("That crossing is no longer on the map."));
+      assert.equal(await page.getByLabel("Crossing details").count(), 0);
+    }, { storage: { "gateahead:favorites": [{ label: "Retired gate", place: { lat: 12, lon: 75 },
+      gate: { ...gateA, id: "removed-gate", name: "Retired Road" } }] } });
   }
 } finally {
   await browser.close();

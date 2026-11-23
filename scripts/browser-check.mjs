@@ -140,7 +140,7 @@ try {
     state.predict = prediction(now, [old]);
     await check(page);
     await visible(page.getByText("16603 Maveli Express", { exact: true }));
-    state.scene = scene(now, []);
+    state.scene = { ...scene(now, []), coverage: { status: "complete" } };
     await openGate(page);
     await settleScene(page);
     await visible(page.getByRole("heading", { name: "No approaching train in the latest check", exact: true }));
@@ -149,6 +149,20 @@ try {
     assert.doesNotMatch(row, /closed|passing/i);
     await trains(page);
     assert.doesNotMatch(await text(page), /16603 Maveli Express/);
+  });
+
+  await run("partial-empty-scene-keeps-the-prior-crossing-estimate", async (page, state) => {
+    const now = await page.evaluate(() => Date.now());
+    state.predict = prediction(now, [{ ...movingTrain(now), eta_min: 2, closes_in_min: -3, status: "closed" }]);
+    await check(page);
+    await visible(page.getByText("16603 Maveli Express", { exact: true }));
+    state.scene = { ...scene(now, []), coverage: { status: "partial", live_checked: 0, live_candidates: 0,
+      pending_live: 0, missing_or_stale_routes: 0 } };
+    await openGate(page);
+    await settleScene(page);
+    await visible(page.getByRole("heading", { name: "The latest check did not establish train timing" }));
+    await page.getByRole("button", { name: "Back to crossings", exact: true }).click();
+    assert.match(await page.getByRole("button", { name: new RegExp(gate.name) }).innerText(), /Est\. closed/);
   });
 
   await run("saved-report-settings-dialogs", async (page, state) => {

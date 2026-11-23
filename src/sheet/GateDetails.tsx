@@ -1,40 +1,45 @@
 import { OperatingUpdates } from "./OperatingUpdates";
 import { runKey, runDateLabel } from "../runIdentity";
-import type { Gate, Scene } from "../api";
+import { isLegacyCrossingId, type Gate, type Scene } from "../api";
+import { incompleteCheck } from "../features";
 import { gateLabel, passedLabel } from "../labels";
 import { GateActions } from "./FeatureControls";
 import { Icon } from "../ui/Icon";
 import { CoverageNotice } from "./CoverageNotice";
 import { AwaitingUpdate } from "./AwaitingUpdate";
 
-export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack, track }: {
+export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack, track, verifiedGate = false }: {
   gate: Gate; scene: Scene | null; loading: boolean; message: string | null; historical: boolean;
   focusedTrain: string | null; visibleTrains: Set<string>; onFocusTrain: (number: string) => void;
-  saved: boolean; onSave: () => void; onBack: () => void; track?: string;
+  saved: boolean; onSave: () => void; onBack: () => void; track?: string; verifiedGate?: boolean;
 }) {
-  const lead = scene?.trains[0];
+  const lead = scene?.trains.reduce<Scene["trains"][number] | undefined>((first, row) => !first || row.eta_min < first.eta_min ? row : first, undefined);
   const gone = scene?.passed?.[0];
   const awaiting = scene?.awaiting_update ?? [];
+  const incomplete = incompleteCheck(scene);
   const name = scene?.crossing?.name || gate.name || "Level crossing";
   const details = [gate.road && !name.includes(gate.road) ? gate.road : "", track].filter(Boolean).join(" · ");
+  const canUseGate = verifiedGate || Boolean(scene?.available && !scene.offline && !scene.map_warning);
   return <section className="gate-detail" aria-label="Crossing details">
     <button type="button" className="back-link" onClick={onBack}><Icon name="back" size={18} />Back to crossings</button>
     <div className="detail-heading"><p className="eyebrow">Selected crossing</p><h2>{name}</h2><p className="quiet">{gate.km.toFixed(1)} km from your search point</p>{details && <p className="quiet">{details}</p>}</div>
-    {loading ? <p className="quiet" role="status">Checking this crossing…</p> : message ? <p className="notice">{message}</p> : <>
+    {loading ? <p className="quiet" role="status">Checking this crossing…</p> : <>
+      {message && <p className="notice" role="status">{message}</p>}
       {historical && <p className="notice">Saved view · {scene?.cached_at ? new Date(scene.cached_at).toLocaleString() : "last check"}. Timings describe that check.</p>}
-      <CoverageNotice coverage={scene?.coverage} />
+      <CoverageNotice coverage={scene?.coverage} map_warning={scene?.map_warning} map_age_seconds={scene?.map_age_seconds} />
       <AwaitingUpdate trains={awaiting} /><OperatingUpdates updates={scene?.service_updates} />
       {lead ? <div className={`gate-status ${lead.status}`}>
         <p className="eyebrow">{historical ? "At last check · estimate" : awaiting.length ? "Other reported train · estimate" : gone ? "Next approaching train · estimate" : "Estimated barrier timing"}</p>
         <h3>{lead.status === "closed" && lead.eta_min <= 0 && !lead.motion && lead.position_on_segment !== true ? "Estimated passing window" : gateLabel(lead.eta_min, lead.closes_in_min, lead.status)}</h3>
         <p>{lead.number} {lead.name} {runDateLabel(lead)}</p>
-        {lead.movement === "stopped" && <p className="quiet">The train was reported stopped. Movement will appear when a moving report is available.</p>}
+        {lead.movement === "stopped" && lead.observed !== false && <p className="quiet">The train was reported stopped. Movement will appear when a moving report is available.</p>}
         {lead.eta_min > 0 && <p className="quiet">Estimated train arrival {lead.eta_min < 1 ? "within 1 min" : `in ${Math.round(lead.eta_min)} min`}</p>}
-        <p className="quiet">{lead.basis === "timetable" ? "Timetable estimate" : "Train report"} · {Math.round(lead.age_min)} min old at check</p>
+        <p className="quiet">{lead.observed === false ? "Timetable estimate · current position unavailable"
+          : `${lead.basis === "timetable" ? "Timetable estimate from a train report" : "Train report"} · ${Math.round(lead.age_min)} min old at check`}</p>
         {lead.status === "closed" && lead.eta_min <= 0 && !lead.motion && lead.position_on_segment !== true && <p className="quiet">The timing is estimated; the reported position is unavailable in this view.</p>}
         {lead.bracket && <details className="disclosure"><summary>About this estimate</summary><p className="quiet">{lead.bracket}</p></details>}
-      </div> : scene && !awaiting.length ? <div className="gate-status"><h3>No approaching train in the latest check</h3><p className="quiet">The barrier’s position is unknown.</p></div> : null}
-      {gone && <p className="quiet">Recently passed (estimated): {gone.number} {gone.name} {runDateLabel(gone)} · {passedLabel(gone.ago_min)}</p>}
+      </div> : scene?.available && !awaiting.length ? <div className="gate-status"><h3>{incomplete ? "The latest check did not establish train timing" : "No approaching train in the latest check"}</h3><p className="quiet">The barrier’s position is unknown.</p></div> : null}
+      {gone && <p className="quiet">Recently passed (estimated) · {gone.number} {gone.name} {runDateLabel(gone)} · {passedLabel(gone.ago_min)}</p>}
     </>}
     {visibleTrains.size > 0 && <section className="trains-on-map" aria-label="Trains on map">
       <p className="eyebrow">{visibleTrains.size} {visibleTrains.size === 1 ? "train" : "trains"} on map</p>
@@ -45,7 +50,8 @@ export function GateDetails({ gate, scene, loading, message, historical, focused
         </button>)}</div>
       <p className="quiet">Positions and track assignments are estimated. Choose a train to locate it.</p>
     </section>}
-    <GateActions key={gate.id} gate={gate} saved={saved} onSave={onSave} />
+    {!loading && scene?.error !== "crossing_not_found" && !isLegacyCrossingId(gate.id) &&
+      <GateActions key={gate.id} gate={gate} saved={saved} onSave={onSave} canUseGate={canUseGate} />}
     {scene && <CrossingTimeline scene={scene} historical={historical} focusedTrain={focusedTrain} visibleTrains={visibleTrains} onFocusTrain={onFocusTrain} />}
   </section>;
 }

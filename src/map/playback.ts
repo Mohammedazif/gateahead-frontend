@@ -1,5 +1,6 @@
 import { runKey } from "../runIdentity";
 import type { Scene } from "../api";
+import { incompleteCheck } from "../features";
 import { snapshotTime } from "../snapshotClock";
 
 export type LngLat = { lat: number; lon: number };
@@ -9,8 +10,9 @@ export type MapRun = {
   id: string;
   rail: [number, number][];
   crossing: LngLat;
+  unconfirmed?: boolean;
   train: {
-    alongKm: number; status: string; onSegment?: boolean; ageMin?: number;
+    alongKm: number; status: string; onSegment?: boolean; ageMin?: number; observed?: boolean;
     movement?: "moving" | "stopped";
     etaMin?: number; closesInMin?: number; snapshotAt?: number;
     motion?: { direction: number; speed_kmh: number; valid_for_sec: number };
@@ -30,6 +32,7 @@ export type RunFrame = {
   clearance: number;
   acrossRoad: number;
   lowered: number;
+  unconfirmed?: boolean;
 };
 
 export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
@@ -38,36 +41,43 @@ export function frameForRun(run: MapRun, now: number, hold = false): RunFrame {
   const paths: [number, number][][] = [];
   const seen = new Set<string>();
   let lowered = false;
+  let unconfirmed = Boolean(run.unconfirmed || run.trains.length === 0);
   for (const train of run.trains) {
     if (seen.has(runKey(train))) continue;
     seen.add(runKey(train));
     const elapsed = Math.max(0, (now - (train.snapshotAt ?? now)) / 1000);
     const frame = frameAt(train.rail ?? run.rail, run.crossing, train, elapsed, hold);
     lowered ||= frame.lowered > 0;
+    unconfirmed ||= frame.unconfirmed ?? false;
     if (frame.train) {
       visible.push({ ...frame.train, number: train.number, run_id: train.run_id, start_date: train.start_date, name: train.name });
       if (train.rail) paths.push(train.rail);
     }
   }
-  const base = frameAt(run.rail, run.crossing, { alongKm: 0, status: lowered ? "closed" : "open", onSegment: false }, 0, hold);
-  return { ...base, train: visible[0] ?? null, trains: visible, paths };
+  const base = frameAt(run.rail, run.crossing, { alongKm: 0, status: lowered ? "closed" : "unconfirmed", onSegment: false }, 0, hold);
+  return { ...base, train: visible[0] ?? null, trains: visible, paths, posts: unconfirmed && !lowered ? [] : base.posts, unconfirmed };
 }
 
 export function sceneRun(scene: Scene, historical = false): MapRun | null {
   if (!scene.available || !scene.crossing || scene.rail.length < 2) return null;
   return { id: scene.crossing.id, rail: scene.rail, crossing: scene.crossing, train: null,
+    unconfirmed: historical || scene.offline || incompleteCheck(scene) || Boolean(scene.awaiting_update?.length),
     trains: historical || scene.offline ? [] : scene.trains.map((row) => ({ number: row.number, run_id: row.run_id, start_date: row.start_date, name: row.name,
       rail: row.track?.rail, alongKm: row.track?.along_km ?? row.along_km,
       onSegment: row.track?.position_on_segment ?? row.position_on_segment === true,
-      movement: row.movement, motion: row.movement === "stopped" ? undefined : row.track?.motion ?? row.motion, status: row.status, etaMin: row.eta_min,
+      movement: row.movement, observed: row.observed, motion: row.movement === "stopped" || row.observed === false ? undefined : row.track?.motion ?? row.motion,
+      status: row.status, etaMin: row.eta_min,
       closesInMin: row.closes_in_min, ageMin: row.age_min,
       snapshotAt: snapshotTime(row.snapshot_at == null ? undefined : row.snapshot_at * 1000, scene.cached_at) })) };
 }
 
 export function runFreshUntil(run: MapRun, now: number): number {
   const trains = run.trains ?? (run.train ? [run.train] : []);
-  return Math.max(now, ...trains.map((train) => (train.snapshotAt ?? now) +
-    (train.movement === "stopped" ? Math.max(0, 8 - (train.ageMin ?? 0)) * 60 : train.motion?.valid_for_sec ?? 120) * 1000));
+  return Math.max(now, ...trains.map((train) => {
+    const remaining = Math.max(0, 8 - (train.ageMin ?? 0)) * 60;
+    const seconds = train.observed === false ? 0 : train.movement === "stopped" ? remaining : Math.min(remaining, train.motion?.valid_for_sec ?? 120);
+    return (train.snapshotAt ?? now) + seconds * 1000;
+  }));
 }
 
 const LAT_M = 110570;
@@ -203,10 +213,11 @@ export function frameAt(
   const current = train;
   const elapsed = Math.max(0, hold ? Math.floor(elapsedSec) : elapsedSec);
   const stopped = current?.movement === "stopped";
-  const fresh = current != null && (current.ageMin ?? 0) + elapsed / 60 < 8 && (stopped || elapsed <= (current.motion?.valid_for_sec ?? 120));
+  const fresh = current != null && current.observed !== false && (current.ageMin ?? 0) + elapsed / 60 < 8 && (stopped || elapsed < (current.motion?.valid_for_sec ?? 120));
   const travelMinutes = stopped ? 0 : elapsed / 60;
   const remaining = current?.etaMin == null ? null : current.etaMin - travelMinutes;
   const downIn = current?.closesInMin == null ? null : current.closesInMin - travelMinutes;
+  const unconfirmed = current != null && (!fresh || (remaining != null && remaining < -2));
   const lowered = fresh && (remaining == null || remaining >= -2) &&
     (current.status === "closed" || (current.status === "closing_soon" && downIn != null && downIn <= 0)) ? 1 : 0;
   const reach = BARRIER_HALF_M * lowered;
@@ -251,9 +262,10 @@ export function frameAt(
     train: marker,
     road: roadLine,
     barriers,
-    posts,
+    posts: unconfirmed ? [] : posts,
     clearance,
     acrossRoad,
     lowered,
+    unconfirmed,
   };
 }

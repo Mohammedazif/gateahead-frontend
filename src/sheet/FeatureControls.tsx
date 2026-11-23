@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { fetchReports, submitReport, type Gate } from "../api";
+import { useEffect, useRef, useState } from "react";
+import { fetchReports, submitReport, type Gate, type GateReports } from "../api";
 import { gateLink, reportLabel, type RefreshSettings, type SavedGate } from "../features";
 import { Dialog } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
@@ -41,21 +41,44 @@ export function RefreshControls({ settings, onChange, hasPlace, paused }: {
   </section>;
 }
 
-export function GateActions({ gate, saved, onSave }: { gate: Gate; saved: boolean; onSave: () => void }) {
+export function GateActions({ gate, saved, onSave, canUseGate }: { gate: Gate; saved: boolean; onSave: () => void; canUseGate: boolean }) {
   const [message, setMessage] = useState("");
-  const [reports, setReports] = useState<{ state: string; at: number; expires_at: number }[]>([]);
+  const [reports, setReports] = useState<GateReports | null>(null);
+  const [reportStatus, setReportStatus] = useState<"loading" | "ready" | "failed">("loading");
   const [now, setNow] = useState(Date.now());
   const [sending, setSending] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const active = useRef(false);
+  const writing = useRef(false);
+  const pollRequest = useRef<AbortController | null>(null);
+  const reportVersion = useRef(0);
   useEffect(() => {
-    let active = true;
-    setReports([]); setMessage("");
-    const load = () => fetchReports(gate.id).then((body) => { if (active) setReports(body.reports); }).catch(() => {});
+    active.current = true;
+    setReports(null); setMessage(""); setReportStatus("loading");
+    if (!canUseGate) return () => { active.current = false; };
+    const load = async () => {
+      if (writing.current) return;
+      pollRequest.current?.abort();
+      const ctrl = new AbortController();
+      pollRequest.current = ctrl;
+      const version = ++reportVersion.current;
+      try {
+        const body = await fetchReports(gate.id, ctrl.signal);
+        if (active.current && version === reportVersion.current) { setReports(body); setNow(Date.now()); setReportStatus("ready"); }
+      } catch {
+        if (active.current && !ctrl.signal.aborted && version === reportVersion.current) setReportStatus("failed");
+      }
+    };
     void load();
     const poll = window.setInterval(() => { if (document.visibilityState === "visible" && navigator.onLine) void load(); }, 45000);
     const timer = window.setInterval(() => setNow(Date.now()), 15000);
-    return () => { active = false; window.clearInterval(timer); window.clearInterval(poll); };
-  }, [gate.id]);
+    return () => {
+      active.current = false;
+      reportVersion.current += 1;
+      pollRequest.current?.abort();
+      window.clearInterval(timer); window.clearInterval(poll);
+    };
+  }, [gate.id, canUseGate]);
   async function share() {
     const url = gateLink(gate);
     try {
@@ -67,25 +90,37 @@ export function GateActions({ gate, saved, onSave }: { gate: Gate; saved: boolea
     }
   }
   async function report(state: string) {
+    if (!canUseGate || writing.current) return;
+    writing.current = true;
+    const version = ++reportVersion.current;
+    pollRequest.current?.abort();
     setSending(true);
-    try { const body = await submitReport(gate, state); setReports(body.reports); setNow(Date.now()); setMessage("Report saved for 10 minutes."); setReportOpen(false); }
-    catch (err) { setMessage(err instanceof Error ? err.message : "Could not send your report."); }
-    finally { setSending(false); }
+    try {
+      const body = await submitReport(gate, state);
+      if (!active.current || version !== reportVersion.current) return;
+      setReports(body); setReportStatus("ready"); setNow(Date.now()); setMessage("Report saved for 10 minutes."); setReportOpen(false);
+    } catch (err) {
+      if (active.current && version === reportVersion.current) setMessage(err instanceof Error ? err.message : "Could not send your report.");
+    } finally { writing.current = false; if (active.current) setSending(false); }
   }
-  const recent = reports.filter((row) => row.expires_at * 1000 > now);
+  const serviceNow = now + (reports?.clockOffsetMs ?? 0);
+  const recent = reports?.reports.filter((row) => row.expires_at * 1000 > serviceNow) ?? [];
   return <div className="gate-actions">
     <div className="actions crossing-actions">
-      <button type="button" className="ghost" onClick={onSave}><Icon name="saved" size={17} />{saved ? "Saved · remove" : "Save gate"}</button>
-      <button type="button" className="ghost" onClick={share}>Share</button>
-      <button type="button" className="ghost" onClick={() => setReportOpen(true)} aria-haspopup="dialog">Report</button>
+      {(saved || canUseGate) && <button type="button" className="ghost" onClick={onSave}><Icon name="saved" size={17} />{saved ? "Saved · remove" : "Save gate"}</button>}
+      {canUseGate && <button type="button" className="ghost" onClick={share}>Share</button>}
+      {canUseGate && <button type="button" className="ghost" onClick={() => setReportOpen(true)} aria-haspopup="dialog">Report</button>}
     </div>
-    <details className="disclosure community-reports">
+    {canUseGate && <details className="disclosure community-reports">
       <summary>Community reports{recent.length ? ` (${recent.length})` : ""}</summary>
-      {recent.length ? recent.slice(0, 3).map((row, i) => <p key={`${row.at}-${i}`}>{reportLabel(row.state)} · {Math.max(0, Math.floor((now / 1000 - row.at) / 60))} min ago</p>) : <p className="quiet">No recent reports for this crossing.</p>}
+      {recent.slice(0, 3).map((row, i) => <p key={`${row.at}-${i}`}>{reportLabel(row.state)} · {Math.max(0, Math.floor((serviceNow / 1000 - row.at) / 60))} min ago</p>)}
+      {reportStatus === "loading" && <p className="quiet" role="status">Loading community reports…</p>}
+      {reportStatus === "failed" && <p className="quiet" role="status">Community reports could not be refreshed.</p>}
+      {reportStatus === "ready" && !recent.length && <p className="quiet">No recent reports for this crossing.</p>}
       <p className="quiet">Unverified · expire after 10 minutes.</p>
-    </details>
+    </details>}
     {message && <p className="quiet" role="status">{message}</p>}
-    {reportOpen && <Dialog title="Report this crossing" onClose={() => setReportOpen(false)}>
+    {reportOpen && canUseGate && <Dialog title="Report this crossing" onClose={() => setReportOpen(false)}>
       <p className="quiet">{gate.name || "Level crossing"} · what can you see right now?</p>
       <div className="report-choices">{[["open", "The gate is open"], ["closed", "The gate is closed"], ["wrong_location", "The location is incorrect"]].map(([state, label]) =>
         <button type="button" className="ghost" key={state} disabled={sending} onClick={() => report(state)}>{label}<Icon name="chevron" size={16} /></button>)}</div>

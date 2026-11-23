@@ -70,9 +70,30 @@ test("minute-by-minute stopped-feed simulation keeps 16650 unresolved beside ind
       assert.match(html, /Other reported train/);
       assert.ok(html.indexOf("16650") < html.indexOf("16603"));
       assert.equal(frame.trains!.some((train) => train.number === "16650"), false);
-      assert.equal(markGates([gate], combined, display)[0].status, "uncertain");
-      assert.equal(markGates([gate], combined, display)[0].eta, undefined);
+      const nearby = markGates([gate], combined, display)[0];
+      assert.equal(nearby.status, "closed");
+      assert.equal(nearby.eta, 6 - second / 60);
+      assert.equal(nearby.positionUncertain, true);
+      assert.equal(frame.lowered, 1);
       assert.deepEqual(combined.awaiting_update!.map((train) => train.number), ["16650"]);
     }
   }
+});
+
+test("a partial check with zero counters preserves an explicit unknown state in crossing details", () => {
+  const gate = { id: "school", name: "School Road", lat: 12, lon: 75, km: .4, source: "osm" };
+  const complete: Scene = { available: true, crossing: gate, rail: [], trains: [],
+    coverage: { status: "complete", live_checked: 0, live_candidates: 0, pending_live: 0, missing_or_stale_routes: 0 } };
+  const render = (scene: Scene) => renderToStaticMarkup(createElement(GateDetails, {
+    gate, scene, loading: false, message: null, historical: false, focusedTrain: null,
+    visibleTrains: new Set(), onFocusTrain() {}, saved: false, onSave() {}, onBack() {},
+  }));
+  assert.match(render(complete), /No approaching train in the latest check/);
+  const html = render({ ...complete, coverage: { ...complete.coverage!, status: "partial" }, map_warning: "map_busy", map_age_seconds: 120 });
+  assert.match(html, /coverage is incomplete/);
+  assert.match(html, /last checked 2 min ago/);
+  assert.match(html, /did not establish train timing/);
+  assert.doesNotMatch(html, /No approaching train/);
+  const removed = render({ ...complete, available: false, error: "crossing_not_found" });
+  assert.doesNotMatch(removed, />Share<|>Report<|Save gate/);
 });

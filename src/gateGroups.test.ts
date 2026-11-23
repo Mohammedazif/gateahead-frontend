@@ -23,7 +23,7 @@ test("only topology metadata groups track points; names and very close coordinat
 
 test("group summaries keep uncertain or unknown track checks visible beside known estimates", () => {
   const known = { ...a, eta: 12, closesIn: 7, status: "approaching" };
-  assert.match(groupCheckLabel(groupGates([known, { ...b, status: "uncertain" }])[0]), /Position update needed.*other track estimates/);
+  assert.match(groupCheckLabel(groupGates([known, { ...b, status: "uncertain" }])[0]), /Position update needed.*Est\. closes in 7 min/);
   assert.match(groupCheckLabel(groupGates([known, b])[0]), /First track.*closes in 7 min.*1 track timing unknown/);
   assert.equal(groupGates([known, b])[0].members[1].eta, undefined);
 });
@@ -90,7 +90,7 @@ test("nearby physical rows expose independent member buttons and warn about unce
   const html = renderToStaticMarkup(createElement(TrainSheet, props));
   assert.equal((html.match(/class="hot crossing-row"/g) ?? []).length, 1);
   assert.match(html, /1 crossing on this map/);
-  assert.match(html, /Position update needed · other track estimates below/);
+  assert.match(html, /Position update needed · Est\. closes in 7 min/);
   assert.match(html, /Track crossing 1 of 2/);
   assert.match(html, /Track crossing 2 of 2/);
   assert.match(html, /Est. closes in 7 min/);

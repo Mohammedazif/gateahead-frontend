@@ -10,8 +10,8 @@ test("rails face upward", () => {
     { x: 40, y: 0, z: 0 },
     { x: 80, y: 0, z: -8 },
   ]);
-  geometry.computeVertexNormals();
   const normal = geometry.getAttribute("normal");
+  assert.ok(normal);
   let up = 0;
   for (let i = 0; i < normal.count; i += 1) up += normal.getY(i);
   assert.ok(up / normal.count > 0.5);

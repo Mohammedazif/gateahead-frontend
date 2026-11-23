@@ -285,3 +285,19 @@ function segmentsCross(
   const side = (px: number, py: number, qx: number, qy: number) => px * qy - py * qx;
   return side(abx, aby, acx, acy) * side(abx, aby, adx, ady) < 0 && side(cdx, cdy, cax, cay) * side(cdx, cdy, cbx, cby) < 0;
 }
+
+test("expiry removes an estimated boom and makes the barrier explicitly unknown", () => {
+  const at = Date.parse("2026-11-23T10:00:00Z");
+  const run = sceneRun({ available: true, cached_at: at, crossing: { id: "school", name: "School Road", lat: 12, lon: 75 },
+    rail: [[11.99, 75], [12.01, 75]], trains: [{ number: "16512", name: "Express", age_min: 7.5,
+      along_km: .5, status: "closed", eta_min: 2, closes_in_min: -3, movement: "moving",
+      motion: { direction: 1, speed_kmh: 15, valid_for_sec: 30 }, snapshot_at: at / 1000 }] })!;
+  const fresh = frameForRun(run, at + 29000);
+  assert.equal(fresh.lowered, 1);
+  assert.equal(fresh.unconfirmed, false);
+  const expired = frameForRun(run, at + 30000);
+  assert.equal(expired.unconfirmed, true);
+  assert.deepEqual(expired.barriers, []);
+  assert.deepEqual(expired.posts, []);
+  assert.equal(expired.train, null);
+});
