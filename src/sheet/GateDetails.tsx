@@ -7,17 +7,19 @@ import { Icon } from "../ui/Icon";
 import { CoverageNotice } from "./CoverageNotice";
 import { AwaitingUpdate } from "./AwaitingUpdate";
 
-export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack }: {
+export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack, track }: {
   gate: Gate; scene: Scene | null; loading: boolean; message: string | null; historical: boolean;
   focusedTrain: string | null; visibleTrains: Set<string>; onFocusTrain: (number: string) => void;
-  saved: boolean; onSave: () => void; onBack: () => void;
+  saved: boolean; onSave: () => void; onBack: () => void; track?: string;
 }) {
   const lead = scene?.trains[0];
   const gone = scene?.passed?.[0];
   const awaiting = scene?.awaiting_update ?? [];
+  const name = scene?.crossing?.name || gate.name || "Level crossing";
+  const details = [gate.road && !name.includes(gate.road) ? gate.road : "", track].filter(Boolean).join(" · ");
   return <section className="gate-detail" aria-label="Crossing details">
     <button type="button" className="back-link" onClick={onBack}><Icon name="back" size={18} />Back to crossings</button>
-    <div className="detail-heading"><p className="eyebrow">Selected crossing</p><h2>{scene?.crossing?.name || gate.name || "Level crossing"}</h2><p className="quiet">{gate.km.toFixed(1)} km from your search point</p><p className="quiet">{gate.road ? `${gate.road} · ` : ""}Gate {gate.id}</p></div>
+    <div className="detail-heading"><p className="eyebrow">Selected crossing</p><h2>{name}</h2><p className="quiet">{gate.km.toFixed(1)} km from your search point</p>{details && <p className="quiet">{details}</p>}</div>
     {loading ? <p className="quiet" role="status">Checking this crossing…</p> : message ? <p className="notice">{message}</p> : <>
       {historical && <p className="notice">Saved view · {scene?.cached_at ? new Date(scene.cached_at).toLocaleString() : "last check"}. Timings describe that check.</p>}
       <CoverageNotice coverage={scene?.coverage} />

@@ -39,6 +39,8 @@ export type Gate = {
   group_size?: number;
   road?: string;
   area?: string;
+  /** Older responses and saved gates may have included restricted freight sites. */
+  restricted_freight?: boolean;
 };
 
 export type Approach = RunIdentity & {
@@ -229,6 +231,11 @@ function serviceErrorBody(path: string, body: Record<string, unknown>): Record<s
   return body;
 }
 
+function publicGateResponse(path: string, body: Record<string, unknown>): Record<string, unknown> {
+  if (!path.startsWith("/api/gates?") || !Array.isArray(body.gates)) return body;
+  return { ...body, gates: body.gates.filter((gate) => gate.restricted_freight !== true) };
+}
+
 function responseCache(): Record<string, CachedResponse> {
   const raw = readStored<unknown>("responses", {});
   if (!isRecord(raw)) return {};
@@ -240,7 +247,8 @@ function responseCache(): Record<string, CachedResponse> {
 }
 
 export function cachedResponse(path: string): CachedResponse | null {
-  return responseCache()[path] ?? null;
+  const hit = responseCache()[path];
+  return hit ? { ...hit, data: publicGateResponse(path, hit.data) } : null;
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0): Promise<T> {
@@ -288,6 +296,7 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0): P
       if (!isRecord(body)) throw new Error("Invalid response body");
       data = serviceErrorBody(path, body);
       if (!hasResponseShape(path, data)) throw new Error("Invalid response fields");
+      data = publicGateResponse(path, data);
     } catch (err) {
       if (signal?.aborted) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;

@@ -31,8 +31,8 @@ test("group summaries keep uncertain or unknown track checks visible beside know
 test("hover identifies the exact mapped point and keeps untrusted names literal", () => {
   const malicious = { ...a, name: '<img src=x onerror="alert(1)">', status: "uncertain" };
   const lines = gateHoverLines(malicious, [malicious, b]);
-  assert.deepEqual(lines, ["Market Road", malicious.name, "Gate 100 · 0.4 km away", "Track crossing 1 of 2", "Position update needed"]);
-  assert.match(gateHoverLines(b, [a, b]).join("\n"), /Gate 101.*\nTrack crossing 2 of 2/);
+  assert.deepEqual(lines, ["Market Road", malicious.name, "0.4 km away", "Track crossing 1 of 2", "Position update needed"]);
+  assert.match(gateHoverLines(b, [a, b]).join("\n"), /0.5 km away\nTrack crossing 2 of 2/);
 });
 
 test("a physical train timing group preserves per-track ETAs, status and original IDs", () => {
@@ -64,8 +64,8 @@ for (const offline of [false, true]) test(`${offline ? "saved" : "fresh"} cards 
   assert.equal((html.match(/2 track checks/g) ?? []).length, 2);
   assert.match(html, /Started 2026-11-15/);
   assert.match(html, /Started 2026-11-16/);
-  assert.match(html, /Gate 100/);
-  assert.match(html, /Gate 101/);
+  assert.match(html, /Track crossing 1 of 2/);
+  assert.match(html, /Track crossing 2 of 2/);
   assert.match(html, /closed · train in 1 min/);
   assert.match(html, /closes in 8 min/);
   assert.match(html, /closes in 27 min/);
@@ -80,7 +80,7 @@ test("a waiting check on the second track warns in its collapsed journey group o
   const cards = html.split('<article class="train">').slice(1);
   assert.match(cards[0], /class="timing-summary".*Position update needed/);
   assert.match(cards[0], /First track estimate · closed · train in 1 min/);
-  assert.match(cards[0], /Gate 101<\/span><span>Position update needed/);
+  assert.match(cards[0], /Track crossing 2 of 2<\/span><span>Position update needed/);
   assert.doesNotMatch(cards[1], /Position update needed/);
 });
 
@@ -91,7 +91,7 @@ test("nearby physical rows expose independent member buttons and warn about unce
   assert.equal((html.match(/class="hot crossing-row"/g) ?? []).length, 1);
   assert.match(html, /1 crossing on this map/);
   assert.match(html, /Position update needed · other track estimates below/);
-  assert.match(html, /Gate 100/);
-  assert.match(html, /Gate 101/);
+  assert.match(html, /Track crossing 1 of 2/);
+  assert.match(html, /Track crossing 2 of 2/);
   assert.match(html, /Est. closes in 7 min/);
 });

@@ -14,6 +14,8 @@ const a = { id: "100", name: malicious, lat: 12.004, lon: 75.0005, km: .4, sourc
 const b = { ...a, id: "101", name: "Near Trikaripur", lon: 75.0011, km: .45 };
 const c = { ...a, id: "102", name: "Near Trikaripur", lat: 12.0005, lon: 75.0023, group_id: "", group_name: "", group_size: 1, road: "Canal Road" };
 const gates = [a, b, c];
+const freight = { id: "osm:node:4518094360", name: "FCI Godown crossing",
+  lat: 12.002, lon: 75.0018, km: .6, source: "osm", restricted_freight: true };
 const dates = ["2026-11-15", "2026-11-16"];
 const run = (date) => ({ train: "16512", name: "Daily Express", run_id: `16512:${date}`, start_date: date });
 const prediction = (at, uncertain = false) => ({ generated_at: new Date(at).toISOString(), crossings: 3,
@@ -82,7 +84,7 @@ try {
       const url = new URL(route.request().url());
       const path = url.pathname.replace(/^\/api/, "");
       if (state.offline) return route.abort("internetdisconnected");
-      if (path === "/gates") return route.fulfill({ json: { gates } });
+      if (path === "/gates") return route.fulfill({ json: { gates: [...gates, freight] } });
       if (path === "/predict") return route.fulfill({ json: prediction(await page.evaluate(() => Date.now()), state.uncertain) });
       if (path === "/place") return route.fulfill({ json: { name: "Trikaripur" } });
       if (path === "/cities") return route.fulfill({ json: { cities: [{ name: "Kannur", state: "Kerala", lat: 13, lon: 75 }] } });
@@ -99,14 +101,15 @@ try {
     try {
       await page.goto(`${base}/?lat=12&lon=75&name=Trikaripur`, { waitUntil: "domcontentloaded" });
       await visible(page.locator(".crossing-row").first());
-      assert.equal(await page.locator(".gates > ul > li").count(), 2, "one road row for the two track nodes; distinct road stays separate");
+      assert.equal(await page.locator(".gates > ul > li").count(), 2, "the legacy freight crossing stays hidden");
+      assert.equal(await page.getByText(freight.name, { exact: true }).count(), 0);
       releaseStyle();
       await page.waitForTimeout(1200);
       if (!profile.isMobile) {
-        const point = await hoverGate(page, a);
         const tooltip = page.getByRole("tooltip");
+        const point = await hoverGate(page, a);
         assert.match(await tooltip.innerText(), /Market Road/);
-        assert.match(await tooltip.innerText(), /Gate 100.*0.4 km away/);
+        assert.match(await tooltip.innerText(), /0.4 km away/);
         assert.match(await tooltip.innerText(), /Track crossing 1 of 2/);
         assert.ok((await tooltip.innerText()).includes(malicious));
         assert.equal(await tooltip.locator("img").count(), 0, "untrusted label is text, never an HTML element");
@@ -123,7 +126,7 @@ try {
         await page.getByRole("button", { name: "Light", exact: true }).click();
         await page.getByRole("button", { name: "Close Settings" }).click();
         await hoverGate(page, b);
-        assert.match(await tooltip.innerText(), /Gate 101.*\nTrack crossing 2 of 2/);
+        assert.match(await tooltip.innerText(), /0.5 km away\nTrack crossing 2 of 2/);
         assert.equal(await page.locator(".gate-hover-popup").count(), 1, "style reload does not duplicate hover handlers/popups");
         await page.mouse.click((await hoverGate(page, b)).x, (await hoverGate(page, b)).y);
         await visible(page.getByLabel("Crossing details"));
@@ -137,10 +140,10 @@ try {
       assert.deepEqual(await members.getByRole("button").first().evaluate((button) => ({
         display: getComputedStyle(button).display, wrapping: getComputedStyle(button.querySelector("span")).whiteSpace,
       })), { display: "block", wrapping: "normal" }, "track identity stays visible on narrow screens");
-      await members.getByRole("button", { name: /Gate 101/ }).click();
+      await members.getByRole("button", { name: /Track crossing 2 of 2/ }).click();
       await visible(page.getByLabel("Crossing details"));
       assert.equal(state.scenes.at(-1), b.id);
-      assert.match(await page.locator(".detail-heading").innerText(), /Market Road · Gate 101/);
+      assert.match(await page.locator(".detail-heading").innerText(), /Track crossing 2 of 2/);
       await page.getByRole("button", { name: "Save gate", exact: true }).click();
       await page.waitForFunction(() => JSON.parse(localStorage.getItem("gateahead:favorites") || "[]").length > 0);
       const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("gateahead:favorites")));
@@ -155,8 +158,8 @@ try {
         assert.equal(await card.locator(":scope > ul > .timing-group").count(), 2);
         await card.locator(".track-checks summary").click();
         assert.equal(await card.locator(".track-checks li").count(), 2);
-        assert.match(await card.locator(".track-checks").innerText(), /Gate 100/);
-        assert.match(await card.locator(".track-checks").innerText(), /Gate 101/);
+        assert.match(await card.locator(".track-checks").innerText(), /Track crossing 1 of 2/);
+        assert.match(await card.locator(".track-checks").innerText(), /Track crossing 2 of 2/);
       }
       const firstCard = page.locator(".train").first();
       assert.equal(await firstCard.locator(".timing-summary > span:last-child").first().evaluate((element) => getComputedStyle(element).flexShrink), "1", "long member timing can wrap within the card");
@@ -164,17 +167,27 @@ try {
       assert.match(await firstCard.locator(".track-checks").innerText(), /closes in 8 min/);
       await page.screenshot({ path: resolve(artifacts, `${profile.name}-grouped-journeys.png`), fullPage: true });
       const storedCheck = await page.evaluate(() => JSON.parse(localStorage.getItem("gateahead:responses"))["/api/predict?lat=12&lon=75"]);
+      await page.evaluate((legacyGate) => {
+        const cache = JSON.parse(localStorage.getItem("gateahead:responses"));
+        cache["/api/gates?lat=12&lon=75"].data.gates.push(legacyGate);
+        localStorage.setItem("gateahead:responses", JSON.stringify(cache));
+        const favorites = JSON.parse(localStorage.getItem("gateahead:favorites"));
+        favorites.push({ label: legacyGate.name, gate: legacyGate, place: { lat: 12, lon: 75 } });
+        localStorage.setItem("gateahead:favorites", JSON.stringify(favorites));
+      }, freight);
       state.offline = true;
       await page.reload({ waitUntil: "domcontentloaded" });
       await visible(page.locator(".crossing-row").first());
-      assert.equal(await page.locator(".gates > ul > li").count(), 2, "cached topology metadata keeps grouping");
+      assert.equal(await page.locator(".gates > ul > li").count(), 2, "older cached freight crossings stay hidden");
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      assert.equal(await page.getByText(freight.name, { exact: true }).count(), 0);
       await page.getByRole("tab", { name: "Trains", exact: true }).click();
       await visible(page.getByText(/Saved check/));
       for (const summary of await page.locator(".track-checks summary").all()) await summary.click();
       assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem("gateahead:responses"))["/api/predict?lat=12&lon=75"]), storedCheck, "offline restore preserves the original checks and timestamp");
       assert.equal(await page.locator(".train").count(), 2);
-      assert.match(await page.locator(".train").first().locator(".track-checks").innerText(), /Gate 100.*\nclosed.*train in 1 min/);
-      assert.match(await page.locator(".train").first().locator(".track-checks").innerText(), /Gate 101.*\ncloses in 8 min/);
+      assert.match(await page.locator(".train").first().locator(".track-checks").innerText(), /Track crossing 1 of 2.*\nclosed.*train in 1 min/);
+      assert.match(await page.locator(".train").first().locator(".track-checks").innerText(), /Track crossing 2 of 2.*\ncloses in 8 min/);
       await page.screenshot({ path: resolve(artifacts, `${profile.name}-cached-grouped-journeys.png`), fullPage: true });
       state.offline = false;
       state.uncertain = true;

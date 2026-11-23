@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { Approach, Gate, Predict, Scene } from "../api";
 import { friendlyError } from "../api";
 import { gateLabel, labelStatus, passedLabel } from "../labels";
-import { groupCheckLabel, gateCheckLabel, groupGates, groupCrossingTimings, type CrossingTimingGroup } from "../gateGroups";
+import { groupCheckLabel, gateCheckLabel, groupGates, groupCrossingTimings, trackCrossingLabel, type CrossingTimingGroup } from "../gateGroups";
 import type { Theme } from "../theme";
 import { checkedAgo } from "./checked";
 import { SavedGates, RefreshControls } from "./FeatureControls";
@@ -119,7 +119,7 @@ export function TrainSheet(props: Props) {
         </nav>
       </div>
       <div ref={scroll} className="sheet-body" id="train-sheet-content" role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
-        {selected ? <GateDetails gate={selected} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
+        {selected ? <GateDetails gate={selected} track={trackCrossingLabel(selected.id, gates) || (selected.group_size && selected.group_size > 1 ? `Part of ${selected.group_size} track crossings` : "")} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
           historical={props.sceneHistorical} focusedTrain={props.focusedTrain} visibleTrains={props.visibleTrains} onFocusTrain={props.onFocusTrain} saved={favorites.some((item) => item.gate.id === selected.id)}
           onSave={() => props.onSaveGate(selected)} onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
           {tab === "nearby" && <>
@@ -133,7 +133,7 @@ export function TrainSheet(props: Props) {
                 <span className="crossing-dot" aria-hidden="true" /><span className="crossing-copy"><strong>{group.name}</strong><small>{group.km.toFixed(1)} km away{groupCheckLabel(group) ? ` · ${groupCheckLabel(group)}` : ""}</small></span><Icon name="chevron" size={16} />
               </button>
               {group.members.length > 1 && <details className="crossing-members"><summary>{group.members.length} track crossings · choose a gate</summary><ul>{group.members.map((gate) => <li key={gate.id}>
-                <button type="button" className="crossing-member" onClick={() => { setExpanded(false); onSelect(gate); }}><span>{gate.name} · Gate {gate.id}</span><small>{gate.km.toFixed(1)} km away · {gateCheckLabel(gate)}</small></button>
+                <button type="button" className="crossing-member" onClick={() => { setExpanded(false); onSelect(gate); }}><span>{trackCrossingLabel(gate.id, group.members) || gate.name}</span><small>{gate.km.toFixed(1)} km away · {gateCheckLabel(gate)}</small></button>
               </li>)}</ul></details>}
               </li>)}</ul>
               {groups.length > shown.length && <p className="quiet">{groups.length - shown.length} more crossings are marked on the map.</p>}
@@ -163,7 +163,7 @@ export function TrainSheet(props: Props) {
   </>;
 }
 
-function CrossingTimingRow({ group }: { group: CrossingTimingGroup }) {
+function CrossingTimingRow({ group, gates }: { group: CrossingTimingGroup; gates: Gate[] }) {
   const { first, members } = group;
   const label = (row: typeof first) => row.status === "uncertain" ? "Position update needed" : row.eta == null ? "Track timing unknown" : gateLabel(row.eta, row.closesIn, row.status);
   const uncertain = members.some((row) => row.status === "uncertain");
@@ -171,7 +171,7 @@ function CrossingTimingRow({ group }: { group: CrossingTimingGroup }) {
   const warning = uncertain ? "Position update needed" : unknown ? "Some track timings unknown" : "";
   return <li className="timing-group">
     <div className="timing-summary"><span>{group.label}</span><span>{warning ? <>{warning}{first.eta != null && first.status !== "uncertain" && <small className="track-first-estimate">First track estimate · {label(first)}</small>}</> : <>{members.length > 1 ? "First track · " : ""}{label(first)}</>}</span></div>
-    {members.length > 1 && <details className="track-checks"><summary>{members.length} track checks</summary><ul>{members.map((row) => <li key={row.key}><span>Gate {row.key}</span><span>{label(row)}</span></li>)}</ul></details>}
+    {members.length > 1 && <details className="track-checks"><summary>{members.length} track checks</summary><ul>{members.map((row) => <li key={row.key}><span>{trackCrossingLabel(row.key, gates) || row.label}</span><span>{label(row)}</span></li>)}</ul></details>}
   </li>;
 }
 
@@ -245,9 +245,9 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
               </header>
               <p className="quiet">{head.basis === "timetable" ? "Timetable estimate" : "Train report"}{head.age_min != null ? ` · ${Math.round(head.age_min)} min old at check` : ""}</p>
               <ul>
-                {timings.slice(0, 2).map((row) => <CrossingTimingRow key={row.key} group={row} />)}
+                {timings.slice(0, 2).map((row) => <CrossingTimingRow key={row.key} group={row} gates={gates} />)}
               </ul>
-              {timings.length > 2 && <details className="disclosure"><summary>{timings.length - 2} more crossings</summary><ul>{timings.slice(2).map((row) => <CrossingTimingRow key={row.key} group={row} />)}</ul></details>}
+              {timings.length > 2 && <details className="disclosure"><summary>{timings.length - 2} more crossings</summary><ul>{timings.slice(2).map((row) => <CrossingTimingRow key={row.key} group={row} gates={gates} />)}</ul></details>}
               <details className="disclosure"><summary>Route and report details</summary><RunLines row={head} showDelay />{head.bracket && <p className="quiet">{head.bracket}</p>}</details>
             </article>
           );

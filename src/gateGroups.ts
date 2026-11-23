@@ -38,14 +38,21 @@ export function groupCheckLabel(group: GateGroup): string {
   return group.members.some((gate) => gate.groupEstimate) ? "Train near this group · open for gate timing" : "";
 }
 
+export function trackCrossingLabel(id: string, gates: Gate[]): string {
+  const gate = gates.find((item) => item.id === id);
+  if (!gate?.group_id) return "";
+  const ids = gates.filter((item) => item.group_id === gate.group_id).map((item) => item.id).sort();
+  const size = Math.max(ids.length, gate.group_size ?? 1);
+  if (size < 2) return "";
+  return ids.length === size ? `Track crossing ${ids.indexOf(id) + 1} of ${size}` : `Part of ${size} track crossings`;
+}
+
 export function gateHoverLines(gate: Gate, gates: Gate[]): string[] {
   const group = groupGates(gates).find((item) => item.members.some((member) => member.id === gate.id))!;
-  const size = Math.max(group.members.length, gate.group_size ?? 1);
-  const index = [...group.members].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })).findIndex((member) => member.id === gate.id);
+  const track = trackCrossingLabel(gate.id, gates);
   return [group.name, ...(gate.road && gate.road !== group.name ? [gate.road] : []),
     ...(gate.name && gate.name !== group.name && gate.name !== gate.road ? [gate.name] : []),
-    `Gate ${gate.id} · ${gate.km.toFixed(1)} km away`,
-    ...(size > 1 ? [group.members.length === size ? `Track crossing ${index + 1} of ${size}` : `Part of ${size} track crossings`] : []),
+    `${gate.km.toFixed(1)} km away`, ...(track ? [track] : []),
     gateCheckLabel(gate)];
 }
 

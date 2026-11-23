@@ -28,6 +28,7 @@ export function readFavorites(): SavedGate[] {
   const raw = readStored<unknown>("favorites", []);
   if (!Array.isArray(raw)) return [];
   return raw.filter((item): item is SavedGate => validPlace(item?.gate) && validPlace(item?.place) &&
+    item.gate.restricted_freight !== true &&
     typeof item.gate.id === "string" && typeof item.gate.name === "string" &&
     typeof item.gate.source === "string" && Number.isFinite(item.gate.km) && item.gate.km >= 0 &&
     ["group_id", "group_name", "road", "area"].every((key) => item.gate[key] == null || typeof item.gate[key] === "string") &&
