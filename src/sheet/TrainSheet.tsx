@@ -143,7 +143,7 @@ export function TrainSheet(props: Props) {
             <div className="content-heading"><h2>Nearby crossings</h2>{place && <button type="button" className="text-button" disabled={busy} onClick={() => { setTab("trains"); onCheck(); }}>{busy ? "Checking…" : "Check trains"}</button>}</div>
             <p className="section-caption">{lede(place, loading, note, groups.length, props.placeLabel)}</p>
             {gatesCached && <p className="notice">Saved crossing locations · retry for an updated list.</p>}
-            {note && <p className="notice" role="status">{friendlyError(note)}</p>}
+            {note && (!loading || gates.length > 0) && <p className="notice" role="status">{friendlyError(note)}</p>}
             {props.gateSelectionNote && <p className="notice" role="status">{props.gateSelectionNote}</p>}
             {place && (gatesCached || note) && <button type="button" className="text-button" onClick={props.onRetryGates} disabled={loading}>Retry crossing lookup</button>}
             {!place && <div className="empty-state"><Icon name="pin" size={30} /><h3>Start with a place</h3><p>Use the search above the map, share your location, or tap a point on the railway.</p></div>}

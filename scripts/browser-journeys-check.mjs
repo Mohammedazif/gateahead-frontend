@@ -560,11 +560,21 @@ try {
     await run(profile, "crossing-list-can-retry-in-place", async (page, _context, state) => {
       const retry = page.getByRole("button", { name: "Retry crossing lookup" });
       await visible(retry);
+      const warning = page.getByText(/The crossing list is busy/);
+      await visible(warning);
       // The development mount can expose a cancelled StrictMode request to Playwright.
       const requestsBeforeRetry = state.calls.filter((call) => call.path === "/gates").length;
       assert.ok(requestsBeforeRetry > 0);
       state.gatesUnavailable = false;
-      await retry.click();
+      state.heldGates = true;
+      try {
+        await retry.click();
+        await visible(page.getByText(/Looking up crossings/));
+        await warning.waitFor({ state: "hidden" });
+      } finally {
+        state.heldGates = false;
+        state.releases.forEach((release) => release());
+      }
       await visible(page.getByRole("button", { name: /School Road/ }));
       assert.equal(state.calls.filter((call) => call.path === "/gates").length, requestsBeforeRetry + 1);
     }, { initial: "?lat=12&lon=75", gatesUnavailable: true });
