@@ -22,6 +22,7 @@ const gateA = { id: "osm:node:9004", name: "School Road", lat: 12, lon: 75, km: 
 const gateB = { id: "osm:node:9104", name: "Station Road", lat: 13, lon: 76, km: 0.3, source: "osm" };
 const gateC = { ...gateA, id: "osm:node:9005", name: "Canal Road", lat: 12.002, km: 0.7 };
 const gateD = { ...gateC, id: "osm:node:9006", name: "Park Road", lat: 12.003 };
+const trainCheckId = "fixture-train-check-id01";
 const verifiedOn = new Date().toISOString().slice(0, 10);
 const visible = (locator) => locator.first().waitFor({ state: "visible", timeout: 10000 });
 const body = (page) => page.locator("body").innerText();
@@ -65,7 +66,7 @@ async function run(profile, name, test, options = {}) {
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   const state = { calls: [], releases: [], heldGates: options.heldGates === true, reports: [], reportDevice: null,
     delayedCities: false, delayReport: options.delayReport, gatesUnavailable: options.gatesUnavailable,
-    heldScenes: options.heldScenes, rateGate: options.rateGate, detailFlags: [] };
+    heldScenes: options.heldScenes, rateGate: options.rateGate, detailFlags: [], holdTrainCheck: options.progressivePredict === true };
   if (options.clock) await page.clock.install({ time: new Date("2026-11-16T08:30:00+05:30") });
   if (options.gpsDelayed) await page.addInitScript(() => {
     navigator.geolocation.getCurrentPosition = (success, error) => { window.__gpsSuccess = success; window.__gpsError = error; };
@@ -97,8 +98,27 @@ async function run(profile, name, test, options = {}) {
       return reply({ cities: cities.filter((city) => city.name.toLowerCase().includes(q)) });
     }
     if (path === "/place") return reply({ name: "Test map point" });
-    if (path === "/predict") return reply({ generated_at: new Date().toISOString(), crossings: 1, checked: 0,
-      running: 0, stations: [], approaching: [], gate_predictions: [], passed: [], sightings: [], awaiting_update: [] });
+    if (path === "/predict") {
+      if (options.progressivePredict && url.searchParams.get("progressive") === "true") {
+        return reply({ check_id: trainCheckId, revision: 0, done: false });
+      }
+      return reply({ generated_at: new Date().toISOString(), crossings: 1, checked: 0,
+        running: 0, stations: [], approaching: [], gate_predictions: [], passed: [], sightings: [], awaiting_update: [] });
+    }
+    if (options.progressivePredict && path === `/predict/checks/${trainCheckId}`) {
+      const done = url.searchParams.get("after") === "1";
+      if (done && state.holdTrainCheck) await new Promise((release) => state.releases.push(release));
+      const trains = [{ train: "16512", name: "Regional Express" }, ...(done ? [{ train: "16513", name: "Coastal Express" }] : [])];
+      const approaching = done ? trains.map((train) => ({ ...train, eta: 4, status: "approaching", closes_in: 2,
+        cluster: gateA.name, lat: gateA.lat, lon: gateA.lon, ids: [gateA.id] })) : [];
+      const sightings = done ? [] : [{ number: trains[0].train, name: trains[0].name, delay: 0, age: 1,
+        current: "Kannur", passed_local: false, observed: true }];
+      return reply({ check_id: trainCheckId, revision: done ? 2 : 1, done, result: {
+        generated_at: new Date().toISOString(), crossings: 1, checked: trains.length, running: trains.length,
+        approaching, sightings, coverage: { status: done ? "complete" : "partial", checking: !done,
+          live_checked: trains.length, live_candidates: 2, pending_live: done ? 0 : 1, missing_or_stale_routes: 0 },
+      } });
+    }
     if (path === "/scene") {
       const id = url.searchParams.get("crossing_id");
       const chosen = [gateA, gateB, gateC, gateD].find((item) => item.id === id) || gateA;
@@ -556,6 +576,20 @@ try {
       await reports.locator("summary").click();
       await visible(reports.getByText(/Gate closed/));
     }, { initial: "?lat=12&lon=75", delayReport: true });
+
+    await run(profile, "train-results-appear-before-the-check-finishes", async (page, _context, state) => {
+      await page.getByRole("button", { name: "Check trains", exact: true }).click();
+      await visible(page.getByText("Checking station boards and live reports…"));
+      await visible(page.locator("article.train").getByText(/Regional Express/));
+      await visible(page.getByText("1 of 2 train checks completed. More results are loading."));
+      assert.equal(await page.locator("article.train").count(), 1);
+      assert.equal(await page.getByRole("button", { name: "Checking…", exact: true }).isDisabled(), true);
+      state.holdTrainCheck = false;
+      state.releases.forEach((release) => release());
+      await visible(page.locator("article.train").getByText(/Coastal Express/));
+      assert.equal(await page.locator("article.train").count(), 2);
+      assert.equal(await page.getByText(/More results are loading/).count(), 0);
+    }, { initial: "?lat=12&lon=75", progressivePredict: true });
 
     await run(profile, "crossing-list-can-retry-in-place", async (page, _context, state) => {
       const retry = page.getByRole("button", { name: "Retry crossing lookup" });

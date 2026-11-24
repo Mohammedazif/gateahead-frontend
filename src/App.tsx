@@ -334,10 +334,17 @@ export function App() {
     predictRequest.current = ctrl;
     lastAttempt.current = Date.now();
     setChecking(true); setError(null);
+    let receivedUpdate = false;
     try {
-      const body = await fetchPredict(place.lat, place.lon, ctrl.signal, place.privateLocation);
+      const body = await fetchPredict(place.lat, place.lon, ctrl.signal, place.privateLocation, (update) => {
+        if (ticket !== generation.current || ctrl.signal.aborted) return;
+        receivedUpdate = true;
+        setPredict(update);
+        setCheckedAt(Date.now());
+      });
       if (ticket !== generation.current) return;
       if (body.error) throw new Error(friendlyError(body.error));
+      if (body.offline && receivedUpdate) throw new Error("Could not finish this train check. Showing the results received so far.");
       setPredict(body); setCheckedAt(body.cached_at || Date.now());
       if (!body.offline) refreshScene.current();
     } catch (err) {
@@ -345,7 +352,13 @@ export function App() {
       if (err instanceof RequestError && err.retryAt) setPausedUntil((previous) => Math.max(previous, err.retryAt));
       setError(err instanceof Error ? err.message : "Could not check trains.");
     } finally {
-      if (ticket === generation.current) { checkingLock.current = false; setChecking(false); }
+      if (ticket === generation.current) {
+        checkingLock.current = false;
+        if (receivedUpdate) setPredict((previous) => previous?.coverage?.checking
+          ? { ...previous, coverage: { ...previous.coverage, checking: false } }
+          : previous);
+        setChecking(false);
+      }
     }
   }, [place, pausedUntil]);
 
@@ -610,6 +623,7 @@ export function App() {
         gateCount={gates.length}
         loading={loadingGates}
         busy={checking || checkingCommute != null}
+        checkingTrains={checking}
         error={error}
         note={gatesNote}
         gateSelectionNote={gateSelectionNote}

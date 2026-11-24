@@ -6,6 +6,7 @@ export type MapAvailability = { map_warning?: string; map_age_seconds?: number }
 
 export type TrainCoverage = {
   status?: "partial" | "complete" | "unknown";
+  checking?: boolean;
   live_checked: number;
   live_candidates: number;
   pending_live: number;
@@ -386,7 +387,60 @@ export function discardPersistedArea(lat: number, lon: number) {
   writeStored("responses", all);
 }
 
-async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false): Promise<T> {
+function rateLimitError(response: Response, trainCheck: boolean): RequestError {
+  const now = Date.now();
+  const header = response.headers.get("Retry-After")?.trim() ?? "";
+  const seconds = /^\d+(?:\.\d+)?$/.test(header) ? Number(header) : NaN;
+  const date = /[a-z]/i.test(header) ? Date.parse(header) : NaN;
+  const retryAt = Number.isFinite(seconds) ? now + seconds * 1000 : Number.isFinite(date) ? Math.max(now, date) : now + 600000;
+  const deadline = retryAt < 8.64e15 ? retryAt : now + 600000;
+  return new RequestError(trainCheck ? "Too many checks. Automatic checks are paused; try again in a few minutes." :
+    "Too many requests for this feature. Try again in a few minutes.", trainCheck ? pauseTrainChecks(deadline) : deadline);
+}
+
+async function predictionResult(
+  initial: unknown, path: string, onUpdate: (prediction: Predict) => void, caller?: AbortSignal,
+): Promise<unknown> {
+  // Older servers return the final prediction directly.
+  if (!isRecord(initial) || !("check_id" in initial)) return initial;
+  const id = initial.check_id;
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{24}$/.test(id)) throw new Error("Invalid train check ID");
+  const deadline = AbortSignal.timeout(95000);
+  const signal = caller ? AbortSignal.any([caller, deadline]) : deadline;
+  let revision = -1;
+  let update: unknown = initial;
+  while (true) {
+    signal.throwIfAborted();
+    if (!isRecord(update) || update.check_id !== id || !Number.isSafeInteger(update.revision) ||
+        typeof update.revision !== "number" || update.revision < Math.max(0, revision) ||
+        typeof update.done !== "boolean") {
+      throw new Error("Invalid train check progress");
+    }
+    if (update.done) return update.result;
+    if (update.revision > revision && isRecord(update.result) && !update.result.error && hasResponseShape(path, update.result)) {
+      onUpdate(publicResponse(path, update.result) as Predict);
+    }
+    revision = update.revision;
+    await new Promise<void>((resolve, reject) => {
+      const stop = () => { clearTimeout(timer); reject(signal.reason); };
+      const timer = setTimeout(() => {
+        signal.removeEventListener("abort", stop);
+        resolve();
+      }, 2000);
+      signal.addEventListener("abort", stop, { once: true });
+      if (signal.aborted) stop();
+    });
+    const response = await fetch(`/api/predict/checks/${id}?after=${revision}`, { cache: "no-store", signal });
+    if (response.status === 429) throw rateLimitError(response, true);
+    if (!response.ok) throw new RequestError("Could not get the rest of this train check. Try again shortly.");
+    update = await response.json();
+  }
+}
+
+async function getJson<T>(
+  path: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false,
+  onUpdate?: (prediction: Predict) => void,
+): Promise<T> {
   signal?.throwIfAborted();
   const isDetails = path.startsWith("/api/crossing-details?");
   const cacheable = isDetails || /^\/api\/(gates|predict|scene)\?/.test(path);
@@ -409,7 +463,8 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
     let response: Response;
     try {
       const deadline = AbortSignal.timeout(isDetails ? 40000 : 90000);
-      response = await fetch(path, { cache: "no-store", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
+      const requestPath = onUpdate ? `${path}&progressive=true` : path;
+      response = await fetch(requestPath, { cache: "no-store", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
     } catch (err) {
       if (signal?.aborted) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
@@ -417,14 +472,7 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
     }
     signal?.throwIfAborted();
     if (response.status === 429) {
-      const now = Date.now();
-      const header = response.headers.get("Retry-After")?.trim() ?? "";
-      const seconds = /^\d+(?:\.\d+)?$/.test(header) ? Number(header) : NaN;
-      const date = /[a-z]/i.test(header) ? Date.parse(header) : NaN;
-      const retryAt = Number.isFinite(seconds) ? now + seconds * 1000 : Number.isFinite(date) ? Math.max(now, date) : now + 600000;
-      const deadline = retryAt < 8.64e15 ? retryAt : now + 600000;
-      throw new RequestError(trainCheck ? "Too many checks. Automatic checks are paused; try again in a few minutes." :
-        "Too many requests for this feature. Try again in a few minutes.", trainCheck ? pauseTrainChecks(deadline) : deadline);
+      throw rateLimitError(response, trainCheck);
     }
     if (isDetails && response.status === 404) {
       const body: unknown = await response.json().catch(() => null);
@@ -441,7 +489,8 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
     }
     let data: Record<string, unknown>;
     try {
-      const body: unknown = await response.json();
+      const initial: unknown = await response.json();
+      const body = onUpdate ? await predictionResult(initial, path, onUpdate, signal) : initial;
       signal?.throwIfAborted();
       if (!isRecord(body)) throw new Error("Invalid response body");
       data = serviceErrorBody(path, body);
@@ -449,7 +498,12 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
       data = publicResponse(path, data);
     } catch (err) {
       if (signal?.aborted) throw err;
+      if (err instanceof RequestError && err.retryAt) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
+      if (err instanceof RequestError) throw err;
+      if (onUpdate && err instanceof DOMException && err.name === "TimeoutError") {
+        throw new RequestError("The train check took too long. Try again shortly.");
+      }
       throw new RequestError("The service returned an unreadable response. Try again in a moment.");
     }
     const fetchedAt = Date.now();
@@ -551,8 +605,11 @@ export function fetchGates(
   return getJson(`/api/gates?lat=${lat}&lon=${lon}`, signal, 0, privateLocation);
 }
 
-export function fetchPredict(lat: number, lon: number, signal?: AbortSignal, privateLocation = false): Promise<Predict> {
-  return getJson(`/api/predict?lat=${lat}&lon=${lon}`, signal, 0, privateLocation);
+export function fetchPredict(
+  lat: number, lon: number, signal?: AbortSignal, privateLocation = false,
+  onUpdate?: (prediction: Predict) => void,
+): Promise<Predict> {
+  return getJson(`/api/predict?lat=${lat}&lon=${lon}`, signal, 0, privateLocation, onUpdate);
 }
 
 function crossingPath(endpoint: "scene" | "crossing-details", lat: number, lon: number, crossingId: string): string {
@@ -582,6 +639,8 @@ export function fetchCrossingDetails(gate: Gate, signal: AbortSignal): Promise<C
 
 export function friendlyError(message: string | undefined): string {
   if (!message) return "Something went wrong. Try again in a moment.";
+  if (message === "train_check_timeout") return "The train check took too long. Try again shortly.";
+  if (message === "train_check_failed") return "Could not finish checking trains. Try again shortly.";
   if (/429|502|504|timeout|timed out|busy|map_busy/i.test(message)) {
     return "The crossing list is busy. Wait a minute and try again.";
   }

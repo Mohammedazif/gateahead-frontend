@@ -64,6 +64,7 @@ type Props = {
   gateCount: number;
   loading: boolean;
   busy: boolean;
+  checkingTrains: boolean;
   error: string | null;
   note: string | null;
   gateSelectionNote: string | null;
@@ -162,7 +163,8 @@ export function TrainSheet(props: Props) {
             <div className="content-heading"><h2>Trains on this stretch</h2><button type="button" className="solid compact" disabled={!place || busy} onClick={onCheck}>{busy ? "Checking…" : "Check trains"}</button></div>
             {checkedAt != null ? !historical && <CheckedAgo at={checkedAt} /> : <p className="section-caption">Check the latest available train reports for this area.</p>}
             {historical && <p className="notice">Saved check · {checkedAt ? new Date(checkedAt).toLocaleString() : "last result"}. Timings may have changed.</p>}
-            {predict ? <PredictBody predict={predict} gates={gates} /> : <div className="empty-state"><Icon name="train" size={30} /><h3>{place ? "See what’s on the line" : "Choose an area first"}</h3><p>{place ? "Check trains to see approaching services and their estimated crossing times." : "Use the search above the map to find your crossings."}</p></div>}
+            {props.checkingTrains && !predict?.coverage?.checking && <p className="notice" role="status">Checking station boards and live reports…</p>}
+            {predict ? <PredictBody predict={predict} gates={gates} /> : !props.checkingTrains && <div className="empty-state"><Icon name="train" size={30} /><h3>{place ? "See what’s on the line" : "Choose an area first"}</h3><p>{place ? "Check trains to see approaching services and their estimated crossing times." : "Use the search above the map to find your crossings."}</p></div>}
           </>}
           {tab === "saved" && <>
             <div className="content-heading"><h2>Saved gates</h2><span className="count-label">{favorites.length}</span></div>
@@ -241,13 +243,13 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
     grouped.set(runKey(row), list);
   }
   if (grouped.size === 0 && sightings.length === 0 && passed.length === 0) {
-    return <>{notice}<AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />{!predict.awaiting_update?.length && <p className="quiet">{incomplete ? "The available data did not establish train timing on this stretch." : "No train estimates available on this stretch right now."}</p>}</>;
+    return <>{notice}<AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />{!predict.coverage?.checking && !predict.awaiting_update?.length && <p className="quiet">{incomplete ? "The available data did not establish train timing on this stretch." : "No train estimates available on this stretch right now."}</p>}</>;
   }
   return (
     <div className="results">
       {notice}
       <AwaitingUpdate trains={predict.awaiting_update} /><OperatingUpdates updates={predict.service_updates} />
-      {grouped.size === 0 && !predict.awaiting_update?.length ? (
+      {grouped.size === 0 && !predict.coverage?.checking && !predict.awaiting_update?.length ? (
         <p className="quiet">{incomplete ? "The latest check did not establish train timing." : "No approaching train was found in the available reports."} Gate position is unknown.</p>
       ) : (
         [...grouped.entries()].map(([number, rows]) => {
@@ -298,8 +300,8 @@ export function PredictBody({ predict, gates }: { predict: Predict; gates: Gate[
         </details>
       ) : null}
       {sightings.length > 0 ? (
-        <details className="line disclosure train-group">
-          <summary>Other trains on this line ({Math.min(sightings.length, 6)})</summary>
+        <details className="line disclosure train-group" open={predict.coverage?.checking && grouped.size === 0 ? true : undefined}>
+          <summary>{grouped.size === 0 && predict.coverage?.checking ? "Train reports so far" : "Other trains on this line"} ({Math.min(sightings.length, 6)})</summary>
           {sightings.slice(0, 6).map((row) => (
             <article key={runKey(row)} className="train">
               <header>

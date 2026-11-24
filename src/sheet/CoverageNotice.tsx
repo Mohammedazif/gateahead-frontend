@@ -8,7 +8,9 @@ export function CoverageNotice({ coverage, map_warning, map_age_seconds }: MapAv
   }
   if (!incompleteCheck({ coverage }) || !coverage) return null;
   let message = "";
-  if ((coverage.unavailable_discovery ?? 0) > 0) {
+  if (coverage.checking) {
+    message = `${coverage.live_checked} of ${coverage.live_candidates} train checks completed. More results are loading.`;
+  } else if ((coverage.unavailable_discovery ?? 0) > 0) {
     message = "Some train searches did not complete. Available reports may omit services; coverage is incomplete.";
   } else if (coverage.pending_live > 0) {
     message = `${coverage.live_checked} of ${coverage.live_candidates} train checks completed. ${coverage.pending_live} still pending; refresh to continue.`;
