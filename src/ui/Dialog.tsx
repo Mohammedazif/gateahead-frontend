@@ -1,19 +1,25 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
 import { Icon } from "./Icon";
 
-export function Dialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+export function Dialog({ title, onClose, children, initialFocus, centered }: {
+  title: string; onClose: () => void; children: ReactNode; initialFocus?: RefObject<HTMLElement | null>; centered?: boolean;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
     const previous = document.activeElement;
     const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
+    if (dialog && !dialog.open) {
+      dialog.showModal();
+      initialFocus?.current?.focus({ preventScroll: true });
+    }
     return () => {
       dialog?.close();
       if (previous instanceof HTMLElement && previous.isConnected) previous.focus();
     };
-  }, []);
-  return <dialog ref={ref} className="utility-dialog" aria-labelledby={titleId} onCancel={onClose}
+  }, [initialFocus]);
+  return <dialog ref={ref} className={centered ? "utility-dialog" : "utility-dialog utility-dialog-sheet"}
+    aria-labelledby={titleId} onCancel={onClose}
     onKeyDown={(event) => { if (event.key === "Escape") event.stopPropagation(); }}
     onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <div className="dialog-frame">

@@ -67,7 +67,6 @@ try {
     const page = await context.newPage();
     page.setDefaultTimeout(15000);
     const errors = [], consoleErrors = [];
-    page.on("dialog", (dialog) => dialog.accept("Track gate 101"));
     const state = { offline: false, uncertain: false, scenes: [] };
     let releaseStyle;
     const styleReady = new Promise((resolveStyle) => { releaseStyle = resolveStyle; });
@@ -153,6 +152,9 @@ try {
       assert.equal(state.scenes.at(-1), b.id);
       assert.match(await page.locator(".detail-heading").innerText(), /Track crossing 2 of 2/);
       await page.getByRole("button", { name: "Save gate", exact: true }).click();
+      const saveDialog = page.getByRole("dialog", { name: "Save gate" });
+      await saveDialog.getByRole("textbox", { name: "Gate name" }).fill("Track gate 101");
+      await saveDialog.getByRole("button", { name: "Save gate", exact: true }).click();
       await page.waitForFunction(() => JSON.parse(localStorage.getItem("gateahead:favorites") || "[]").length > 0);
       const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("gateahead:favorites")));
       assert.equal(saved[0].gate.id, b.id, "saved shortcut retains the member, not group or primary ID");

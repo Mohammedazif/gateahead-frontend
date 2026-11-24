@@ -371,23 +371,20 @@ export function App() {
     return () => window.clearInterval(timer);
   }, [refresh, check]);
 
-  function saveGate(gate: Gate) {
-    if (!place) return;
-    if (favorites.some((item) => item.gate.id === gate.id)) {
-      removeSaved(gate.id); return;
-    }
-    const label = window.prompt("Name this saved gate", gate.name || "My gate")?.trim().slice(0, 80);
+  function saveGate(gate: Gate, label: string): boolean {
+    const current = savedState.current.favorites;
+    if (!place || current.some((item) => item.gate.id === gate.id)) return false;
     const savedPlace = place.privateLocation ? { lat: gate.lat, lon: gate.lon, label: gate.name } : place;
-    if (!label) return;
-    const next = [...savedState.current.favorites, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place: savedPlace }].slice(-50);
-    updateFavorites(next);
+    const next = [...current, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place: savedPlace }].slice(-50);
+    return updateFavorites(next);
   }
   function openSaved(item: SavedGate) {
     choosePlace(item.place.lat, item.place.lon, item.place.label || item.label, item.gate.id);
   }
-  function renameSaved(item: SavedGate) {
-    const label = window.prompt("Rename this gate", item.label)?.trim().slice(0, 80);
-    if (label) updateFavorites(savedState.current.favorites.map((row) => row.gate.id === item.gate.id ? { ...row, label } : row));
+  function renameSaved(id: string, label: string): boolean {
+    const current = savedState.current.favorites;
+    if (!current.some((item) => item.gate.id === id)) return false;
+    return updateFavorites(current.map((item) => item.gate.id === id ? { ...item, label } : item));
   }
 
   function removeSaved(id: string) {
@@ -415,17 +412,19 @@ export function App() {
     return true;
   }
 
-  function updateFavorites(next: SavedGate[]): void {
+  function updateFavorites(next: SavedGate[]): boolean {
     const ids = new Set(next.map((favorite) => favorite.gate.id));
     const trips = savedState.current.commutes;
     const keepsEveryStop = trips.every((trip) => trip.gateIds.every((id) => ids.has(id)));
     const updated = keepsEveryStop ? trips : trips.map((trip) => ({ ...trip, gateIds: trip.gateIds.filter((id) => ids.has(id)) }))
       .filter((trip) => trip.gateIds.length);
-    if (!commitSaved({ favorites: next, commutes: updated })) {
+    const saved = commitSaved({ favorites: next, commutes: updated });
+    if (!saved) {
       setSavedNotice("Could not update saved crossings on this device.");
     } else if (commuteRequest.current?.gateIds.some((id) => !ids.has(id))) {
       cancelCommute();
     }
+    return saved;
   }
 
   function saveCommute(commute: Commute): boolean {

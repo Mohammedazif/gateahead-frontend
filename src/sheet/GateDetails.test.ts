@@ -16,7 +16,7 @@ test("an unresolved stopped train stays visible ahead of other train estimates",
   const html = renderToStaticMarkup(createElement(GateDetails, {
     gate: { id: "elimala", name: "Near Elimala", km: 2.6, lat: 12.06, lon: 75.23, source: "osm" },
     scene, loading: false, message: null, historical: false, focusedTrain: null, visibleTrains: new Set<string>(),
-    onFocusTrain() {}, saved: false, onSave() {}, onBack() {},
+    onFocusTrain() {}, saved: false, onSave: () => true, onRemove() {}, onBack() {},
   }));
   assert.match(html, /Position update needed/);
   assert.match(html, /Last reported stopped at Pazhayangadi/);
@@ -58,7 +58,7 @@ test("minute-by-minute stopped-feed simulation keeps 16650 unresolved beside ind
     const html = renderToStaticMarkup(createElement(GateDetails, {
       gate, scene: display, loading: false, message: null, historical: false, focusedTrain: null,
       visibleTrains: new Set(frame.trains!.map((train) => train.number)), onFocusTrain() {}, saved: false,
-      onSave() {}, onBack() {},
+      onSave: () => true, onRemove() {}, onBack() {},
     }));
     if (second < 60) {
       assert.equal(display.trains.find((train) => train.number === "16650")!.eta_min, 6);
@@ -86,7 +86,7 @@ test("a partial check with zero counters preserves an explicit unknown state in 
     coverage: { status: "complete", live_checked: 0, live_candidates: 0, pending_live: 0, missing_or_stale_routes: 0 } };
   const render = (scene: Scene) => renderToStaticMarkup(createElement(GateDetails, {
     gate, scene, loading: false, message: null, historical: false, focusedTrain: null,
-    visibleTrains: new Set(), onFocusTrain() {}, saved: false, onSave() {}, onBack() {},
+    visibleTrains: new Set(), onFocusTrain() {}, saved: false, onSave: () => true, onRemove() {}, onBack() {},
   }));
   assert.match(render(complete), /No approaching train in the latest check/);
   const html = render({ ...complete, coverage: { ...complete.coverage!, status: "partial" }, map_warning: "map_busy", map_age_seconds: 120 });

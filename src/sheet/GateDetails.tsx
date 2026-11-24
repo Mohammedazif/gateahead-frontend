@@ -10,10 +10,10 @@ import { CoverageNotice } from "./CoverageNotice";
 import { AwaitingUpdate } from "./AwaitingUpdate";
 import { CrossingAccess } from "./CrossingAccess";
 
-export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onBack, track, verifiedGate = false }: {
+export function GateDetails({ gate, scene, loading, message, historical, focusedTrain, visibleTrains, onFocusTrain, saved, onSave, onRemove, onBack, track, verifiedGate = false }: {
   gate: Gate; scene: Scene | null; loading: boolean; message: string | null; historical: boolean;
   focusedTrain: string | null; visibleTrains: Set<string>; onFocusTrain: (number: string) => void;
-  saved: boolean; onSave: () => void; onBack: () => void; track?: string; verifiedGate?: boolean;
+  saved: boolean; onSave: (label: string) => boolean; onRemove: () => void; onBack: () => void; track?: string; verifiedGate?: boolean;
 }) {
   const lead = scene?.trains.reduce<Scene["trains"][number] | undefined>((first, row) => !first || row.eta_min < first.eta_min ? row : first, undefined);
   const gone = scene?.passed?.[0];
@@ -70,7 +70,7 @@ export function GateDetails({ gate, scene, loading, message, historical, focused
       <p className="quiet">Positions and track assignments are estimated. Choose a train to locate it.</p>
     </section>}
     {!loading && scene?.error !== "crossing_not_found" && !isLegacyCrossingId(gate.id) &&
-      <GateActions key={gate.id} gate={gate} saved={saved} onSave={onSave} canUseGate={canUseGate} />}
+      <GateActions key={gate.id} gate={gate} saved={saved} onSave={onSave} onRemove={onRemove} canUseGate={canUseGate} />}
     {accessSource?.crossing_access && <CrossingAccess key={`access-${accessGate.id}`} access={accessSource.crossing_access} gate={accessGate}
       canFlag={canFlagAccess} saved={Boolean(accessSource.offline || accessSource.map_warning)} />}
     {scene && <CrossingTimeline scene={scene} historical={historical} focusedTrain={focusedTrain} visibleTrains={visibleTrains} onFocusTrain={onFocusTrain} />}

@@ -32,7 +32,7 @@ function activeGate(gate: Gate): boolean {
 type Props = {
   favorites: SavedGate[];
   onOpenSaved: (item: SavedGate) => void;
-  onRenameSaved: (item: SavedGate) => void;
+  onRenameSaved: (id: string, label: string) => boolean;
   onRemoveSaved: (id: string) => void;
   commutes: Commute[];
   commuteResults: Record<string, CommuteResult>;
@@ -60,7 +60,7 @@ type Props = {
   visibleTrains: Set<string>;
   onFocusTrain: (number: string) => void;
   onCloseGate: () => void;
-  onSaveGate: (gate: Gate) => void;
+  onSaveGate: (gate: Gate, label: string) => boolean;
   gateCount: number;
   loading: boolean;
   busy: boolean;
@@ -139,7 +139,8 @@ export function TrainSheet(props: Props) {
         <p className="quiet control-feedback" role="status" aria-atomic="true">{props.savedNotice}</p>
         {selected ? <GateDetails gate={selected} verifiedGate={props.gateVerified} track={trackCrossingLabel(selected.id, gates) || (selected.group_size && selected.group_size > 1 ? `Part of ${selected.group_size} track crossings` : "")} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
           historical={props.sceneHistorical} focusedTrain={props.focusedTrain} visibleTrains={props.visibleTrains} onFocusTrain={props.onFocusTrain} saved={favorites.some((item) => item.gate.id === selected.id)}
-          onSave={() => props.onSaveGate(selected)} onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
+          onSave={(label) => props.onSaveGate(selected, label)} onRemove={() => props.onRemoveSaved(selected.id)}
+          onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
           {tab === "nearby" && <>
             <div className="content-heading"><h2>Nearby crossings</h2>{place && <button type="button" className="text-button" disabled={busy} onClick={() => { setTab("trains"); onCheck(); }}>{busy ? "Checking…" : "Check trains"}</button>}</div>
             <p className="section-caption">{lede(place, loading, note, groups.length, props.placeLabel)}</p>

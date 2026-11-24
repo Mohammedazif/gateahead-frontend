@@ -788,9 +788,11 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 .commute-stops .crossing-member > svg { flex: none; color: var(--muted); }
 .commute-stops p { margin: 4px 0; font-size: .82rem; overflow-wrap: anywhere; }
 .control-feedback:empty { margin: 0; }
-.commute-editor { display: grid; gap: 18px; }
-.commute-name { display: grid; gap: 8px; }
-.commute-name input { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 10px; }
+.commute-editor, .gate-name-editor { display: grid; gap: 18px; }
+.gate-name-editor .control-feedback:empty { position: absolute; }
+.commute-name, .gate-name { display: grid; gap: 8px; }
+.commute-name input, .gate-name input { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 10px; }
+.gate-name input::selection { color: var(--ink); background: color-mix(in srgb, var(--accent) 35%, var(--sheet)); }
 .commute-editor fieldset { margin: 0; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
 .commute-editor legend { padding-inline: 6px; color: var(--ink); font-size: .9rem; }
 .commute-editor .refresh-controls { gap: 10px; overflow-wrap: anywhere; }
@@ -808,9 +810,9 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 .train-group > summary { padding: 15px 0; }
 .train-group .train { margin-bottom: 12px; }
 @media (max-width: 599px) {
-  .utility-dialog { top: auto; bottom: 0; left: 0; right: 0; transform: none; width: 100%; max-height: 84dvh; border-radius: 24px 24px 0 0; }
-  .dialog-frame { max-height: 84dvh; }
-  .dialog-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+  .utility-dialog-sheet { top: auto; bottom: 0; left: 0; right: 0; transform: none; width: 100%; max-height: 84dvh; border-radius: 24px 24px 0 0; }
+  .utility-dialog-sheet .dialog-frame { max-height: 84dvh; }
+  .utility-dialog-sheet .dialog-body { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
   .sheet-body { padding-top: 16px; }
 }
 @media (min-width: 900px) {

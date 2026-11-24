@@ -45,8 +45,10 @@ async function mapTap(page) {
   await visible(page.getByRole("dialog", { name: /Finding this place|Test map point|°/ }));
 }
 async function saveGate(page, name = "Home gate") {
-  page.once("dialog", (dialog) => dialog.accept(name));
   await page.getByRole("button", { name: "Save gate", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Save gate" });
+  await dialog.getByRole("textbox", { name: "Gate name" }).fill(name);
+  await dialog.getByRole("button", { name: "Save gate", exact: true }).click();
   await visible(page.getByRole("button", { name: "Saved · remove", exact: true }));
 }
 async function useLightTheme(page) {
@@ -281,14 +283,74 @@ try {
       assert.equal(await page.getByRole("dialog").count(), 0);
     });
 
+    await run(profile, "saved-gate-dialog-theme-focus-and-storage-error", async (page) => {
+      if (profile.name === "phone") await useLightTheme(page);
+      await openGate(page);
+      let nativeDialogs = 0;
+      page.on("dialog", async (prompt) => { nativeDialogs++; await prompt.dismiss(); });
+      const trigger = page.getByLabel("Crossing details").getByRole("button", { name: "Save gate", exact: true });
+      const dialog = page.getByRole("dialog", { name: "Save gate" });
+      const name = dialog.getByRole("textbox", { name: "Gate name" });
+      const submit = dialog.getByRole("button", { name: "Save gate", exact: true });
+      await trigger.click();
+      await visible(name);
+      assert.equal(await name.inputValue(), "School Road");
+      assert.ok(await name.evaluate((input) => input === document.activeElement), "opening focuses the name");
+      assert.equal(await dialog.evaluate((modal) => getComputedStyle(modal).backgroundColor),
+        profile.name === "phone" ? "rgb(255, 250, 243)" : "rgb(20, 24, 27)");
+      if (profile.name === "phone") {
+        assert.ok(await dialog.evaluate((modal) => {
+          const { left, top, width, height } = modal.getBoundingClientRect();
+          return left >= 15 && innerWidth - left - width >= 15 &&
+            Math.abs(left + width / 2 - innerWidth / 2) < 1 &&
+            Math.abs(top + height / 2 - innerHeight / 2) < 1;
+        }), "phone dialog is centered with space at both sides");
+      }
+      await name.fill("   ");
+      assert.equal(await submit.isDisabled(), true);
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "hidden" });
+      assert.ok(await trigger.evaluate((button) => button === document.activeElement), "Escape returns focus");
+      await visible(page.getByLabel("Crossing details"));
+
+      await page.evaluate(() => {
+        const store = Storage.prototype.setItem;
+        Storage.prototype.setItem = function(key, value) {
+          if (key === "gateahead:favorites") {
+            Storage.prototype.setItem = store;
+            throw new DOMException("Fixture storage is full", "QuotaExceededError");
+          }
+          store.call(this, key, value);
+        };
+      });
+      await trigger.click();
+      await name.fill("  Home gate  ");
+      await name.press("Enter");
+      await visible(dialog.getByRole("status").getByText(/Could not save this gate/));
+      assert.equal(await name.inputValue(), "  Home gate  ");
+      await name.press("Enter");
+      const saved = page.getByLabel("Crossing details").getByRole("button", { name: "Saved · remove", exact: true });
+      await visible(saved);
+      assert.ok(await saved.evaluate((button) => button === document.activeElement), "saving returns focus to the gate action");
+      assert.equal(nativeDialogs, 0);
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      assert.equal(await page.locator(".saved-card strong").innerText(), "Home gate");
+    }, { initial: "?lat=12&lon=75" });
+
     await run(profile, "saved-rename-reload-open-remove", async (page) => {
       await openGate(page);
       await saveGate(page);
       await page.getByRole("tab", { name: /Saved/ }).click();
       await page.getByLabel("Manage Home gate").click();
-      page.once("dialog", (dialog) => dialog.accept("Office gate"));
-      await page.getByRole("button", { name: "Rename", exact: true }).click();
+      const rename = page.getByRole("button", { name: "Rename", exact: true });
+      await rename.click();
+      const dialog = page.getByRole("dialog", { name: "Rename gate" });
+      const name = dialog.getByRole("textbox", { name: "Gate name" });
+      assert.equal(await name.inputValue(), "Home gate");
+      await name.fill("Office gate");
+      await dialog.getByRole("button", { name: "Save changes", exact: true }).click();
       await visible(page.getByRole("button", { name: /Office gate/ }));
+      assert.ok(await rename.evaluate((button) => button === document.activeElement), "renaming returns focus to its action");
       await page.reload({ waitUntil: "domcontentloaded" });
       await page.getByRole("tab", { name: /Saved/ }).click();
       await page.getByRole("button", { name: /Office gate/ }).click();

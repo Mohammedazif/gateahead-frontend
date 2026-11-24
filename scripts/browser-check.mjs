@@ -169,8 +169,10 @@ try {
   await run("saved-report-settings-dialogs", async (page, state) => {
     await openGate(page);
     await settleScene(page);
-    page.once("dialog", (dialog) => dialog.accept("Home gate"));
     await page.getByRole("button", { name: "Save gate", exact: true }).click();
+    const saveDialog = page.getByRole("dialog", { name: "Save gate" });
+    await saveDialog.getByRole("textbox", { name: "Gate name" }).fill("Home gate");
+    await saveDialog.getByRole("button", { name: "Save gate", exact: true }).click();
     await visible(page.getByRole("button", { name: "Saved · remove", exact: true }));
     await page.getByRole("button", { name: "Report", exact: true }).click();
     await visible(page.getByRole("dialog", { name: "Report this crossing", exact: true }));
