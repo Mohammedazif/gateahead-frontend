@@ -17,11 +17,11 @@ npm run build
 
 Run the local checks with `npm test`.
 
-Install the pinned test tools with `npm ci` and Chromium with `npx playwright install chromium`. With the development server running, `npm run test:browser` runs 93 controlled Chromium scenarios: five crossing workflows, 40 desktop/phone user journeys, and 48 paired data/network/clock cases. These cover GPS permissions and delayed replies, city search, saved gates, sharing, reporting, keyboard navigation, commute checks, opposing trains, stale reports, partial discovery, offline fallback, reduced motion, clock differences, and browsers without map graphics. Requests are intercepted; test reports and train-provider requests never reach live servers.
+Install the pinned test tools with `npm ci` and Chromium with `npx playwright install chromium`. With the development server running, `npm run test:browser` runs four controlled Chromium suites covering crossing workflows, desktop and phone journeys, data and network conditions, and physical crossing groups. Each runner reports its own current scenario count. The tests intercept requests to the train and reporting services.
 
 `BROWSER_BASE_URL` defaults to `http://127.0.0.1:5173`; `BROWSER_ARTIFACTS` selects a screenshot/report directory. Each script also runs separately. `PLAYWRIGHT_MODULE` can point to another installed Playwright package. The scripts fail on unexpected JavaScript/console errors and save JSON results and failure screenshots.
 
-`node scripts/browser-journeys-check.mjs` exercises 20 user journeys in desktop and phone/touch profiles (40 cases), including first visit, GPS allowed/denied and delayed callbacks, city-search keyboard races, map confirmation and keyboard focus, saved gate rename/removal/races, clipboard sharing and shared-link reloads, report replacement/expiry, and automatic checks inside/outside commute hours. Incoming-link tests compare waiting normally, selecting another cached gate, and navigating away while a fresh crossing lookup is pending. It uses controlled API replies and isolated browser storage; no observations reach a live report server. It accepts the same Playwright/base URL/artifact variables; its artifact default is `/tmp/gateahead-browser-journeys`. Set `BROWSER_SCENARIO` to a name substring to rerun one journey. Phone profiles emulate touch and layout in Chromium; they do not replace native-device testing.
+`node scripts/browser-journeys-check.mjs` exercises first visit, GPS permission, city-search keyboard races, map confirmation, saved gates, commute persistence and checking, verified bypasses and access flags, sharing, reports and automatic checks in desktop and phone profiles. Incoming-link tests compare waiting normally, selecting another cached gate, and navigating away while a fresh crossing lookup is pending. The journeys use isolated browser storage and controlled API replies. The artifact default is `/tmp/gateahead-browser-journeys`. Set `BROWSER_SCENARIO` to a name substring to rerun one journey.
 
 After `npm run build`, start `npm run preview` and run `npm run test:offline` for five production checks: page rendering, service-worker installation, offline reload/navigation, cached JavaScript/CSS, and returning online. Its default `BROWSER_BASE_URL` is `http://127.0.0.1:4173`; it accepts the same Playwright and artifact environment variables. The shell cache handles hosting `Vary: Origin` headers while leaving API responses outside the service-worker cache.
 
@@ -38,6 +38,10 @@ Nearby and the Trains list use exact `gate_predictions`, preserve each gate's na
 ## Saved gates and limited-data features
 
 Select a crossing to save it under a name, share its link, or submit an unverified community report. Saved gates can be renamed or removed in the sheet and are stored only in this browser. A link such as `/?lat=12.1&lon=75.2&gate=osm%3A1` selects the location and opens the crossing when it is found.
+
+Use **Saved → Commute Check** to name a trip, choose up to six saved gates, and arrange them in travel order. **Check commute** updates each saved track's train estimate in place. A failed check shows its reason alongside any earlier result and keeps the original time visible.
+
+**Crossing access** shows mapped or verified access for cars, two-wheelers and pedestrians. Access loads independently of train timing. A bypass shortcut opens its verified location in Maps. Use **Flag outdated details** to send the crossing for review.
 
 Automatic checks are optional and run every two minutes while the page is visible and online. Commute controls use the device's local time, support overnight windows, and can restrict checks to weekdays. Train checks have a 90-second cooldown; a server `Retry-After` pauses prediction and scene requests. Repeated scene opens reuse a result for 90 seconds.
 

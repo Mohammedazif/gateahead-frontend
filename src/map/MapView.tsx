@@ -1,7 +1,8 @@
 import { runKey, runDateLabel } from "../runIdentity";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Feature, FeatureCollection, Point } from "geojson";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
+import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
 import type { Gate } from "../api";
 import { gateHoverLines } from "../gateGroups";
@@ -10,6 +11,8 @@ import railNetwork from "./india_rail.geojson";
 import { frameForRun, runFreshUntil, type LngLat, type MapRun, type RunFrame, type TrainFrame } from "./playback";
 import { trainImage } from "./trainSprite";
 import { MAP_STYLE, type Theme } from "../theme";
+
+maplibregl.setWorkerUrl(workerUrl);
 
 const INDIA_BOUNDS: [[number, number], [number, number]] = [
   [68.17, 6.75],

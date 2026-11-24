@@ -21,6 +21,8 @@ const cities = [{ name: "Kannur", state: "Kerala", lat: 12, lon: 75 }, { name: "
 const gateA = { id: "osm:node:9004", name: "School Road", lat: 12, lon: 75, km: 0.4, source: "osm" };
 const gateB = { id: "osm:node:9104", name: "Station Road", lat: 13, lon: 76, km: 0.3, source: "osm" };
 const gateC = { ...gateA, id: "osm:node:9005", name: "Canal Road", lat: 12.002, km: 0.7 };
+const gateD = { ...gateC, id: "osm:node:9006", name: "Park Road", lat: 12.003 };
+const verifiedOn = new Date().toISOString().slice(0, 10);
 const visible = (locator) => locator.first().waitFor({ state: "visible", timeout: 10000 });
 const body = (page) => page.locator("body").innerText();
 const settle = async (page) => { await page.getByText("Checking this crossing…", { exact: true }).waitFor({ state: "hidden" }); };
@@ -46,6 +48,12 @@ async function saveGate(page, name = "Home gate") {
   await page.getByRole("button", { name: "Save gate", exact: true }).click();
   await visible(page.getByRole("button", { name: "Saved · remove", exact: true }));
 }
+async function useLightTheme(page) {
+  await page.getByRole("button", { name: "Open settings" }).click();
+  const settings = page.getByRole("dialog", { name: "Settings" });
+  await settings.getByRole("button", { name: "Light", exact: true }).click();
+  await settings.getByRole("button", { name: "Close Settings" }).click();
+}
 
 async function run(profile, name, test, options = {}) {
   if (filter && !`${profile.name}/${name}`.includes(filter)) return;
@@ -56,7 +64,8 @@ async function run(profile, name, test, options = {}) {
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   const state = { calls: [], releases: [], heldGates: options.heldGates === true, reports: [], reportDevice: null,
-    delayedCities: false, delayReport: options.delayReport, gatesUnavailable: options.gatesUnavailable };
+    delayedCities: false, delayReport: options.delayReport, gatesUnavailable: options.gatesUnavailable,
+    heldScenes: options.heldScenes, rateGate: options.rateGate, detailFlags: [] };
   if (options.clock) await page.clock.install({ time: new Date("2026-11-16T08:30:00+05:30") });
   if (options.gpsDelayed) await page.addInitScript(() => {
     navigator.geolocation.getCurrentPosition = (success, error) => { window.__gpsSuccess = success; window.__gpsError = error; };
@@ -91,8 +100,19 @@ async function run(profile, name, test, options = {}) {
     if (path === "/predict") return reply({ generated_at: new Date().toISOString(), crossings: 1, checked: 0,
       running: 0, stations: [], approaching: [], gate_predictions: [], passed: [], sightings: [], awaiting_update: [] });
     if (path === "/scene") {
-      const chosen = [gateA, gateB, gateC].find((item) => item.id === url.searchParams.get("crossing_id")) || gateA;
-      return reply({ available: true, crossing: chosen, rail: [[chosen.lat - .03, chosen.lon], [chosen.lat + .03, chosen.lon]], trains: [], passed: [], awaiting_update: [] });
+      const id = url.searchParams.get("crossing_id");
+      const chosen = [gateA, gateB, gateC, gateD].find((item) => item.id === id) || gateA;
+      if (state.heldScenes) await new Promise((release) => state.releases.push(release));
+      if (state.rateGate === id) return route.fulfill({ status: 429, headers: { "Retry-After": "60" }, json: {} });
+      return reply({ available: true, crossing: chosen, rail: [[chosen.lat - .03, chosen.lon], [chosen.lat + .03, chosen.lon]], trains: [], passed: [], awaiting_update: [], ...options.sceneFields?.[id] });
+    }
+    if (path === "/crossing-details") {
+      return reply(options.accessDetails?.[url.searchParams.get("crossing_id")] ?? { error: "access_unavailable" });
+    }
+    if (path === "/crossing-details/flags") {
+      assert.equal(route.request().method(), "POST");
+      state.detailFlags.push(route.request().postDataJSON());
+      return route.fulfill({ status: 202, json: { accepted: true } });
     }
     if (path === "/reports") {
       if (route.request().method() === "POST") {
@@ -116,7 +136,9 @@ async function run(profile, name, test, options = {}) {
     await page.waitForFunction(() => Boolean(document.querySelector("canvas.maplibregl-canvas")));
     await test(page, context, state);
     assert.deepEqual(errors, [], "no uncaught browser errors");
-    assert.deepEqual(consoleErrors, [], "no unexpected console errors");
+    const unexpectedConsole = options.rateLimitExpected
+      ? consoleErrors.filter((message) => !/^Failed to load resource:.*\b429\b/.test(message)) : consoleErrors;
+    assert.deepEqual(unexpectedConsole, [], "no unexpected console errors");
     const layout = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
     assert.ok(layout.scroll <= layout.width + 1, `horizontal overflow ${JSON.stringify(layout)}`);
     await page.screenshot({ path: resolve(artifacts, `${profile.name}-${name}.png`), fullPage: true });
@@ -273,6 +295,153 @@ try {
       assert.match(await page.locator(".location-open").innerText(), /Kozhikode/);
     }, { initial: "?lat=12&lon=75" });
 
+    await run(profile, "new-features-commute-saved-order-check-and-reload", async (page, _context, state) => {
+      if (profile.name === "phone") await useLightTheme(page);
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.getByRole("button", { name: "New commute", exact: true }).click();
+      const editor = page.getByRole("dialog", { name: "New commute" });
+      await editor.getByLabel("Commute name").fill("Home to work");
+      await editor.getByLabel("Home gate").check();
+      await editor.getByLabel("Canal gate").check();
+      await editor.getByRole("button", { name: "Move Canal gate earlier" }).press("Enter");
+      assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("aria-label")), "Move Canal gate later");
+      await editor.getByRole("button", { name: "Save commute" }).click();
+      const commute = page.getByRole("region", { name: "Home to work" });
+      assert.deepEqual(await commute.locator("li button").allTextContents(), ["Canal gate", "Home gate"]);
+      await commute.getByRole("button", { name: "Check commute" }).press("Enter");
+      await visible(commute.getByText(/16603 Maveli Express/));
+      await visible(commute.getByText("Train timing unavailable"));
+      assert.equal(await page.evaluate(() => document.activeElement?.textContent), "Check commute");
+      if (profile.name === "phone") await page.getByRole("button", { name: "Expand crossings and trains" }).click();
+      await page.screenshot({ path: resolve(artifacts, `${profile.name}-commute-check-result.png`) });
+      assert.equal(await page.getByRole("tab", { name: /Saved/ }).getAttribute("aria-selected"), "true");
+      assert.equal(await commute.getByRole("button", { name: "Check commute" }).isDisabled(), true);
+      assert.deepEqual(state.calls.filter((call) => call.path === "/scene").map((call) => call.query.crossing_id).sort(), [gateA.id, gateC.id]);
+      await page.evaluate((id) => {
+        const key = "gateahead:responses";
+        const cache = JSON.parse(localStorage.getItem(key));
+        for (const [path, hit] of Object.entries(cache)) {
+          if (path.includes(encodeURIComponent(id))) hit.at -= 60 * 60 * 1000;
+        }
+        localStorage.setItem(key, JSON.stringify(cache));
+      }, gateA.id);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      assert.deepEqual(await commute.locator("li button").allTextContents(), ["Canal gate", "Home gate"]);
+      await visible(commute.getByText(/Saved check/));
+      await visible(commute.getByText(/At saved check, the barrier was estimated to close/));
+      state.rateGate = gateA.id;
+      await commute.getByRole("button", { name: "Check commute" }).click();
+      await visible(commute.getByText(/Too many checks/));
+      await visible(commute.getByText(/At saved check, the barrier was estimated to close/));
+      await commute.getByLabel("Manage Home to work").click();
+      await commute.getByRole("button", { name: "Edit", exact: true }).click();
+      await page.getByRole("dialog", { name: "Edit commute" }).getByLabel("Commute name").fill("Evening trip");
+      await page.getByRole("button", { name: "Save commute" }).click();
+      await visible(page.getByRole("region", { name: "Evening trip" }));
+    }, { storage: { "gateahead:favorites": [
+      { gate: gateA, label: "Home gate", place: { lat: 12, lon: 75 } },
+      { gate: gateC, label: "Canal gate", place: { lat: 12, lon: 75 } },
+    ] }, rateLimitExpected: true, sceneFields: {
+      [gateA.id]: { trains: [{ number: "16603", name: "Maveli Express", eta_min: 6, closes_in_min: 2, status: "closing_soon", along_km: 2, age_min: 1 }] },
+      [gateC.id]: { coverage: { status: "partial" } },
+    } });
+
+    await run(profile, "new-features-crossing-access-verified-bypass-and-flag", async (page, _context, state) => {
+      if (profile.name === "phone") await useLightTheme(page);
+      await page.getByRole("button", { name: /School Road/ }).click();
+      await visible(page.getByText("Checking this crossing…"));
+      const bypass = page.getByRole("link", { name: /Open underpass pin in Maps/ });
+      await visible(bypass);
+      const url = new URL(await bypass.getAttribute("href"));
+      assert.equal(url.origin, "https://www.google.com");
+      assert.equal(url.searchParams.get("query"), "12.001,75.001");
+      await page.getByText("Crossing access", { exact: true }).click();
+      const access = page.getByRole("region", { name: "Crossing access and bypasses" });
+      await visible(access.getByText("Restricted", { exact: true }));
+      await visible(access.getByText("Unknown", { exact: true }));
+      await access.getByRole("button", { name: "Flag outdated details" }).press("Enter");
+      await visible(access.getByText("Flag sent for review."));
+      assert.equal(await page.evaluate(() => document.activeElement?.textContent?.trim()), "Flag outdated details");
+      state.heldScenes = false;
+      state.releases.forEach((release) => release());
+      await settle(page);
+      if (profile.name === "phone") await page.getByRole("button", { name: "Expand crossings and trains" }).click();
+      await page.screenshot({ path: resolve(artifacts, `${profile.name}-access-and-bypass-result.png`) });
+      assert.equal(state.detailFlags.length, 1);
+      assert.equal(state.detailFlags[0].crossing_id, gateA.id);
+      assert.match(state.detailFlags[0].installation_id, /^[0-9a-f-]{36}$/i);
+    }, { initial: "?lat=12&lon=75", heldScenes: true, sceneFields: { [gateA.id]: { available: false, rail: [] } },
+      accessDetails: { [gateA.id]: { crossing: gateA, crossing_access: {
+        cars: "restricted", two_wheelers: "allowed", pedestrians: "unknown", source: "verified", verified_on: verifiedOn,
+        bypasses: [{ kind: "underpass", name: "Canal Road underpass", lat: 12.001, lon: 75.001, verified_on: verifiedOn, replacement: true }],
+      },
+    } } });
+
+    await run(profile, "new-features-commute-storage-failure-and-cancellation", async (page, _context, state) => {
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await page.evaluate(() => {
+        const write = Storage.prototype.setItem;
+        const guarded = function (key, value) {
+          if (key === "gateahead:commutes") throw new DOMException("Storage quota", "QuotaExceededError");
+          return write.call(this, key, value);
+        };
+        Storage.prototype.setItem = guarded;
+        window.restoreCommuteStorage = () => { Storage.prototype.setItem = write; };
+      });
+      await page.getByRole("button", { name: "New commute" }).click();
+      const editor = page.getByRole("dialog", { name: "New commute" });
+      await editor.getByLabel("Commute name").fill("New route");
+      await editor.getByLabel("School Road", { exact: true }).check();
+      await editor.getByRole("button", { name: "Save commute" }).click();
+      await visible(editor.getByText("Could not save this commute on this device. Try again."));
+      await editor.getByRole("button", { name: "Cancel" }).click();
+      await page.evaluate(() => window.restoreCommuteStorage());
+
+      const commute = page.getByRole("region", { name: "Morning route" });
+      await Promise.all([
+        page.waitForRequest((request) => request.url().includes(encodeURIComponent(gateA.id))),
+        page.waitForRequest((request) => request.url().includes(encodeURIComponent(gateC.id))),
+        commute.getByRole("button", { name: "Check commute" }).click(),
+      ]);
+      await commute.getByLabel("Manage Morning route").click();
+      await commute.getByRole("button", { name: "Remove", exact: true }).press("Enter");
+      assert.equal(await page.evaluate(() => document.activeElement?.textContent), "New commute");
+      state.heldScenes = false;
+      state.releases.forEach((release) => release());
+      await visible(page.getByText("Commute removed.", { exact: true }));
+      await page.waitForTimeout(150);
+      assert.equal(state.calls.filter((call) => call.path === "/scene").length, 2);
+    }, { heldScenes: true, storage: {
+      "gateahead:favorites": [gateA, gateC, gateD].map((gate) => ({ gate, label: gate.name, place: { lat: 12, lon: 75 } })),
+      "gateahead:commutes": [{ id: "morning", label: "Morning route", gateIds: [gateA.id, gateC.id, gateD.id] }],
+    } });
+
+    const legacy = { ...gateA, id: "user:12:45" };
+    const canonical = { ...gateA, id: "pin:aabbccddeeff4a12a123334455667788", group_id: "road-1", group_size: 2 };
+    await run(profile, "new-features-commute-legacy-migrates-and-discloses-track-scope", async (page) => {
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      const commute = page.getByRole("region", { name: "Morning route" });
+      await commute.getByRole("button", { name: "Check commute" }).click();
+      await visible(commute.getByText("Estimated passing window", { exact: false }));
+      const stored = await page.evaluate(() => ({
+        gates: JSON.parse(localStorage.getItem("gateahead:favorites")),
+        trips: JSON.parse(localStorage.getItem("gateahead:commutes")),
+      }));
+      assert.equal(stored.gates[0].gate.id, canonical.id);
+      assert.deepEqual(stored.trips[0].gateIds, [canonical.id]);
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.getByRole("tab", { name: /Saved/ }).click();
+      await visible(commute.getByText(/At saved check, the train was estimated to be in the passing window/));
+      await visible(commute.getByText(/Part of 2 track crossings · this check covers one track/));
+    }, { storage: {
+      "gateahead:favorites": [{ gate: legacy, label: legacy.name, place: { lat: 12, lon: 75 } }],
+      "gateahead:commutes": [{ id: "morning", label: "Morning route", gateIds: [legacy.id] }],
+    }, sceneFields: { [legacy.id]: { crossing: canonical, legacy_alias_resolved: true, trains: [{
+      number: "16603", name: "Maveli Express", eta_min: -.2, closes_in_min: -5.2,
+      status: "closed", along_km: 2, age_min: 1, position_on_segment: false, movement: "moving", observed: true,
+    }] } } });
+
     await run(profile, "share-link-round-trip", async (page, context) => {
       await page.addInitScript(() => { Object.defineProperty(navigator, "share", { configurable: true, value: undefined }); });
       await page.evaluate(() => { Object.defineProperty(navigator, "share", { configurable: true, value: undefined }); });
@@ -391,10 +560,13 @@ try {
     await run(profile, "crossing-list-can-retry-in-place", async (page, _context, state) => {
       const retry = page.getByRole("button", { name: "Retry crossing lookup" });
       await visible(retry);
+      // The development mount can expose a cancelled StrictMode request to Playwright.
+      const requestsBeforeRetry = state.calls.filter((call) => call.path === "/gates").length;
+      assert.ok(requestsBeforeRetry > 0);
       state.gatesUnavailable = false;
       await retry.click();
       await visible(page.getByRole("button", { name: /School Road/ }));
-      assert.equal(state.calls.filter((call) => call.path === "/gates").length, 2);
+      assert.equal(state.calls.filter((call) => call.path === "/gates").length, requestsBeforeRetry + 1);
     }, { initial: "?lat=12&lon=75", gatesUnavailable: true });
 
     await run(profile, "removed-pre-upgrade-favorite-cannot-open", async (page) => {

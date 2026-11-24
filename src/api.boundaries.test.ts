@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fetchGates, fetchPredict, fetchReports, fetchScene, RequestError, submitReport, type Gate } from "./api";
+import { fetchCrossingDetails, fetchGates, fetchPredict, fetchReports, fetchScene, RequestError, submitReport, trainPauseUntil, type Gate } from "./api";
 
 const storage = new Map<string, string>();
 Object.defineProperty(globalThis, "localStorage", { value: {
@@ -13,6 +13,67 @@ const approach = { train: "16603", name: "Maveli Express", cluster: gate.name, i
 const prediction = { approaching: [approach], sightings: [], gate_predictions: [{ id: gate.id, train: "16603", name: "Maveli Express", eta: 6, status: "closing_soon" }] };
 const scene = { available: true, crossing: gate, rail: [[11.9, 75], [12.1, 75]],
   trains: [{ number: "16603", name: "Maveli Express", eta_min: 6, status: "closing_soon", age_min: 0, along_km: 1 }] };
+
+test("crossing access honors identity and expires dated evidence in the cache", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalNow = Date.now;
+  const signal = new AbortController().signal;
+  const day = 86400000;
+  const start = Date.parse("2026-11-20T20:00:00Z"); // 21 November in India.
+  const bypass = { kind: "flyover", name: "Bridge", lat: 12.001, lon: 75, verified_on: "2026-11-21" };
+  try {
+    storage.clear();
+    Date.now = () => start;
+    const details = { crossing: gate, crossing_access: {
+      source: "verified", cars: "allowed", two_wheelers: "allowed", pedestrians: "restricted",
+      bypasses: [bypass, bypass, { ...bypass, lon: 75.001, verified_on: "2026-11-22" }],
+    } };
+    globalThis.fetch = async () => Response.json(details);
+    const undated = await fetchCrossingDetails(gate, signal);
+    assert.equal(undated.crossing_access?.source, "unavailable");
+    assert.equal(undated.crossing_access?.cars, "unknown");
+    assert.equal(undated.crossing_access?.bypasses.length, 1);
+    globalThis.fetch = async () => Response.json({ ...details,
+      crossing_access: { ...details.crossing_access, verified_on: "2026-11-21" } });
+    assert.equal((await fetchCrossingDetails(gate, signal)).crossing_access?.source, "verified");
+    Date.now = () => start + 366 * day;
+    globalThis.fetch = async () => Response.json({ ...details, crossing: { ...gate, id: "osm:2" } });
+    const fallback = await fetchCrossingDetails(gate, signal);
+    assert.equal(fallback.offline, true);
+    assert.equal(fallback.crossing?.id, gate.id);
+    assert.equal(fallback.crossing_access?.source, "unavailable");
+    assert.deepEqual(fallback.crossing_access?.bypasses, []);
+    globalThis.fetch = async () => Response.json(scene);
+    await fetchScene(12, 75, gate.id);
+    globalThis.fetch = async () => Response.json({ detail: { code: "crossing_not_found" } }, { status: 404 });
+    assert.deepEqual(await fetchCrossingDetails(gate, signal), { error: "crossing_not_found" });
+    globalThis.fetch = async () => Response.json({ detail: "Not Found" }, { status: 404 });
+    await assert.rejects(fetchCrossingDetails(gate, signal), RequestError);
+    globalThis.fetch = async () => { throw new Error("offline"); };
+    await assert.rejects(fetchScene(12, 75, gate.id), RequestError);
+  } finally { globalThis.fetch = originalFetch; Date.now = originalNow; }
+});
+
+test("concurrent train checks keep the greater service pause", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalNow = Date.now;
+  const now = 2_000_000_000_000;
+  try {
+    storage.clear();
+    Date.now = () => now;
+    const replies: Array<(response: Response) => void> = [];
+    globalThis.fetch = async () => new Promise((resolve) => { replies.push(resolve); });
+    const first = fetchScene(12, 75, gate.id);
+    const second = fetchPredict(12, 75);
+    const longer = assert.rejects(first, (err: RequestError) => err.retryAt === now + 600_000);
+    const shorter = assert.rejects(second, (err: RequestError) => err.retryAt === now + 600_000);
+    replies[0](new Response("{}", { status: 429, headers: { "Retry-After": "600" } }));
+    await longer;
+    replies[1](new Response("{}", { status: 429, headers: { "Retry-After": "60" } }));
+    await shorter;
+    assert.equal(trainPauseUntil(), now + 600_000);
+  } finally { globalThis.fetch = originalFetch; Date.now = originalNow; storage.clear(); }
+});
 
 test("invalid topology metadata cannot replace saved crossing locations", async () => {
   const original = globalThis.fetch;

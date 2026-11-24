@@ -13,6 +13,10 @@ const browser = await chromium.launch({ headless: true, args: ["--enable-unsafe-
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
 page.setDefaultTimeout(15000);
+await context.route("https://tiles.openfreemap.org/**", (route) => route.fulfill({
+  json: { version: 8, sources: {}, layers: [{ id: "background", type: "background", paint: { "background-color": "#282d2c" } }] },
+}));
+await context.route("https://fonts.googleapis.com/**", (route) => route.fulfill({ contentType: "text/css", body: "" }));
 const errors = [];
 const consoleErrors = [];
 const responses = [];
@@ -36,6 +40,7 @@ try {
     return Promise.all(names.map(async (name) => ({ name, files: (await (await caches.open(name)).keys()).map((request) => request.url) })));
   });
   assert.ok(cached.some((cache) => cache.files.some((file) => file.endsWith(".js")) && cache.files.some((file) => file.endsWith(".css"))));
+  assert.ok(cached.some((cache) => cache.files.some((file) => /\/maplibre-gl-worker-.*\.mjs$/.test(file))), "the local map worker is precached");
   pass("service worker controls page and caches JavaScript and CSS");
   phase = "offline";
   await context.setOffline(true);

@@ -87,11 +87,13 @@ export function inRefreshWindow(settings: RefreshSettings, now: Date): boolean {
   return overnight ? minute >= start || minute < end : minute >= start && minute < end;
 }
 
+let sessionInstallationId = "";
 export function installationId(): string {
-  const old = readStored<string>("installation", "");
-  if (old) return old;
+  const old = readStored<unknown>("installation", "");
+  if (typeof old === "string" && /^[A-Za-z0-9-]{16,80}$/.test(old)) return old;
+  if (sessionInstallationId) return sessionInstallationId;
   const id = crypto.randomUUID();
-  writeStored("installation", id);
+  if (!writeStored("installation", id)) sessionInstallationId = id;
   return id;
 }
 

@@ -30,7 +30,11 @@ export function gateCheckLabel(gate: Gate): string {
 
 export function groupCheckLabel(group: GateGroup): string {
   const estimated = group.members.filter((gate) => gate.eta != null).sort((a, b) => a.eta! - b.eta!);
-  if (group.members.some((gate) => gate.status === "uncertain")) return `Position update needed${estimated.length ? ` · ${gateCheckLabel(estimated[0])}` : ""}`;
+  if (group.members.some((gate) => gate.status === "uncertain" || gate.positionUncertain)) {
+    const first = estimated[0];
+    const estimate = first ? ` · Est. ${gateLabel(first.eta!, first.closesIn, first.status)}` : "";
+    return `Position update needed${estimate}`;
+  }
   if (estimated.length) {
     const unknown = group.members.filter((gate) => gate.eta == null).length;
     return `${group.members.length > 1 ? "First track · " : ""}${gateCheckLabel(estimated[0])}${unknown ? ` · ${unknown} track timing${unknown > 1 ? "s" : ""} unknown` : ""}`;

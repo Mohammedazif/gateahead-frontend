@@ -59,6 +59,7 @@ async function run(name, test) {
     const now = await page.evaluate(() => Date.now());
     if (path === "/place") { await route.fulfill({ json: { name: "Kannur test area" } }); return; }
     if (path === "/gates") { await route.fulfill({ json: { gates: [gate, otherGate] } }); return; }
+    if (path === "/crossing-details") { await route.fulfill({ json: { error: "access_unavailable" } }); return; }
     if (path === "/cities") { await route.fulfill({ json: { cities: [{ name: "Kannur", state: "Kerala", lat: 12, lon: 75 }] } }); return; }
     if (path === "/predict") { await route.fulfill({ json: state.predict || prediction(now) }); return; }
     if (path === "/scene") {

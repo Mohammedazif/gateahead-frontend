@@ -75,9 +75,13 @@ try {
     page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
     await context.route("https://tiles.openfreemap.org/**", async (route) => {
       if (profile.holdStyle) await styleReady;
-      return route.fulfill({ json: { version: 8, sources: {}, layers: [
-      { id: "background", type: "background", paint: { "background-color": "#e8ece8" } },
-    ] } }).catch(() => {});
+      return route.fulfill({ json: { version: 8, sources: {
+        attribution: { type: "geojson", data: { type: "FeatureCollection", features: [] },
+          attribution: '<a href="https://www.openstreetmap.org/copyright">OpenStreetMap test attribution</a>' },
+      }, layers: [
+        { id: "background", type: "background", paint: { "background-color": "#e8ece8" } },
+        { id: "test-attribution", type: "line", source: "attribution" },
+      ] } }).catch(() => {});
     });
     await context.route("https://fonts.googleapis.com/**", (route) => route.fulfill({ contentType: "text/css", body: "" }));
     await context.route("**/api/**", async (route) => {
@@ -85,6 +89,7 @@ try {
       const path = url.pathname.replace(/^\/api/, "");
       if (state.offline) return route.abort("internetdisconnected");
       if (path === "/gates") return route.fulfill({ json: { gates: [...gates, freight] } });
+      if (path === "/crossing-details") return route.fulfill({ json: { error: "access_unavailable" } });
       if (path === "/predict") return route.fulfill({ json: prediction(await page.evaluate(() => Date.now()), state.uncertain) });
       if (path === "/place") return route.fulfill({ json: { name: "Trikaripur" } });
       if (path === "/cities") return route.fulfill({ json: { cities: [{ name: "Kannur", state: "Kerala", lat: 13, lon: 75 }] } });
@@ -105,6 +110,9 @@ try {
       assert.equal(await page.getByText(freight.name, { exact: true }).count(), 0);
       releaseStyle();
       await page.waitForTimeout(1200);
+      const attribution = page.locator(".maplibregl-ctrl-attrib-inner").getByText("OpenStreetMap test attribution", { exact: true });
+      await attribution.waitFor({ state: "attached" });
+      assert.equal(await attribution.getAttribute("href"), "https://www.openstreetmap.org/copyright");
       if (!profile.isMobile) {
         const tooltip = page.getByRole("tooltip");
         const point = await hoverGate(page, a);

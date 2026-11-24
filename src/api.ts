@@ -153,6 +153,25 @@ export type SceneTrain = RunIdentity & {
   bracket?: string;
 };
 
+export type AccessStatus = "allowed" | "restricted" | "unknown";
+export type CrossingBypass = { kind: "flyover" | "underpass"; name: string; lat: number; lon: number; verified_on: string; replacement?: boolean };
+export type CrossingAccess = {
+  cars: AccessStatus;
+  two_wheelers: AccessStatus;
+  pedestrians: AccessStatus;
+  source: "mapped" | "verified" | "unavailable";
+  verified_on?: string;
+  bypasses: CrossingBypass[];
+};
+
+type CrossingPoint = { id: string; name: string; lat: number; lon: number };
+export type CrossingDetails = SnapshotInfo & MapAvailability & {
+  crossing?: CrossingPoint;
+  crossing_access?: CrossingAccess;
+  legacy_alias_resolved?: boolean;
+  error?: string;
+};
+
 export type Scene = SnapshotInfo & MapAvailability & {
   service_updates?: ServiceUpdate[];
   awaiting_update?: AwaitingTrain[];
@@ -161,7 +180,8 @@ export type Scene = SnapshotInfo & MapAvailability & {
   error?: string;
   legacy_alias_resolved?: boolean;
   active_at_check?: string[];
-  crossing?: { id: string; name: string; lat: number; lon: number };
+  crossing?: CrossingPoint;
+  crossing_access?: CrossingAccess;
   rail: [number, number][];
   trains: SceneTrain[];
   passed?: (RunIdentity & { number: string; name: string; ago_min: number })[];
@@ -176,11 +196,74 @@ type PendingCache = { count: number; storedVersion: number };
 const pendingCache = new Map<string, PendingCache>();
 const sessionResponses = new Map<string, CachedResponse>();
 let requestVersion = 0;
+let sessionTrainPause = 0;
+
+export function trainPauseUntil(): number {
+  const stored = readStored<number>("paused-until", 0);
+  return Math.max(sessionTrainPause, Number.isFinite(stored) && stored < 8.64e15 ? stored : 0);
+}
+
+function pauseTrainChecks(retryAt: number): number {
+  const until = Math.max(trainPauseUntil(), retryAt);
+  sessionTrainPause = writeStored("paused-until", until) ? 0 : until;
+  return until;
+}
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
+function accessStatus(value: unknown): value is AccessStatus {
+  return value === "allowed" || value === "restricted" || value === "unknown";
+}
+
+function verificationDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed) || new Date(parsed).toISOString().slice(0, 10) !== value) return false;
+  const dayMs = 24 * 60 * 60 * 1000;
+  const today = Math.floor((Date.now() + 330 * 60 * 1000) / dayMs);
+  const date = Math.floor(parsed / dayMs);
+  return date <= today && date >= today - 365;
+}
+
+function crossingAccess(value: unknown): CrossingAccess | undefined {
+  if (!isRecord(value)) return undefined;
+  const { cars, two_wheelers, pedestrians, source, verified_on } = value;
+  if (!accessStatus(cars) || !accessStatus(two_wheelers) || !accessStatus(pedestrians) ||
+      (source !== "mapped" && source !== "verified" && source !== "unavailable")) return undefined;
+  const bypasses: CrossingBypass[] = [];
+  const seen = new Set<string>();
+  for (const row of Array.isArray(value.bypasses) ? value.bypasses : []) {
+    if (!isRecord(row) || (row.kind !== "flyover" && row.kind !== "underpass") ||
+        typeof row.name !== "string" || !row.name.trim() ||
+        typeof row.lat !== "number" || !Number.isFinite(row.lat) || Math.abs(row.lat) > 90 ||
+        typeof row.lon !== "number" || !Number.isFinite(row.lon) || Math.abs(row.lon) > 180 ||
+        !verificationDate(row.verified_on)) continue;
+    const key = `${row.kind}:${row.lat}:${row.lon}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    bypasses.push({ kind: row.kind, name: row.name, lat: row.lat, lon: row.lon,
+      verified_on: row.verified_on, replacement: row.replacement === true });
+    if (bypasses.length === 5) break;
+  }
+  if (source === "verified" && verificationDate(verified_on)) {
+    return { cars, two_wheelers, pedestrians, source, verified_on, bypasses };
+  }
+  if (source === "mapped" && [cars, two_wheelers, pedestrians].some((mode) => mode !== "unknown")) {
+    return { cars, two_wheelers, pedestrians, source, bypasses };
+  }
+  return { cars: "unknown", two_wheelers: "unknown", pedestrians: "unknown", source: "unavailable", bypasses };
+}
+
 export function isLegacyCrossingId(id: string): boolean { return /^user:\d+:\d+$/.test(id); }
+
+function crossingMatches(path: string, id: string, alias: unknown): boolean {
+  const requested = new URLSearchParams(path.slice(path.indexOf("?") + 1)).get("crossing_id");
+  if (!requested) return false;
+  return isLegacyCrossingId(requested)
+    ? alias === true && /^pin:[a-f\d]{12}4[a-f\d]{3}[89ab][a-f\d]{15}$/i.test(id)
+    : id === requested;
+}
 
 function hasResponseShape(path: string, value: unknown): value is Record<string, unknown> {
   if (!isRecord(value)) return false;
@@ -217,16 +300,14 @@ function hasResponseShape(path: string, value: unknown): value is Record<string,
     optionalRows(value.gate_predictions, (row) => estimated(row, "train", "eta") && typeof row.id === "string") &&
     optionalRows(value.passed, (row) => common(row) && typeof row.train === "string" && finite(row.ago)) &&
     optionalRows(value.awaiting_update, awaiting);
-  if (path.startsWith("/api/scene?")) {
-    if (value.crossing != null && (!isRecord(value.crossing) || typeof value.crossing.id !== "string" || typeof value.crossing.name !== "string" || !place(value.crossing))) return false;
-    const crossingId = new URLSearchParams(path.slice(path.indexOf("?") + 1)).get("crossing_id");
-    if (value.available === true && !isRecord(value.crossing)) return false;
-    if (isRecord(value.crossing)) {
-      if (!crossingId) return false;
-      if (isLegacyCrossingId(crossingId)) {
-        if (value.legacy_alias_resolved !== true || !/^pin:[a-f\d]{12}4[a-f\d]{3}[89ab][a-f\d]{15}$/i.test(String(value.crossing.id))) return false;
-      } else if (value.crossing.id !== crossingId) return false;
-    }
+  const isDetails = path.startsWith("/api/crossing-details?");
+  if (path.startsWith("/api/scene?") || isDetails) {
+    const crossing = value.crossing;
+    if (crossing != null && (!isRecord(crossing) || typeof crossing.id !== "string" ||
+        typeof crossing.name !== "string" || !place(crossing) ||
+        !crossingMatches(path, crossing.id, value.legacy_alias_resolved))) return false;
+    if (isDetails) return value.error ? typeof value.error === "string" : Boolean(crossing && crossingAccess(value.crossing_access));
+    if (value.available === true && !crossing) return false;
     return typeof value.available === "boolean" && rail(value.rail) && rows(value.trains, (row) => {
       if (!estimated(row, "number", "eta_min") || !finite(row.age_min) || !finite(row.along_km) || !numbers(row, ["snapshot_at"]) || !motion(row.motion)) return false;
       if (row.snapshot_at != null && Math.abs(row.snapshot_at as number) > 8.64e12) return false;
@@ -253,9 +334,14 @@ function serviceErrorBody(path: string, body: Record<string, unknown>): Record<s
   return body;
 }
 
-function publicGateResponse(path: string, body: Record<string, unknown>): Record<string, unknown> {
-  if (!path.startsWith("/api/gates?") || !Array.isArray(body.gates)) return body;
-  return { ...body, gates: body.gates.filter((gate) => gate.restricted_freight !== true) };
+function publicResponse(path: string, body: Record<string, unknown>): Record<string, unknown> {
+  if (path.startsWith("/api/gates?") && Array.isArray(body.gates)) {
+    return { ...body, gates: body.gates.filter((gate) => gate.restricted_freight !== true) };
+  }
+  if (/^\/api\/(scene|crossing-details)\?/.test(path) && body.crossing_access != null) {
+    return { ...body, crossing_access: body.crossing ? crossingAccess(body.crossing_access) : undefined };
+  }
+  return body;
 }
 
 function responseCache(): Record<string, CachedResponse> {
@@ -270,10 +356,24 @@ function responseCache(): Record<string, CachedResponse> {
 
 export function cachedResponse(path: string, privateLocation = false): CachedResponse | null {
   const hit = privateLocation ? sessionResponses.get(path) : responseCache()[path];
-  return hit ? { ...hit, data: publicGateResponse(path, hit.data) } : null;
+  return hit ? { ...hit, data: publicResponse(path, hit.data) } : null;
 }
 
 export function clearPrivateResponses() { sessionResponses.clear(); }
+
+function discardCrossingResponses(path: string, privateLocation: boolean) {
+  const id = new URLSearchParams(path.slice(path.indexOf("?") + 1)).get("crossing_id");
+  if (!id) return;
+  const matches = (key: string) => /^\/api\/(scene|crossing-details)\?/.test(key) &&
+    new URLSearchParams(key.slice(key.indexOf("?") + 1)).get("crossing_id") === id;
+  for (const key of sessionResponses.keys()) if (matches(key)) sessionResponses.delete(key);
+  if (privateLocation) return;
+  const all = responseCache();
+  const remove = Object.keys(all).filter(matches);
+  if (!remove.length) return;
+  for (const key of remove) delete all[key];
+  writeStored("responses", all);
+}
 
 export function discardPersistedArea(lat: number, lon: number) {
   const all = responseCache();
@@ -288,7 +388,8 @@ export function discardPersistedArea(lat: number, lon: number) {
 
 async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false): Promise<T> {
   signal?.throwIfAborted();
-  const cacheable = /^\/api\/(gates|predict|scene)\?/.test(path);
+  const isDetails = path.startsWith("/api/crossing-details?");
+  const cacheable = isDetails || /^\/api\/(gates|predict|scene)\?/.test(path);
   const cacheKey = privateLocation ? `private:${path}` : path;
   const pending = cacheable ? pendingCache.get(cacheKey) ?? { count: 0, storedVersion: 0 } : null;
   const version = ++requestVersion;
@@ -300,14 +401,15 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
       return { ...saved.data, cached_at: saved.at, offline: disconnected } as T;
     }
     const trainCheck = /^\/api\/(predict|scene)\?/.test(path);
-    const pausedUntil = readStored<number>("paused-until", 0);
-    if (trainCheck && Number.isFinite(pausedUntil) && pausedUntil > Date.now()) {
+    const pausedUntil = trainPauseUntil();
+    if (trainCheck && pausedUntil > Date.now()) {
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
       throw new RequestError("Checks are paused. Try again in a few minutes.", pausedUntil);
     }
     let response: Response;
     try {
-      response = await fetch(path, { cache: "no-store", signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(90000)]) : AbortSignal.timeout(90000) });
+      const deadline = AbortSignal.timeout(isDetails ? 40000 : 90000);
+      response = await fetch(path, { cache: "no-store", signal: signal ? AbortSignal.any([signal, deadline]) : deadline });
     } catch (err) {
       if (signal?.aborted) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
@@ -320,9 +422,18 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
       const seconds = /^\d+(?:\.\d+)?$/.test(header) ? Number(header) : NaN;
       const date = /[a-z]/i.test(header) ? Date.parse(header) : NaN;
       const retryAt = Number.isFinite(seconds) ? now + seconds * 1000 : Number.isFinite(date) ? Math.max(now, date) : now + 600000;
-      if (trainCheck) writeStored("paused-until", retryAt);
+      const deadline = retryAt < 8.64e15 ? retryAt : now + 600000;
       throw new RequestError(trainCheck ? "Too many checks. Automatic checks are paused; try again in a few minutes." :
-        "Too many requests for this feature. Try again in a few minutes.", retryAt);
+        "Too many requests for this feature. Try again in a few minutes.", trainCheck ? pauseTrainChecks(deadline) : deadline);
+    }
+    if (isDetails && response.status === 404) {
+      const body: unknown = await response.json().catch(() => null);
+      signal?.throwIfAborted();
+      if (isRecord(body) && (body.error === "crossing_not_found" || body.detail === "Crossing not found at this location." ||
+          (isRecord(body.detail) && body.detail.code === "crossing_not_found"))) {
+        discardCrossingResponses(path, privateLocation);
+        return { error: "crossing_not_found" } as T;
+      }
     }
     if (!response.ok) {
       if (saved && response.status >= 500) return { ...saved.data, cached_at: saved.at, offline: true } as T;
@@ -335,20 +446,15 @@ async function getJson<T>(path: string, signal?: AbortSignal, freshAfter = 0, pr
       if (!isRecord(body)) throw new Error("Invalid response body");
       data = serviceErrorBody(path, body);
       if (!hasResponseShape(path, data)) throw new Error("Invalid response fields");
-      data = publicGateResponse(path, data);
+      data = publicResponse(path, data);
     } catch (err) {
       if (signal?.aborted) throw err;
       if (saved) return { ...saved.data, cached_at: saved.at, offline: true } as T;
       throw new RequestError("The service returned an unreadable response. Try again in a moment.");
     }
     const fetchedAt = Date.now();
-    if (data.error === "crossing_not_found" && path.startsWith("/api/scene?")) {
-      if (privateLocation) sessionResponses.delete(path);
-      else if (saved) {
-        const all = responseCache();
-        delete all[path];
-        writeStored("responses", all);
-      }
+    if (data.error === "crossing_not_found" && (isDetails || path.startsWith("/api/scene?"))) {
+      discardCrossingResponses(path, privateLocation);
       return data as T;
     }
     if (cacheable && data.error && saved) {
@@ -403,6 +509,18 @@ export async function submitReport(gate: Gate, state: string): Promise<GateRepor
   } catch { throw new RequestError("The service returned an unreadable report. Try again in a moment."); }
 }
 
+export async function flagCrossingDetails(gate: Gate, signal: AbortSignal): Promise<void> {
+  const deadline = AbortSignal.any([signal, AbortSignal.timeout(45000)]);
+  const response = await fetch("/api/crossing-details/flags", {
+    method: "POST", headers: { "Content-Type": "application/json" }, signal: deadline,
+    body: JSON.stringify({ crossing_id: gate.id, installation_id: installationId(), lat: gate.lat, lon: gate.lon }),
+  });
+  if (!response.ok) throw new RequestError(response.status === 429 ? "Too many flags. Try again in a few minutes." : "Could not send the flag. Try again later.");
+  const body: unknown = await response.json().catch(() => null);
+  deadline.throwIfAborted();
+  if (!isRecord(body) || body.accepted !== true) throw new RequestError("Could not confirm the flag. Try again later.");
+}
+
 export type City = {
   name: string;
   state: string;
@@ -437,9 +555,29 @@ export function fetchPredict(lat: number, lon: number, signal?: AbortSignal, pri
   return getJson(`/api/predict?lat=${lat}&lon=${lon}`, signal, 0, privateLocation);
 }
 
+function crossingPath(endpoint: "scene" | "crossing-details", lat: number, lon: number, crossingId: string): string {
+  return `/api/${endpoint}?lat=${lat}&lon=${lon}&crossing_id=${encodeURIComponent(crossingId)}`;
+}
+
+export function savedScenes(crossingIds: ReadonlySet<string>): Map<string, Scene> {
+  const scenes = new Map<string, Scene>();
+  if (!crossingIds.size) return scenes;
+  for (const [path, cached] of Object.entries(responseCache())) {
+    if (!path.startsWith("/api/scene?")) continue;
+    const crossing = cached.data.crossing;
+    if (!isRecord(crossing) || typeof crossing.id !== "string" || !crossingIds.has(crossing.id)) continue;
+    if ((scenes.get(crossing.id)?.cached_at ?? -Infinity) >= cached.at) continue;
+    scenes.set(crossing.id, { ...publicResponse(path, cached.data), cached_at: cached.at, offline: true } as Scene);
+  }
+  return scenes;
+}
+
 export function fetchScene(lat: number, lon: number, crossingId: string, signal?: AbortSignal, freshAfter = 0, privateLocation = false): Promise<Scene> {
-  const id = encodeURIComponent(crossingId);
-  return getJson(`/api/scene?lat=${lat}&lon=${lon}&crossing_id=${id}`, signal, freshAfter, privateLocation);
+  return getJson(crossingPath("scene", lat, lon, crossingId), signal, freshAfter, privateLocation);
+}
+
+export function fetchCrossingDetails(gate: Gate, signal: AbortSignal): Promise<CrossingDetails> {
+  return getJson(crossingPath("crossing-details", gate.lat, gate.lon, gate.id), signal);
 }
 
 export function friendlyError(message: string | undefined): string {

@@ -24,6 +24,7 @@ test("only topology metadata groups track points; names and very close coordinat
 test("group summaries keep uncertain or unknown track checks visible beside known estimates", () => {
   const known = { ...a, eta: 12, closesIn: 7, status: "approaching" };
   assert.match(groupCheckLabel(groupGates([known, { ...b, status: "uncertain" }])[0]), /Position update needed.*Est\. closes in 7 min/);
+  assert.match(groupCheckLabel(groupGates([known, { ...b, eta: 34, status: "approaching", positionUncertain: true }])[0]), /Position update needed.*Est\. closes in 7 min/);
   assert.match(groupCheckLabel(groupGates([known, b])[0]), /First track.*closes in 7 min.*1 track timing unknown/);
   assert.equal(groupGates([known, b])[0].members[1].eta, undefined);
 });

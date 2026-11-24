@@ -55,6 +55,7 @@ async function run(profile, name, exercise, options = {}) {
     state.calls[path] = (state.calls[path] || 0) + 1;
     const at = await page.evaluate(() => Date.now());
     if (path === "/gates") return route.fulfill({ json: { gates: [gate] } });
+    if (path === "/crossing-details") return route.fulfill({ json: { error: "access_unavailable" } });
     if (path === "/place") return route.fulfill({ json: { name: "Test area" } });
     if (path === "/reports") return route.fulfill({ json: state.reportMalformed ? {} : { verified: false, reports: [] } });
     if (path === "/scene") {

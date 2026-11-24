@@ -57,7 +57,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -365,7 +365,9 @@ button.solid {
   font-weight: 640;
 }
 
-button.solid:disabled {
+button.solid:disabled,
+button.solid[aria-disabled="true"],
+.crossing-access button[aria-disabled="true"] {
   opacity: 0.45;
   cursor: default;
 }
@@ -744,6 +746,18 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 .gate-status p { line-height: 1.5; font-size: .88rem; }
 .crossing-actions { gap: 8px; margin: 16px 0; }
 .crossing-actions button { display: inline-flex; align-items: center; gap: 6px; min-height: 42px; }
+.crossing-access { margin-top: 16px; }
+.crossing-access dl { margin: 0; font-size: .85rem; }
+.crossing-access dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; padding: 6px 0; }
+.crossing-access dt, .crossing-access dd { min-width: 0; overflow-wrap: anywhere; }
+.crossing-access dd { margin: 0; color: var(--muted); }
+.bypass-list { list-style: none; margin: 0; padding: 0; }
+.bypass-list li + li { margin-top: 12px; }
+.bypass-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); text-decoration: none; }
+.bypass-link strong, .bypass-link small { display: block; overflow-wrap: anywhere; }
+.bypass-link strong { font-size: .9rem; font-weight: 500; }
+.bypass-link small { margin-top: 4px; color: var(--muted); }
+.bypass-link svg { color: var(--muted); flex: none; }
 .disclosure { border-top: 1px solid var(--line); margin-top: 12px; font-size: .87rem; }
 .disclosure summary { cursor: pointer; padding: 12px 0; color: var(--muted); line-height: 1.5; }
 .disclosure p { line-height: 1.55; }
@@ -763,6 +777,26 @@ button.compact { padding: 9px 12px; font-size: .8rem; flex: none; }
 .saved-menu > summary::-webkit-details-marker { display: none; }
 .saved-menu-actions { display: grid; gap: 8px; padding: 4px 8px 10px; }
 .saved-menu-actions button { padding: 6px 4px; text-align: left; border: 0; background: transparent; font-size: .8rem; }
+.commute-checks { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 10px; }
+.commute-card { margin-top: 10px; padding: 12px; }
+.commute-card h3 { margin: 0; font-size: .95rem; font-weight: 500; overflow-wrap: anywhere; }
+.commute-card .saved-menu { margin-top: 0; }
+.commute-stops, .commute-order { margin: 8px 0 12px; padding-inline-start: 20px; }
+.commute-stops > li { padding-block: 8px; border-top: 1px solid var(--line); }
+.commute-stops .crossing-member { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: start; border: 0; border-radius: 8px; background: transparent; padding: 6px 0; overflow-wrap: anywhere; }
+.commute-stops .crossing-member > strong { min-width: 0; font-weight: 500; }
+.commute-stops .crossing-member > svg { flex: none; color: var(--muted); }
+.commute-stops p { margin: 4px 0; font-size: .82rem; overflow-wrap: anywhere; }
+.control-feedback:empty { margin: 0; }
+.commute-editor { display: grid; gap: 18px; }
+.commute-name { display: grid; gap: 8px; }
+.commute-name input { min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); padding: 10px; }
+.commute-editor fieldset { margin: 0; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.commute-editor legend { padding-inline: 6px; color: var(--ink); font-size: .9rem; }
+.commute-editor .refresh-controls { gap: 10px; overflow-wrap: anywhere; }
+.commute-order { margin-bottom: 0; }
+.commute-order li > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 0; overflow-wrap: anywhere; }
+.commute-order .actions { margin: 0; flex: none; }
 .train { border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
 .train header { align-items: flex-start; }
 .train header strong { font-size: .94rem; line-height: 1.5; font-weight: 500; }

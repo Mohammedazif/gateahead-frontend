@@ -9,12 +9,14 @@ import { groupCheckLabel, gateCheckLabel, groupGates, groupCrossingTimings, trac
 import type { Theme } from "../theme";
 import { checkedAgo } from "./checked";
 import { SavedGates, RefreshControls } from "./FeatureControls";
+import { CommuteChecks } from "./CommuteChecks";
 import { GateDetails } from "./GateDetails";
 import { CoverageNotice } from "./CoverageNotice";
 import { AwaitingUpdate } from "./AwaitingUpdate";
 import { Dialog } from "../ui/Dialog";
 import { Icon, type IconName } from "../ui/Icon";
 import { incompleteCheck, type RefreshSettings, type SavedGate } from "../features";
+import type { Commute, CommuteResult } from "../commute";
 
 type Tab = "nearby" | "trains" | "saved";
 const tabs: { id: Tab; label: string; icon: IconName }[] = [
@@ -32,6 +34,16 @@ type Props = {
   onOpenSaved: (item: SavedGate) => void;
   onRenameSaved: (item: SavedGate) => void;
   onRemoveSaved: (id: string) => void;
+  commutes: Commute[];
+  commuteResults: Record<string, CommuteResult>;
+  checkingCommute: string | null;
+  pendingCommuteGates: string[];
+  commuteReadyAt: number;
+  savedNotice: string;
+  now: number;
+  onSaveCommute: (commute: Commute) => boolean;
+  onRemoveCommute: (id: string) => boolean;
+  onCheckCommute: (commute: Commute) => void;
   refresh: RefreshSettings;
   onRefresh: (value: RefreshSettings) => void;
   paused: boolean;
@@ -123,6 +135,7 @@ export function TrainSheet(props: Props) {
         </nav>
       </div>
       <div ref={scroll} className="sheet-body" id="train-sheet-content" role="tabpanel" aria-labelledby={`tab-${tab}`} tabIndex={0}>
+        <p className="quiet control-feedback" role="status" aria-atomic="true">{props.savedNotice}</p>
         {selected ? <GateDetails gate={selected} verifiedGate={props.gateVerified} track={trackCrossingLabel(selected.id, gates) || (selected.group_size && selected.group_size > 1 ? `Part of ${selected.group_size} track crossings` : "")} scene={props.scene} loading={props.sceneLoading} message={props.sceneMessage}
           historical={props.sceneHistorical} focusedTrain={props.focusedTrain} visibleTrains={props.visibleTrains} onFocusTrain={props.onFocusTrain} saved={favorites.some((item) => item.gate.id === selected.id)}
           onSave={() => props.onSaveGate(selected)} onBack={() => { props.onCloseGate(); setTab("nearby"); }} /> : <>
@@ -155,6 +168,10 @@ export function TrainSheet(props: Props) {
             <div className="content-heading"><h2>Saved gates</h2><span className="count-label">{favorites.length}</span></div>
             <p className="section-caption">A shortcut to the crossings you use most.</p>
             <SavedGates items={favorites} onOpen={props.onOpenSaved} onRename={props.onRenameSaved} onRemove={props.onRemoveSaved} />
+            <CommuteChecks commutes={props.commutes} favorites={favorites} gates={gates} results={props.commuteResults}
+              checking={props.checkingCommute} pendingGateIds={props.pendingCommuteGates}
+              busy={busy} readyAt={props.commuteReadyAt} now={props.now}
+              onSave={props.onSaveCommute} onRemove={props.onRemoveCommute} onCheck={props.onCheckCommute} onOpenGate={props.onOpenSaved} />
           </>}
           {error && tab !== "saved" && <p className="notice" role="status">{friendlyError(error)}</p>}
         </>}

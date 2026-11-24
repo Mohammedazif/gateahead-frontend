@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { gateLabel, labelStatus, passedLabel } from "./labels.ts";
+import { gateLabel, labelStatus, passedLabel, sceneTimingLabel } from "./labels.ts";
+import type { SceneTrain } from "./api.ts";
 
 test("the label counts down to the barrier, not the train", () => {
   assert.equal(gateLabel(12, 7), "closes in 7 min");
@@ -31,4 +32,13 @@ test("a train that went over is named as passed", () => {
   assert.equal(passedLabel(2.6), "passed 3 min ago");
   assert.equal(labelStatus("passed"), "Passed");
   assert.equal(labelStatus("closing_soon"), "Closing");
+});
+test("a saved barrier estimate stays in past tense and an unconfirmed passing window stays estimated", () => {
+  const train: SceneTrain = { number: "16603", name: "Maveli Express", eta_min: -.2, closes_in_min: -5.2,
+    status: "closed", age_min: 1, along_km: .5, movement: "moving", position_on_segment: false };
+  assert.equal(sceneTimingLabel(train, false), "Estimated passing window");
+  assert.equal(sceneTimingLabel(train, true), "At saved check, the train was estimated to be in the passing window");
+  assert.equal(sceneTimingLabel({ ...train, eta_min: 7, closes_in_min: 2 }, true),
+    "At saved check, the barrier was estimated to close 2 min later");
+  assert.equal(sceneTimingLabel({ ...train, observed: false, eta_min: 7 }, false), "Timetable estimate · train due in 7 min");
 });

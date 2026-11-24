@@ -1,14 +1,15 @@
 import { runKey } from "./runIdentity";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { cachedResponse, clearPrivateResponses, discardPersistedArea, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, isLegacyCrossingId, RequestError, type City, type Gate, type Predict, type Scene } from "./api";
+import { cachedResponse, clearPrivateResponses, discardPersistedArea, fetchGates, fetchPlaceName, fetchPredict, fetchScene, friendlyError, isLegacyCrossingId, RequestError, trainPauseUntil, type City, type Gate, type Predict, type Scene } from "./api";
 import { MapView } from "./map/MapView";
 import { frameForRun, sceneRun } from "./map/playback";
 import { currentPrediction, currentScene, sceneFreshUntil, ESTIMATE_WINDOW_MS } from "./timing";
 import { TrainSheet } from "./sheet/TrainSheet";
 import { applyTheme, readTheme, type Theme } from "./theme";
+import { checkCommuteGates, COMMUTE_COOLDOWN_MS, MAX_COMMUTES, mergeCommuteResult, readCommuteResults, readCommutes, type Commute, type CommuteResult } from "./commute";
 
-import { initialPlace, inRefreshWindow, markGates, withGateChecks, readFavorites, readRefresh, readStored, writeStored, type Place, type SavedGate } from "./features";
+import { initialPlace, inRefreshWindow, markGates, withGateChecks, readFavorites, readRefresh, writeStored, type Place, type SavedGate } from "./features";
 import { LocationControl } from "./map/LocationControl";
 type Press = Place & { x: number; y: number };
 
@@ -16,12 +17,17 @@ export function App() {
   const [initial] = useState(() => initialPlace(window.location.href));
   const [place, setPlace] = useState<Place | null>(initial);
   const [favorites, setFavorites] = useState(readFavorites);
+  const [commutes, setCommutes] = useState(readCommutes);
+  const savedState = useRef({ favorites, commutes });
+  const [savedNotice, setSavedNotice] = useState("");
+  const [commuteResults, setCommuteResults] = useState<Record<string, CommuteResult>>(() => readCommuteResults(commutes, favorites));
+  const [checkingCommute, setCheckingCommute] = useState<string | null>(null);
+  const [pendingCommuteGates, setPendingCommuteGates] = useState<string[]>([]);
+  const [commuteReadyAt, setCommuteReadyAt] = useState(0);
+  const commuteRequest = useRef<{ id: string; controller: AbortController; gateIds: string[] } | null>(null);
   const [refresh, setRefresh] = useState(readRefresh);
   const [now, setNow] = useState(Date.now());
-  const [pausedUntil, setPausedUntil] = useState(() => {
-    const value = readStored<number>("paused-until", 0);
-    return Number.isFinite(value) ? value : 0;
-  });
+  const [pausedUntil, setPausedUntil] = useState(trainPauseUntil);
   const [gatesCached, setGatesCached] = useState(false);
   const generation = useRef(0);
   const locationTicket = useRef(0);
@@ -38,9 +44,22 @@ export function App() {
     window.history.replaceState(window.history.state, "", url);
   }, [initial]);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 15000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => { writeStored("favorites", favorites); }, [favorites]);
+  useEffect(() => () => commuteRequest.current?.controller.abort(), []);
   useEffect(() => { writeStored("refresh", refresh); }, [refresh]);
-  useEffect(() => { writeStored("paused-until", pausedUntil); }, [pausedUntil]);
+  useEffect(() => {
+    const updatePause = (event: StorageEvent) => {
+      if (event.key !== "gateahead:paused-until") return;
+      setPausedUntil((previous) => Math.max(previous, trainPauseUntil()));
+    };
+    window.addEventListener("storage", updatePause);
+    return () => window.removeEventListener("storage", updatePause);
+  }, []);
+  useEffect(() => {
+    const wait = Math.max(commuteReadyAt, pausedUntil) - Date.now();
+    if (wait <= 0 || wait > 2_147_483_647) return;
+    const timer = window.setTimeout(() => setNow(Date.now()), wait);
+    return () => window.clearTimeout(timer);
+  }, [commuteReadyAt, pausedUntil]);
   useEffect(() => {
     if (!place) return;
     if (place.privateLocation) discardPersistedArea(place.lat, place.lon);
@@ -80,6 +99,15 @@ export function App() {
   const sceneTicket = useRef(0);
   const confirmLock = useRef(false);
 
+  const cancelCommute = useCallback(() => {
+    const request = commuteRequest.current;
+    if (!request) return;
+    commuteRequest.current = null;
+    request.controller.abort();
+    setCheckingCommute(null);
+    setPendingCommuteGates([]);
+  }, []);
+
   const closeScene = useCallback(() => {
     wantedGate.current = null;
     sceneTicket.current += 1;
@@ -104,6 +132,7 @@ export function App() {
       locationTicket.current += 1;
       predictRequest.current?.abort();
       sceneRequest.current?.abort();
+      cancelCommute();
       clearPrivateResponses();
       wantedGate.current = gateId;
       checkingLock.current = false;
@@ -136,7 +165,7 @@ export function App() {
       setSceneState("closed");
       setSceneMessage(null);
     },
-    [],
+    [cancelCommute],
   );
 
   const confirmPlace = useCallback(() => {
@@ -288,9 +317,11 @@ export function App() {
   }
 
   const check = useCallback(async (automatic = false) => {
-    if (!place || checkingLock.current) return;
-    if (Date.now() < pausedUntil) {
-      if (!automatic) setError(`Checks are paused until ${new Date(pausedUntil).toLocaleTimeString()}.`);
+    if (!place || checkingLock.current || commuteRequest.current) return;
+    const pause = Math.max(pausedUntil, trainPauseUntil());
+    if (Date.now() < pause) {
+      setPausedUntil(pause);
+      if (!automatic) setError(`Checks are paused until ${new Date(pause).toLocaleTimeString()}.`);
       return;
     }
     if (Date.now() - lastAttempt.current < 90000) {
@@ -311,7 +342,7 @@ export function App() {
       if (!body.offline) refreshScene.current();
     } catch (err) {
       if (ticket !== generation.current) return;
-      if (err instanceof RequestError && err.retryAt) setPausedUntil(err.retryAt);
+      if (err instanceof RequestError && err.retryAt) setPausedUntil((previous) => Math.max(previous, err.retryAt));
       setError(err instanceof Error ? err.message : "Could not check trains.");
     } finally {
       if (ticket === generation.current) { checkingLock.current = false; setChecking(false); }
@@ -330,18 +361,132 @@ export function App() {
   function saveGate(gate: Gate) {
     if (!place) return;
     if (favorites.some((item) => item.gate.id === gate.id)) {
-      setFavorites((items) => items.filter((item) => item.gate.id !== gate.id)); return;
+      removeSaved(gate.id); return;
     }
     const label = window.prompt("Name this saved gate", gate.name || "My gate")?.trim().slice(0, 80);
     const savedPlace = place.privateLocation ? { lat: gate.lat, lon: gate.lon, label: gate.name } : place;
-    if (label) setFavorites((items) => [...items, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place: savedPlace }].slice(-50));
+    if (!label) return;
+    const next = [...savedState.current.favorites, { gate: { ...gate, eta: undefined, status: undefined, closesIn: undefined }, label, place: savedPlace }].slice(-50);
+    updateFavorites(next);
   }
   function openSaved(item: SavedGate) {
     choosePlace(item.place.lat, item.place.lon, item.place.label || item.label, item.gate.id);
   }
   function renameSaved(item: SavedGate) {
     const label = window.prompt("Rename this gate", item.label)?.trim().slice(0, 80);
-    if (label) setFavorites((items) => items.map((row) => row.gate.id === item.gate.id ? { ...row, label } : row));
+    if (label) updateFavorites(savedState.current.favorites.map((row) => row.gate.id === item.gate.id ? { ...row, label } : row));
+  }
+
+  function removeSaved(id: string) {
+    updateFavorites(savedState.current.favorites.filter((item) => item.gate.id !== id));
+  }
+
+  function commitSaved(next: { favorites: SavedGate[]; commutes: Commute[] }): boolean {
+    const previous = savedState.current;
+    const changedFavorites = next.favorites !== previous.favorites;
+    const changedCommutes = next.commutes !== previous.commutes;
+    if (!changedFavorites && !changedCommutes) return true;
+    if (changedFavorites && !writeStored("favorites", next.favorites)) return false;
+    if (changedCommutes && !writeStored("commutes", next.commutes)) {
+      if (changedFavorites) writeStored("favorites", previous.favorites);
+      return false;
+    }
+    savedState.current = next;
+    setSavedNotice("");
+    if (changedFavorites) setFavorites(next.favorites);
+    if (changedCommutes) {
+      setCommutes(next.commutes);
+      const remaining = new Set(next.commutes.flatMap((trip) => trip.gateIds));
+      setCommuteResults((previous) => Object.fromEntries(Object.entries(previous).filter(([id]) => remaining.has(id))));
+    }
+    return true;
+  }
+
+  function updateFavorites(next: SavedGate[]): void {
+    const ids = new Set(next.map((favorite) => favorite.gate.id));
+    const trips = savedState.current.commutes;
+    const keepsEveryStop = trips.every((trip) => trip.gateIds.every((id) => ids.has(id)));
+    const updated = keepsEveryStop ? trips : trips.map((trip) => ({ ...trip, gateIds: trip.gateIds.filter((id) => ids.has(id)) }))
+      .filter((trip) => trip.gateIds.length);
+    if (!commitSaved({ favorites: next, commutes: updated })) {
+      setSavedNotice("Could not update saved crossings on this device.");
+    } else if (commuteRequest.current?.gateIds.some((id) => !ids.has(id))) {
+      cancelCommute();
+    }
+  }
+
+  function saveCommute(commute: Commute): boolean {
+    const current = savedState.current;
+    const existing = current.commutes.find((trip) => trip.id === commute.id);
+    if (!existing && current.commutes.length >= MAX_COMMUTES) return false;
+    const saved = commitSaved({ ...current, commutes: existing
+      ? current.commutes.map((trip) => trip.id === commute.id ? commute : trip)
+      : [...current.commutes, commute] });
+    if (saved && commuteRequest.current?.id === commute.id &&
+        existing?.gateIds.join("\0") !== commute.gateIds.join("\0")) cancelCommute();
+    return saved;
+  }
+
+  function removeCommute(id: string): boolean {
+    const current = savedState.current;
+    const saved = commitSaved({ ...current, commutes: current.commutes.filter((trip) => trip.id !== id) });
+    if (saved && commuteRequest.current?.id === id) cancelCommute();
+    return saved;
+  }
+
+  function migrateCrossing(gate: Gate, crossing: NonNullable<Scene["crossing"]>): { gate: Gate; persisted: boolean } {
+    const resolved = gates.find((item) => item.id === crossing.id) ?? { ...gate, ...crossing };
+    const current = savedState.current;
+    if (!current.favorites.some((item) => item.gate.id === gate.id)) return { gate: resolved, persisted: true };
+    const updatedFavorites = current.favorites.some((item) => item.gate.id === resolved.id)
+      ? current.favorites.filter((item) => item.gate.id !== gate.id)
+      : current.favorites.map((item) => item.gate.id === gate.id ? { ...item, gate: resolved } : item);
+    const updatedCommutes = current.commutes.some((trip) => trip.gateIds.includes(gate.id))
+      ? current.commutes.map((trip) => ({ ...trip,
+        gateIds: [...new Set(trip.gateIds.map((id) => id === gate.id ? resolved.id : id))],
+      })) : current.commutes;
+    const persisted = commitSaved({ favorites: updatedFavorites, commutes: updatedCommutes });
+    if (!persisted) setSavedNotice("Could not save the updated crossing identity on this device.");
+    return { gate: resolved, persisted };
+  }
+
+  async function checkCommute(commute: Commute) {
+    const started = Date.now();
+    const pause = Math.max(pausedUntil, trainPauseUntil());
+    if (commuteRequest.current || checkingLock.current || started < Math.max(commuteReadyAt, pause)) {
+      setPausedUntil(pause);
+      return;
+    }
+    const saved = new Map(favorites.map((item) => [item.gate.id, item]));
+    const items = commute.gateIds.flatMap((id) => saved.get(id) ?? []);
+    if (!items.length) return;
+
+    const ctrl = new AbortController();
+    commuteRequest.current = { id: commute.id, controller: ctrl, gateIds: items.map(({ gate }) => gate.id) };
+    setCheckingCommute(commute.id);
+    setPendingCommuteGates(items.map(({ gate }) => gate.id));
+    setCommuteReadyAt(started + COMMUTE_COOLDOWN_MS);
+    setNow(started);
+    try {
+      await checkCommuteGates(items, ctrl.signal,
+        (requested, result) => {
+          const crossing = result.scene?.crossing;
+          const item = saved.get(requested);
+          const canonical = crossing && crossing.id !== requested && item ? migrateCrossing(item.gate, crossing) : null;
+          const id = canonical?.persisted ? canonical.gate.id : requested;
+          if (!savedState.current.commutes.some((trip) => trip.gateIds.includes(id))) return;
+          setPendingCommuteGates((previous) => previous.filter((pendingId) => pendingId !== requested));
+          setCommuteResults((previous) => ({ ...previous, [id]: mergeCommuteResult(previous[id], result) }));
+        },
+        (retryAt) => setPausedUntil((previous) => Math.max(previous, retryAt)));
+    } finally {
+      if (commuteRequest.current?.controller === ctrl) {
+        commuteRequest.current = null;
+        setCheckingCommute(null);
+        setPendingCommuteGates([]);
+        setNow(Date.now());
+      }
+    }
   }
 
   async function openGate(gate: Gate, refreshing = false) {
@@ -361,13 +506,7 @@ export function App() {
         refreshing ? Date.now() : predict?.cached_at ?? checkedAt ?? 0, place.privateLocation);
       if (ticket !== sceneTicket.current) return;
       const canonical = body.crossing && body.crossing.id !== gate.id ? body.crossing : null;
-      if (canonical) {
-        const resolved = gates.find((item) => item.id === canonical.id) ?? { ...gate, ...canonical };
-        setSelected(resolved);
-        setFavorites((items) => items.some((item) => item.gate.id === resolved.id)
-          ? items.filter((item) => item.gate.id !== gate.id)
-          : items.map((item) => item.gate.id === gate.id ? { ...item, gate: resolved } : item));
-      }
+      if (canonical) setSelected(migrateCrossing(gate, canonical).gate);
       if (!body.available || (body.rail?.length ?? 0) < 2) {
         setScene(body);
         setSceneMessage(
@@ -383,7 +522,7 @@ export function App() {
       setSceneState("open");
     } catch (err) {
       if (ticket !== sceneTicket.current) return;
-      if (err instanceof RequestError && err.retryAt) setPausedUntil(err.retryAt);
+      if (err instanceof RequestError && err.retryAt) setPausedUntil((previous) => Math.max(previous, err.retryAt));
       setSceneMessage(err instanceof Error ? err.message : "Could not open this crossing.");
       setSceneState("open");
     }
@@ -470,7 +609,7 @@ export function App() {
         onSaveGate={saveGate}
         gateCount={gates.length}
         loading={loadingGates}
-        busy={checking}
+        busy={checking || checkingCommute != null}
         error={error}
         note={gatesNote}
         gateSelectionNote={gateSelectionNote}
@@ -484,7 +623,17 @@ export function App() {
         favorites={favorites}
         onOpenSaved={openSaved}
         onRenameSaved={renameSaved}
-        onRemoveSaved={(id) => setFavorites((items) => items.filter((item) => item.gate.id !== id))}
+        onRemoveSaved={removeSaved}
+        commutes={commutes}
+        commuteResults={commuteResults}
+        checkingCommute={checkingCommute}
+        pendingCommuteGates={pendingCommuteGates}
+        commuteReadyAt={Math.max(commuteReadyAt, pausedUntil)}
+        savedNotice={savedNotice}
+        now={now}
+        onSaveCommute={saveCommute}
+        onRemoveCommute={removeCommute}
+        onCheckCommute={checkCommute}
         refresh={refresh}
         onRefresh={setRefresh}
         paused={pausedUntil > now}

@@ -35,7 +35,7 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
       generateBundle: {
         order: "post",
         handler(_options, bundle) {
-          const assets = Object.keys(bundle).filter((name) => /\.(js|css)$/.test(name));
+          const assets = Object.keys(bundle).filter((name) => /\.(m?js|css)$/.test(name));
           const version = assets.find((name) => name.endsWith(".js")) || "v1";
           const files = ["/", ...assets.map((name) => `/${name}`), "/branding/gateahead-mark-dark.svg", "/branding/gateahead-mark-light.svg", "/favicon.ico"];
           this.emitFile({ type: "asset", fileName: "sw.js", source: `
